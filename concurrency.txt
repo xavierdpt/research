@@ -1,2 +1,5 @@
 https://staff.aist.go.jp/reynald.affeldt/documents/lfm04pre.pdf
 http://jscert.org/
+http://www.chargueraud.org/events/coqpl2016/CoqPL_2016_paper_3.pdf
+https://github.com/tilk/LambdaCert
+http://blog.brownplt.org/2012/06/04/lambdajs-coq.html
