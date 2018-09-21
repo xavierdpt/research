@@ -1,0 +1,147 @@
+\documentclass[a4paper]{article}
+\usepackage[margin=1cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts,amssymb,amsmath}
+\pagestyle{empty}
+\begin{document}
+calculus of communicating systems
+
+processes which have changing structure
+
+communication may carry information which change the linkage
+
+Petri nets, CSP, ACP, CCS are not expressive enough
+
+Hewitt's Actors model lacks some mathematical analysis
+
+$\pi$-calculus : processes pass references to other processes
+
+recent attempts to combine $\lambda$-calculus and process calculi
+
+Engberg and Nielsen extensions to CCS
+
+Example 1: Agent $P$ sends value 5 to agent $R$ on link $a$.
+
+$P=\bar a5.P^\prime$
+
+$R=a(x).R^\prime$
+
+Whole system is $(\bar a5.P^\prime|a(x).R^\prime)\setminus a$
+
+$\setminus a$ is a restriction and indicates that $a$ is private to $P$ and $R$.
+
+Exemple 2: $P$ is connected to $Q$ by a link $b$. It sends both the link $a$ and the value 5 to $Q$. $Q$ receives a link and a value on $b$, and transmit the value along that link. $P$ is initially linked to $R$ with link $a$, but sends that link to $Q$.
+
+This is denoted $(\bar ba.\bar b5.P^\prime|b(y).b(z).\bar yz.0|a(x).R^\prime)\setminus a\setminus b$
+
+This becomes $(P^\prime|\bar a5.0|a(x).R^\prime)\setminus a\setminus b$.
+
+Graphically, the system transitions from a $P$ connected through $b$ to $Q$ and through $a$ to $R$ to a $P^\prime$ connected through $b$ to $Q^\prime$ itself connecte to $R$ through $a$.
+
+Collapse of links, variables, and data into the same type of entity.
+
+$\pi$-calculus deals only with names and agents.
+
+Two CCS operators : restriction and input-prefix.
+
+Restrictoin and input-prefix are both name-binding operators.
+
+Restriction localises the scope of a name.
+
+Input-prefix is similar to abstractoin in the $\lambda$-calculus.
+
+New syntax : $(x)P$ means $P\setminus x$.
+
+Example 2 becomes $(a)(b)(\bar b a.\bar b 5.P^\prime|b(y).b(z).\bar y z.0|a(x).R^\prime)$.
+
+The purpose of communication is to transmit and receive names.
+
+The $\lambda$-calculus aims for universality for functional computation.
+
+The $\pi$-calculus aims for universality for concurrent computation.
+
+Content of paper : examples + important algebraic properties.
+
+Semantics of $\pi$-calculus to be found in another paper.
+
+Equational theory of bisimilarity.
+
+Bisimilarity is preserved by instantiation of names.
+
+The equational theory of weak equality is a direct generalization of the from CCS.
+
+\hrule
+
+\textbf{Section 2}
+
+Names and agents.
+Agents are particular processes.
+Agents have an arity.
+
+Summation of agents: behavior is one of the behavior defined in the summation.
+
+$\bar y x.P$, $y(x).P$, $\tau.P$ : prefix form
+
+$\bar y x$ is a negative prefix, and may be thought of as an output port
+
+$\bar y x.P$ outputs the name $x$ at port $\bar y$ and then behaves like $P$
+
+$y(x)$ is a positive prefix, and may be thought as an input port
+
+$y(x).P$ inputs an arbitrary name at port $y$ and then behaves like $P$, in which $x$ has been substituted with the supplied name.
+
+$P_1|P_2$ : composition of processes acting in parallel
+
+$(x)P$ : restriction : ports $x$ and $\bar x$ are hidden
+
+$[x=y]P$ : behave like P only if $x$ and $y$ are identical
+
+$A(y_1,\dots,y_n)$: Agent which must have a definining equation given somewhere.
+
+Matching is not necessary but adds expressive power.
+
+Free names, $\alpha$-conversion equivalence, vectors of names, notations for substitutions.
+
+In prefixes, left is the subject and right is the object or parameter
+
+Precedence rules.
+
+Summation is last ; composition is before ; restriction/prefix/match are first
+
+Differences from $\lambda$-calculus : parallelism ; names cannot be instantiated to agents
+
+Synchronization of the negative and positive prefixes.
+
+If multiple agents have the same name free, this represents shared knowledge.
+
+A CCS sort contains both names and co-names.
+
+The free names of an agent can grow, because agents can receive new names.
+
+The semantics of $\pi$-calculus is presented as a labelled transition system with structural inference rules, with strong bisimulatoin and strong equivalence which corresponds to strong semantic equality.
+
+\hrule
+\textbf{Section 3}
+
+$\bar x.P^\prime|y(z).Q^\prime|R\to^{\tau}P^\prime|Q^\prime\{x/z\}|R$
+
+$(y)(\bar yx.P^\prime|y(z).Q^\prime)|R\to^{\tau}(y)(P^\prime|Q^\prime\{x/z\})|R$
+
+Provable equation:
+
+$(y)(\bar yx.P^\prime|y(z).Q^\prime)=\tau.(y)(P^\prime|Q^\prime\{x/z\})$
+
+Scope intrusion requires renaming free variables through $\alpha$-conversion.
+
+Process that takes a parameter by reference : Agent passes a private link to another agent.
+
+$(x)(\bar yx.P^\prime|R)|y(z).Q^\prime\to^{\tau}(x)(P^\prime|R|Q^\prime\{x/z\})$
+
+The scope of the restriction must be extended to include both P and Q.
+
+Two transmit two names to either one or the other of the agent requires an indirection with another process which will have a task to perform the delivery.
+
+This idea is the basis for the encoding of data structures as processes.
+
+
+\end{document}
