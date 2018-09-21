@@ -14,3 +14,5 @@ Part1 https://pdfs.semanticscholar.org/5e03/ace8d53fc1d57ecf0dba87deed14fc3e64b5
 Part2 http://www.pld.ttu.ee/~vadim/AIRT/13_pie_calculus_of_mobile_processes_part_2.pdf part2.pdf
 
 https://github.com/coq-contribs/pi-calc
+
+http://adam.chlipala.net/cpdt/html/Coinductive.html
