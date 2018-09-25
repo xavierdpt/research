@@ -1,8 +1,6 @@
 Require Import Coq.Strings.String.
 Require Import Coq.Logic.FunctionalExtensionality.
 
-Search _.
-
 Definition beq_string (x y:string) := if string_dec x y then true else false.
 
 Theorem beq_string_refl : forall s:string, beq_string s s=true.
