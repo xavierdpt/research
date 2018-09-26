@@ -29,11 +29,7 @@ Check that evaluation is deterministic.
 
 -----------------------------------------------------------------------------------------------------------------
 
-Define an inductive type `aexp` for arithmetic expression, with a constructor `ANum` for numbers.
-
-Define an inductive type `bexp`for boolean expressions, with a constructor `BEq` for equality over arithmetic expressions.
-
-Define an evaluation relation `aevalR` over arithmetic expressions and integers. Use E_ANum for the constructor name.
+Module MSkip
 
 Define the concept of `state`, as total maps to integers.
 
@@ -41,6 +37,13 @@ Define an inductive type `com` for commands, with a constructor `CSkip` which sk
 
 Define a relation `ceval` over commands, source states and destination states, with constructor `E_Skip`.
 
+Check that ceval is deterministic, which means that for any commands, if the source states are the same, then the final states must be the same.
 
+Check that all programs in this language do not change the state.
 
+End Module
+
+-----------------------------------------------------------------------------------------------------------------
+
+Module MAssignment
 
