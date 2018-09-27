@@ -222,4 +222,95 @@ apply nm0 in hcs. inversion_clear hcs as [h1 h2].
 apply (IHc2 tmp dst). assumption. assumption.
 Qed.
 
+Fixpoint count_all (c:com) : nat :=
+match c with
+| CSkip => 1
+| CSeq c1 c2 => 1 + count_all(c1) + count_all(c2)
+end.
+
+
+
+Theorem no2 : forall (c:com), count_all c <> 2.
+Proof.
+intros c.
+induction c.
+simpl. intros. trivial.
+intros.
+destruct c1;destruct c2.
+simpl. auto.
+simpl. intro h. inversion h.
+simpl. intro h. inversion h.
+
+simpl in IHc1.
+
+apply nm0 in H0. inversion H0. inversion H1.
+
+simpl. intro h.
+inversion h. clear h.
+apply nm0 in H0. inversion_clear H0.
+inversion H1.
+Qed.
+
+Fixpoint count_seq (c:com) : nat :=
+match c with
+| CSkip => 0
+| CSeq x y => 1 + (count_seq x) + (count_seq y)
+end.
+
+
+Theorem nGt0_npnGt1 : forall n:nat, n>0 -> n+n>1.
+intros n h.
+destruct h. auto. simpl. rewrite plus_comm. simpl.
+clear h.
+induction m. auto. simpl. rewrite plus_comm. simpl.
+apply (gt_trans _ (S(S(m+m))) _).
+auto. assumption.
+Qed.
+
+Theorem youpi : forall (n m:nat), n>0 -> m>0 -> n+m>1.
+unfold gt. unfold lt.
+intros n m hn hm.
+induction hn. simpl.
+Search ( _ <= _ -> _ <= _).
+apply le_n_S. assumption.
+rename m0 into n. destruct hm. simpl. apply (le_trans _ (n+1) _). assumption. auto.
+apply (le_trans _ (n + S m) _). assumption.
+simpl. rewrite plus_comm at 2. simpl. rewrite plus_comm at 1. simpl. auto.
+Qed.
+
+
+Theorem more_skip : forall (c:com), count_skip c > count_seq c.
+induction c.
+simpl. auto.
+simpl.
+destruct (count_skip c1);destruct (count_seq c1);destruct (count_skip c2);destruct (count_seq c2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+{
+simpl.
+rewrite plus_comm.
+rewrite plus_n_Sm.
+rename n0 into m.
+}
+{
+admit.
+}
+try(inversion IHc1);try(inversion IHc2).
+try(inversion IHc1);try(inversion IHc2).
+{
+admit.
+}
+{
+admit.
+}
+
+
 End MSkipAndSeq.
