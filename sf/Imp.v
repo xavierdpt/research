@@ -318,4 +318,48 @@ simpl.
 apply more_skip_helper. assumption. assumption.
 Qed.
 
+Theorem any_skip : forall (n:nat), n<>0 -> exists (c:com), count_skip c = n.
+destruct n. intro h. contradiction.
+intro h. clear h.
+induction n. exists CSkip. simpl. reflexivity.
+inversion IHn.
+exists (CSeq CSkip x ).
+simpl. rewrite H. reflexivity.
+Qed.
+
+Theorem any_seq : forall (n:nat), exists (c:com), count_seq c = n.
+induction n. exists CSkip. simpl. reflexivity.
+inversion IHn. exists (CSeq CSkip x). simpl. rewrite H. reflexivity.
+Qed.
+
+Theorem all1orgt2_helper : forall n m o : nat, o <= n -> o <= m -> o <= n + m.
+intros n m o hon .
+induction hon.
+intro.
+apply (le_trans _ m _). assumption.
+rewrite plus_comm.
+rewrite plus_n_O at 1.
+apply plus_le_compat_l.
+apply le_0_n.
+intro hom. destruct hom. simpl. rename m0 into n.
+apply (le_trans _ (n+o) _). apply IHhon. auto. auto.
+rename m0 into n.
+apply (le_trans _ (n + S m) _).
+apply IHhon. apply (le_trans _ m _). assumption. auto.
+simpl. rewrite plus_comm at 2. simpl. rewrite plus_comm. simpl. auto.
+Qed.
+
+Theorem all1orgt2 : forall (c:com), count_all c = 1 \/ count_all c > 2.
+unfold gt. unfold lt.
+induction c. simpl. left. reflexivity.
+right. inversion IHc1 ; inversion IHc2.
+simpl. rewrite H. rewrite H0. simpl. auto.
+simpl. rewrite H. apply (le_trans _ (count_all c2) _). assumption. simpl. auto.
+simpl. rewrite H0. apply (le_trans _ (count_all c1) _). assumption.
+rewrite plus_comm. simpl. auto.
+simpl. apply (le_trans _ (count_all c1+count_all c2) _).
+apply all1orgt2_helper. assumption. assumption.
+auto.
+Qed.
+
 End MSkipAndSeq.
