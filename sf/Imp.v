@@ -2,6 +2,7 @@ Require Import Coq.Arith.Arith.
 Require Import Coq.Strings.String.
 Require Import Maps.
 Require Import Coq.Logic.FunctionalExtensionality.
+Import Setoid.
 
 Module MSkip.
 
@@ -267,7 +268,7 @@ apply (gt_trans _ (S(S(m+m))) _).
 auto. assumption.
 Qed.
 
-Theorem youpi : forall (n m:nat), n>0 -> m>0 -> n+m>1.
+Theorem nmGtOnpmGt1 : forall (n m:nat), n>0 -> m>0 -> n+m>1.
 unfold gt. unfold lt.
 intros n m hn hm.
 induction hn. simpl.
@@ -278,39 +279,43 @@ apply (le_trans _ (n + S m) _). assumption.
 simpl. rewrite plus_comm at 2. simpl. rewrite plus_comm at 1. simpl. auto.
 Qed.
 
+Theorem more_skip_helper : forall (n m o p : nat), n > S o -> m > S p -> n + m > S(S o + S p).
+unfold gt. unfold lt.
+intros n m o p.
+intros hon.
+induction hon. simpl. intros.
+Search (_ <= _ -> S _ <= S _).
+apply le_n_S. apply le_n_S.
+rewrite plus_n_Sm.
+Search ( _ <= _ -> _ + _ <= _ + _ ).
+apply plus_le_compat_l. assumption.
+simpl. intros.
+rename m0 into q.
+simpl in IHhon.
+apply (le_trans _ (q+m) _).
+apply IHhon. assumption.
+rewrite plus_n_Sm.
+apply plus_le_compat_l. auto.
+Qed.
+
 
 Theorem more_skip : forall (c:com), count_skip c > count_seq c.
 induction c.
 simpl. auto.
 simpl.
-destruct (count_skip c1);destruct (count_seq c1);destruct (count_skip c2);destruct (count_seq c2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-{
+destruct c1;destruct c2.
+simpl. auto.
+simpl. simpl in IHc1. simpl in IHc2.
+rename c2_1 into a. rename c2_2 into b.
+Search (_ > _ -> S _ > S _). apply gt_n_S. assumption.
+simpl. simpl in IHc1. simpl in IHc2.
+rewrite plus_comm at 1. simpl. apply gt_n_S.
+Search ( _ + 0).
+rewrite <- plus_n_O. assumption.
+rename c1_1 into a. rename c1_2 into b. rename c2_1 into c. rename c2_2 into d.
+simpl in IHc1. simpl in IHc2.
 simpl.
-rewrite plus_comm.
-rewrite plus_n_Sm.
-rename n0 into m.
-}
-{
-admit.
-}
-try(inversion IHc1);try(inversion IHc2).
-try(inversion IHc1);try(inversion IHc2).
-{
-admit.
-}
-{
-admit.
-}
-
+apply more_skip_helper. assumption. assumption.
+Qed.
 
 End MSkipAndSeq.
