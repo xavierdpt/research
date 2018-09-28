@@ -363,3 +363,104 @@ auto.
 Qed.
 
 End MSkipAndSeq.
+
+Module MSkipSeqAss.
+
+Definition state := partial_map nat.
+
+Inductive com : Type :=
+| CSkip : com
+| CAss : string -> nat -> com
+| CSeq : com -> com -> com
+.
+
+Inductive ceval : com -> state -> state -> Prop :=
+| E_Skip : forall s:state, ceval CSkip s s
+| E_Ass : forall (s:state) (id:string) (n:nat), ceval (CAss id n) s (update s id n)
+| E_Seq : forall (src tmp dst:state) (c1 c2:com), ceval c1 src tmp -> ceval c2 tmp dst -> ceval (CSeq c1 c2) src dst
+.
+
+Fixpoint count_skip (c:com) : nat :=
+match c with
+| CSkip => 1
+| CAss _ _ => 0
+| CSeq x y => (count_skip x) + (count_skip y)
+end.
+
+Theorem no_skip_ass : forall (c:com) (src dst:state),
+ceval c src dst ->
+count_skip c = 0 ->
+exists (s:string) (n:nat), dst s = Some n.
+Proof.
+intros c src dst.
+generalize dependent dst.
+generalize dependent src.
+induction c.
+simpl. intros. inversion H0.
+simpl. intros. inversion H. subst s0 n0 s. exists id, n.
+unfold update. unfold t_update. rewrite beq_string_refl. reflexivity.
+simpl. intros.
+apply MSkipAndSeq.nm0 in H0. inversion_clear H0.
+inversion H. subst c0 c3 src0 dst0.
+specialize (IHc2 tmp dst H7 H2).
+inversion IHc2. inversion H0.
+rename x into id. rename x0 into n.
+exists id. exists n.
+assumption.
+Qed.
+
+Fixpoint count_seq (c:com) : nat :=
+match c with
+| CSkip => 0
+| CAss _ _ => 0
+| CSeq x y => (count_seq x)+(count_seq y)+1
+end.
+
+Theorem if_ass_then_unique : forall (c:com) (src dst:state) (s:string) (n:nat),
+count_seq c = 0 ->
+ceval c src dst ->
+(forall s:string, src s = None) ->
+dst s = Some n ->
+(forall (s':string) (n':nat), dst s' = Some n' -> s=s' /\ n=n').
+Proof.
+intros c src dst.
+generalize dependent dst.
+generalize dependent src.
+induction c as [ | id n | ].
+{
+  simpl.
+  intros src dst id n oo heval hnone hidn id' n' hidn'.
+  (* cleanup *) clear oo.
+  inversion heval as [ src' skipeq srceq srcdsteq | | ].
+  (* cleanup *) clear heval skipeq. subst dst. subst src'. clear hidn'.
+  (* more cleanup *) apply False_ind. clear id' n'.
+  rewrite (hnone id) in hidn.
+  inversion hidn.
+}
+{
+  simpl.
+  intros src dst id' n' oo heval hnone hidn' id'' n'' hidn''.
+  (* cleanup *) clear oo.
+  inversion heval as [ | src' id''' n''' ideq neq sind | ].
+  subst id''' n'''.
+  subst src'.
+  rewrite <- sind in hidn'.
+  rewrite <- sind in hidn''.
+  (* cleanup *) clear sind.
+  unfold update in hidn', hidn''.
+  unfold t_update in hidn', hidn''.
+  unfold beq_string in hidn', hidn''.
+  destruct (string_dec id id');destruct (string_dec id id'').
+  - inversion hidn''. subst n''. inversion hidn'. subst n'. subst id''. subst id'. split;reflexivity.
+  - rewrite (hnone id'') in hidn''. inversion hidn''.
+  - rewrite (hnone id') in hidn'. inversion hidn'.
+  - rewrite (hnone id') in hidn'. inversion hidn'.
+}
+{
+  simpl.
+  intros src dst id n cso heval hnone hidn id' n' hidn'.
+  apply MSkipAndSeq.nm0 in cso. inversion cso as [l r]. inversion r.
+}
+Qed.
+
+End MSkipSeqAss.
