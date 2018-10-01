@@ -718,8 +718,894 @@ Proof. reflexivity. Qed.
 Example test_rev2: rev nil = nil.
 Proof. reflexivity. Qed.
 
+Theorem app_length : forall la lb : natlist,
+  length (app la lb) = (length la) + (length lb).
+Proof.
+induction la. reflexivity.
+intro lb. simpl. rewrite IHla. reflexivity.
+Qed.
 
+Theorem rev_length : forall l : natlist,
+  length (rev l) = length l.
+Proof.
+induction l. reflexivity.
+simpl. rewrite app_length. simpl. rewrite IHl. simpl.
+rewrite Induction.plus_comm. simpl. reflexivity.
+Qed.
+
+Theorem app_nil_r : forall l : natlist,
+  app l nil = l.
+Proof.
+induction l. reflexivity.
+simpl. rewrite IHl. reflexivity.
+Qed.
+
+Theorem rev_app_distr: forall la lb : natlist,
+  rev (app la lb) = app (rev lb) (rev la).
+Proof.
+induction la.
+- simpl. intro lb. rewrite app_nil_r. reflexivity.
+- intro lb. simpl. rewrite IHla. rewrite app_assoc. reflexivity.
+Qed.
+
+Theorem rev_involutive : forall l : natlist, rev (rev l) = l.
+Proof.
+induction l. reflexivity.
+simpl. rewrite rev_app_distr. rewrite IHl. simpl. reflexivity.
+Qed.
+
+Theorem app_assoc4 : forall la lb lc ld : natlist,
+  app la (app lb (app lc ld)) = app (app (app la lb) lc) ld.
+Proof.
+induction la. intros lb lc ld. simpl. rewrite app_assoc. reflexivity.
+intros lb lc ld. simpl. rewrite (IHla lb lc ld). reflexivity.
+Qed.
+
+Lemma nonzeros_app : forall la lb : natlist,
+  nonzeros (app la lb) = app (nonzeros la) (nonzeros lb).
+Proof.
+induction la. simpl. reflexivity.
+intro lb. destruct n. simpl. rewrite IHla. reflexivity.
+simpl. rewrite IHla. reflexivity.
+Qed.
+
+Fixpoint beq_nat (a b:nat) : bool :=
+match a, b with
+| O, O => true
+| O, S _ => false
+| S _, O => false
+| S a', S b' => beq_nat a' b'
+end.
+
+Theorem beq_nat_refl : forall n:nat, beq_nat n n = true.
+Proof.
+induction n.
+- reflexivity.
+- simpl. assumption.
+Qed.
+
+Fixpoint beq_natlist (la lb : natlist) : bool :=
+match la, lb with
+| nil, nil => true
+| cons _ _, nil => false
+| nil, cons _ _ => false
+| cons ha ta, cons hb tb => if beq_nat ha hb then beq_natlist ta tb else false
+end.
+
+Example test_beq_natlist1 :
+  (beq_natlist nil nil = true).
+Proof. reflexivity. Qed.
+
+Example test_beq_natlist2 :
+  beq_natlist (cons 1 (cons 2 (cons 3 nil))) (cons 1 (cons 2 (cons 3 nil))) = true.
+Proof. reflexivity. Qed.
+
+Example test_beq_natlist3 :
+  beq_natlist (cons 1 (cons 2 (cons 3 nil))) (cons 1 (cons 2 (cons 4 nil))) = false.
+Proof. reflexivity. Qed.
+
+Theorem beq_natlist_refl : forall l:natlist,
+  true = beq_natlist l l.
+Proof.
+induction l.
+- reflexivity.
+- rewrite IHl. simpl. rewrite beq_nat_refl. reflexivity.
+Qed.
+
+Theorem count_member_nonzero : forall (s : bag),
+  Nat.leb 1 (count 1 (cons 1 s)) = true.
+Proof.
+induction s.
+- reflexivity.
+- reflexivity.
+Qed.
+
+Theorem ble_n_Sn : forall n,
+  Nat.leb n (S n) = true.
+Proof.
+induction n.
+- reflexivity.
+- simpl. assumption.
+Qed.
+
+Theorem remove_does_not_increase_count: forall (s : bag),
+  Nat.leb (count 0 (remove_one 0 s)) (count 0 s) = true.
+(* Stuck ; maybe something's wrong *) Admitted.
+
+Theorem rev_injective : forall (la lb : natlist), rev la = rev lb -> la = lb.
+Proof.
+induction la.
+- simpl. intros.
+Search "rev".
+rewrite <- rev_involutive.
+rewrite <- H. simpl. reflexivity.
+- intros. rewrite <- rev_involutive. rewrite <- H. rewrite rev_involutive. reflexivity.
+Qed.
+
+Inductive natoption : Type :=
+  | Some : nat -> natoption
+  | None : natoption.
+
+Fixpoint nth_error (l:natlist) (n:nat) : natoption :=
+  match l with
+  | nil => None
+  | cons a l' => if beq_nat n O then Some a else nth_error l' (pred n)
+  end.
+
+Example test_nth_error1 : nth_error (cons 4 (cons 5 (cons 6 (cons 7 nil)))) 0 = Some 4.
+Proof. reflexivity. Qed.
+
+Example test_nth_error2 : nth_error (cons 4 (cons 5 (cons 6 (cons 7 nil)))) 3 = Some 7.
+Proof. reflexivity. Qed.
+
+Example test_nth_error3 : nth_error (cons 4 (cons 5 (cons 6 (cons 7 nil)))) 9 = None.
+Proof. reflexivity. Qed.
+
+Definition option_elim (d : nat) (o : natoption) : nat :=
+  match o with
+  | Some n' => n'
+  | None => d
+  end.
+
+Definition hd_error (l : natlist) : natoption :=
+match l with
+| nil => None
+| cons h t => Some h
+end.
+
+Example test_hd_error1 : hd_error nil = None.
+Proof. reflexivity. Qed.
+
+Example test_hd_error2 : hd_error (cons 1 nil) = Some 1.
+Proof. reflexivity. Qed.
+
+Example test_hd_error3 : hd_error (cons 5 (cons 6 nil)) = Some 5.
+Proof. reflexivity. Qed.
+
+Theorem option_elim_hd : forall (l:natlist) (default:nat),
+  hd default l = option_elim default (hd_error l).
+Proof.
+induction l.
+reflexivity.
+reflexivity.
+Qed.
+
+Inductive id : Type :=
+  | Id : nat -> id.
+
+Definition beq_id (x1 x2 : id) :=
+  match x1, x2 with
+  | Id n1, Id n2 => beq_nat n1 n2
+  end.
+
+Theorem beq_id_refl : forall x, true = beq_id x x.
+Proof.
+intro id. destruct id.
+simpl. rewrite beq_nat_refl. reflexivity.
+Qed.
+
+Module PartialMap.
+
+Inductive partial_map : Type :=
+  | empty : partial_map
+  | record : id -> nat -> partial_map -> partial_map.
+
+Definition update (d : partial_map)
+                  (x : id) (value : nat)
+                  : partial_map :=
+  record x value d.
+
+Fixpoint find (x : id) (d : partial_map) : natoption :=
+  match d with
+  | empty => None
+  | record y v d' => if beq_id x y
+                     then Some v
+                     else find x d'
+  end.
+
+Theorem update_eq :
+  forall (d : partial_map) (x : id) (v: nat),
+    find x (update d x v) = Some v.
+Proof.
+simpl. intros. rewrite <- beq_id_refl. reflexivity.
+Qed.
+
+Theorem update_neq :
+  forall (d : partial_map) (x y : id) (o: nat),
+    beq_id x y = false -> find x (update d y o) = find x d.
+Proof.
+intros. simpl. rewrite H. reflexivity.
+Qed.
+
+End PartialMap.
 
 End Lists.
+
+Module Poly.
+
+Inductive list (X:Type) : Type :=
+  | nil : list X
+  | cons : X -> list X -> list X.
+Arguments nil {X}.
+Arguments cons {X} _ _.
+
+Fixpoint repeat {X:Type} (x:X) (count:nat) : list X :=
+  match count with
+  | 0 => nil
+  | S count' => cons x (repeat x count')
+  end.
+
+Example test_repeat1 :
+  repeat 4 2 = cons 4 (cons 4 nil).
+Proof. reflexivity. Qed.
+
+Example test_repeat2 :
+  repeat false 1 = cons false nil .
+Proof. reflexivity. Qed.
+
+Fixpoint app {X : Type} (l1 l2 : list X)
+             : (list X) :=
+  match l1 with
+  | nil => l2
+  | cons h t => cons h (app t l2)
+  end.
+
+Fixpoint rev {X:Type} (l:list X) : list X :=
+  match l with
+  | nil => nil
+  | cons h t => app (rev t) (cons h nil)
+  end.
+
+Fixpoint length {X : Type} (l : list X) : nat :=
+  match l with
+  | nil => 0
+  | cons _ l' => S (length l')
+  end.
+
+Example test_rev1 :
+  rev (cons 1 (cons 2 nil)) = (cons 2 (cons 1 nil)).
+Proof. reflexivity. Qed.
+
+Example test_rev2:
+  rev (cons true nil) = cons true nil.
+Proof. reflexivity. Qed.
+
+Example test_length1: length (cons 1 (cons 2 (cons 3 nil))) = 3.
+Proof. reflexivity. Qed.
+
+Theorem app_nil_r : forall (X:Type), forall l:list X,
+  app l nil = l.
+Proof.
+induction l. reflexivity. simpl. rewrite IHl. reflexivity.
+Qed.
+
+Theorem app_assoc : forall A (l m n:list A),
+  app l (app m n) = app (app l m) n.
+Proof.
+induction l. reflexivity.
+intros. simpl. rewrite IHl. reflexivity.
+Qed.
+
+Lemma app_length : forall (X:Type) (l1 l2 : list X),
+  length (app l1 l2) = length l1 + length l2.
+Proof.
+intros X la.
+induction la.
+reflexivity.
+intros lb.
+simpl. rewrite IHla. reflexivity.
+Qed.
+
+Theorem rev_app_distr: forall X (l1 l2 : list X),
+  rev (app l1 l2) = app (rev l2) (rev l1).
+Proof.
+intros X la.
+induction la. intro lb. simpl. rewrite app_nil_r. reflexivity.
+simpl. intro lb.
+specialize (IHla lb).
+rewrite IHla. rewrite app_assoc. reflexivity.
+Qed.
+
+Theorem rev_involutive : forall X : Type, forall l : list X,
+  rev (rev l) = l.
+Proof.
+intros X.
+induction l. reflexivity.
+simpl. rewrite rev_app_distr. rewrite IHl. simpl. reflexivity.
+Qed.
+
+Inductive prod (X Y : Type) : Type :=
+| pair : X -> Y -> prod X Y.
+
+Arguments pair {X} {Y} _ _.
+
+Definition fst {X Y : Type} (p : prod X Y) : X :=
+  match p with
+  | pair x y => x
+  end.
+
+Definition snd {X Y : Type} (p : prod X Y) : Y :=
+  match p with
+  | pair x y => y
+  end.
+
+Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
+           : list (prod X Y) :=
+  match lx, ly with
+  | nil, _ => nil
+  | _, nil => nil
+  | cons x tx, cons y ty => cons (pair x y) (combine tx ty)
+  end.
+
+Fixpoint split {X Y : Type} (l : list (prod X Y))
+               : prod (list X) (list Y) :=
+match l with
+| nil => pair nil nil
+| cons (pair x y) t => let tp := split t in (pair (cons x (fst tp)) (cons y (snd tp)))
+end.
+
+Example test_split:
+  split (cons (pair 1 false) (cons (pair 2 false) nil)) = pair (cons 1 (cons 2 nil)) (cons false (cons false nil)).
+Proof. reflexivity. Qed.
+
+Fixpoint nth_error {X : Type} (l : list X) (n : nat) : option X :=
+  match l with
+  | nil => None
+  | cons a l' => if Lists.beq_nat n O then Some a else nth_error l' (pred n)
+  end.
+
+Example test_nth_error1 : nth_error (cons 4 (cons 5 (cons 6 (cons 7 nil)))) 0 = Some 4.
+Proof. reflexivity. Qed.
+
+Example test_nth_error2 : nth_error (cons (cons 1 nil) (cons (cons 2 nil) nil)) 1 = Some (cons 2 nil).
+Proof. reflexivity. Qed.
+
+Example test_nth_error3 : nth_error (cons true nil) 2 = None.
+Proof. reflexivity. Qed.
+
+Definition hd_error {X : Type} (l : list X) : option X :=
+match l with
+| nil => None
+| cons h t => Some h
+end.
+
+Example test_hd_error1 : hd_error (cons 1 (cons 2 nil)) = Some 1.
+Proof. reflexivity. Qed.
+
+Example test_hd_error2 : hd_error (cons (cons 1 nil) (cons (cons 2 nil) nil)) = Some (cons 1 nil).
+Proof. reflexivity. Qed.
+
+Definition doit3times {X:Type} (f:X->X) (n:X) : X :=
+  f (f (f n)).
+
+Example test_doit3times: doit3times Basics.minustwo 9 = 3.
+Proof. reflexivity. Qed.
+
+Example test_doit3times': doit3times negb true = false.
+Proof. reflexivity. Qed.
+
+Fixpoint filter {X:Type} (test: X->bool) (l:list X)
+                : (list X) :=
+  match l with
+  | nil => nil
+  | cons h t => if test h then cons h (filter test t)
+                        else filter test t
+  end.
+
+Definition evenb (n:nat) := if Basics.evenb n then true else false.
+
+Example test_filter1: filter evenb (cons 1 (cons 2 (cons 3 (cons 4 nil)))) = (cons 2 (cons 4 nil)).
+Proof. reflexivity. Qed.
+
+Definition length_is_1 {X : Type} (l : list X) : bool :=
+  Lists.beq_nat (length l) 1.
+
+Example test_filter2:
+let l1 := (cons 1 (cons 2 nil)) in
+let l2 := (cons 3 nil) in
+let l3 := (cons 4 nil) in
+let l4 := (cons 5 (cons 6 (cons 7 nil))) in
+let l5 := @nil nat in
+let l6 := (cons 8 nil) in
+filter length_is_1 (cons l1 (cons l2 (cons l3 (cons l4 (cons l5 (cons l6 nil))))))
+ = (cons l2 (cons l3 (cons l6 nil))).
+Proof. reflexivity. Qed.
+
+Definition oddb (n:nat) : bool := if Basics.oddb n then true else false.
+
+Definition countoddmembers' (l:list nat) : nat :=
+  length (filter oddb l).
+
+Example test_countoddmembers'1: countoddmembers' (cons 1 (cons 0 (cons 3 (cons 1 (cons 4 (cons 5 nil)))))) = 4.
+Proof. reflexivity. Qed.
+
+Example test_countoddmembers'2: countoddmembers' (cons 0 (cons 2 (cons 4 nil))) = 0.
+Proof. reflexivity. Qed.
+
+Example test_countoddmembers'3: countoddmembers' nil = 0.
+Proof. reflexivity. Qed.
+
+Example test_anon_fun':
+  doit3times (fun n => n * n) 2 = 256.
+Proof. reflexivity. Qed.
+
+Example test_filter2':
+let l1 := (cons 1 (cons 2 nil)) in
+let l2 := (cons 3 nil) in
+let l3 := (cons 4 nil) in
+let l4 := (cons 5 (cons 6 (cons 7 nil))) in
+let l5 := @nil nat in
+let l6 := (cons 8 nil) in
+    filter (fun l => Lists.beq_nat (length l) 1)
+           (cons l1 (cons l2 (cons l3 (cons l4 (cons l5 (cons l6 nil))))))
+  = (cons l2 (cons l3 (cons l6 nil))).
+Proof. reflexivity. Qed.
+
+Fixpoint map {X Y: Type} (f:X->Y) (l:list X) : (list Y) :=
+  match l with
+  | nil => nil
+  | cons h t => cons (f h) (map f t)
+  end.
+
+Theorem map_app_distr : forall (X Y : Type) (f : X -> Y) (l m : list X),
+map f (app l m) = app (map f l) (map f m).
+intros X Y f.
+induction l. reflexivity.
+intros m. simpl.
+rewrite IHl. reflexivity.
+Qed.
+
+Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
+  map f (rev l) = rev (map f l).
+Proof.
+intros X Y f.
+induction l.
+- reflexivity.
+- simpl.
+rewrite map_app_distr.
+rewrite <- IHl.
+simpl. reflexivity. 
+Qed.
+
+Fixpoint fold {X Y: Type} (f: X->Y->Y) (l: list X) (b: Y) : Y :=
+  match l with
+  | nil => b
+  | cons h t => f h (fold f t b)
+  end.
+
+Definition fold_length {X : Type} (l : list X) : nat :=
+  fold (fun _ n => S n) l 0.
+
+Theorem fold_length_correct : forall X (l : list X),
+  fold_length l = length l.
+Proof.
+intros X.
+induction l. reflexivity.
+simpl. rewrite <- IHl.
+unfold fold_length at 1. simpl. unfold fold_length at 1. reflexivity.
+Qed.
+
+Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y.
+Admitted.
+
+Theorem fold_map_correct : False.
+Admitted.
+
+Definition prod_curry {X Y Z : Type}
+  (f : (prod X Y) -> Z) (x : X) (y : Y) : Z := f (pair x y).
+
+Definition prod_uncurry {X Y Z : Type}
+  (f : X -> Y -> Z) (p : prod X Y) : Z := f (fst p) (snd p).
+
+Theorem uncurry_curry : forall (X Y Z : Type)
+                        (f : X -> Y -> Z)
+                        x y,
+  prod_curry (prod_uncurry f) x y = f x y.
+Proof.
+intros X Y Z f x y.
+unfold prod_curry, prod_uncurry.
+simpl. reflexivity.
+Qed.
+
+Theorem curry_uncurry : forall (X Y Z : Type)
+                        (f : (prod X Y) -> Z) (p : prod X Y),
+  prod_uncurry (prod_curry f) p = f p.
+Proof.
+intros X Y Z f p.
+destruct p. unfold prod_uncurry, prod_curry. simpl. reflexivity.
+Qed.
+
+Theorem nth_error_toofar : forall X n l, length l = n -> @nth_error X l n = None.
+intros X n l. generalize dependent n. induction l.
+simpl. reflexivity.
+intros n heq.
+simpl in heq. destruct n. inversion heq.
+inversion heq. specialize (IHl n H0).
+simpl. rewrite H0. assumption.
+Qed.
+
+Module Church.
+Definition nat := forall X : Type, (X -> X) -> X -> X.
+
+Definition one : nat :=
+  fun (X : Type) (f : X -> X) (x : X) => f x.
+
+Definition two : nat :=
+  fun (X : Type) (f : X -> X) (x : X) => f (f x).
+
+Definition three : nat :=
+  fun (X : Type) (f : X -> X) (x : X) => f(f (f x)).
+
+Definition zero : nat :=
+  fun (X : Type) (f : X -> X) (x : X) => x.
+
+Definition succ (n : nat) : nat := fun (X : Type) (f : X -> X) (x : X) => f(n X f x).
+
+
+Example succ_1 : succ zero = one.
+Proof. reflexivity. Qed.
+
+Example succ_2 : succ one = two.
+Proof. reflexivity. Qed.
+
+Example succ_3 : succ two = three.
+Proof. reflexivity. Qed.
+
+Definition plus (n m : nat) : nat :=
+fun (X : Type) (f : X -> X) (x : X) => (m X f (n X f x)).
+
+Example plus_1 : plus zero one = one.
+Proof. reflexivity. Qed.
+
+Example plus_2 : plus two three = plus three two.
+Proof. reflexivity. Qed.
+
+Example plus_3 :
+  plus (plus two two) three = plus one (plus three three).
+Proof. reflexivity. Qed.
+
+End Church.
+
+(* Multiplication and exponentiation skipped *)
+
+End Poly.
+
+Module Tactics.
+
+Theorem silly1 : forall (n m o p : nat),
+     n = m ->
+     (cons n (cons o nil)) = (cons n (cons p nil)) ->
+     (cons n (cons o nil)) = (cons m (cons p nil)).
+Proof.
+intros. subst m. assumption.
+Qed.
+
+Theorem silly2 : forall (n m o p : nat),
+     n = m ->
+     (forall (q r : nat), q = r -> (cons q (cons o nil)) = (cons r (cons p nil))) ->
+     (cons n (cons o nil)) = (cons m (cons p nil)).
+Proof.
+intros.
+subst m. apply H0. reflexivity.
+Qed.
+
+Theorem silly2a : forall (n m : nat),
+     (pair n n) = (pair m m) ->
+     (forall (q r : nat), (pair q q) = (pair r r) -> (cons q nil) = (cons r nil)) ->
+     (cons n nil) = (cons m nil).
+Proof.
+intros n m. intro heq. inversion heq. subst m. clear heq H1.
+intro h. apply h. reflexivity.
+Qed.
+
+Search "beq_nat".
+
+Theorem silly3_firsttry : forall (n : nat),
+     true = Lists.beq_nat n 5 ->
+     Lists.beq_nat (S (S n)) 7 = true.
+Proof.
+intros n h. symmetry. simpl. apply h.
+Qed.
+
+Theorem rev_exercise1 : forall (l l' : Poly.list nat),
+     l = Poly.rev l' ->
+     l' = Poly.rev l.
+Proof.
+intros l l' h.
+subst l. rewrite Poly.rev_involutive. reflexivity.
+Qed.
+
+Example trans_eq_example : forall (a b c d e f : nat),
+(cons a (cons b nil)) = (cons c (cons d nil)) ->
+(cons c (cons d nil)) = (cons e (cons f nil)) ->
+(cons a (cons b nil)) = (cons e (cons f nil)).
+Proof.
+intros. rewrite H. rewrite H0. reflexivity.
+Qed.
+
+Theorem trans_eq : forall (X:Type) (n m o : X),
+  n = m -> m = o -> n = o.
+Proof.
+intros. rewrite H. rewrite H0. reflexivity.
+Qed.
+
+Example trans_eq_example' : forall (a b c d e f : nat),
+(cons a (cons b nil)) = (cons c (cons d nil)) ->
+(cons c (cons d nil)) = (cons e (cons f nil)) ->
+(cons a (cons b nil)) = (cons e (cons f nil)).
+Proof.
+intros. eapply trans_eq. eassumption. eassumption.
+Qed.
+
+Search "minustwo".
+
+Example trans_eq_exercise : forall (n m o p : nat),
+     m = (Basics.minustwo o) ->
+     (n + p) = m ->
+     (n + p) = (Basics.minustwo o).
+Proof.
+intros.
+subst m. assumption.
+Qed.
+
+Theorem S_injective : forall (n m : nat),
+  S n = S m ->
+  n = m.
+Proof.
+intros.
+inversion H. reflexivity.
+Qed.
+
+Theorem inversion_ex1 : forall (n m o : nat),
+  (cons n (cons m nil)) = (cons o (cons o nil)) ->
+  (cons n nil) = (cons m nil).
+Proof.
+intros. inversion H. reflexivity.
+Qed.
+
+Example inversion_ex3 : forall (X : Type) (x y z w : X) (l j : list X),
+  (cons x (cons y  l)) = (cons w (cons z  j)) ->
+  (cons x l) = (cons z j) ->
+  x = y.
+Proof.
+intros.
+inversion H0. subst j. subst z.
+inversion H. reflexivity.
+Qed.
+
+Theorem beq_nat_0_l : forall n,
+   Lists.beq_nat 0 n = true -> n = 0.
+Proof.
+intros.
+destruct n. reflexivity. simpl in H. inversion H.
+Qed.
+
+Example inversion_ex6 : forall (X : Type)
+                          (x y z : X) (l j : list X),
+  (cons x (cons y l)) = nil ->
+  cons y l = cons z j ->
+  x = z.
+Proof.
+intros. inversion H. Qed.
+
+Theorem f_equal : forall (A B : Type) (f: A -> B) (x y: A),
+  x = y -> f x = f y.
+Proof.
+intros. subst y. reflexivity.
+Qed.
+
+Theorem S_inj : forall (n m : nat) (b : bool),
+     Lists.beq_nat (S n) (S m) = b ->
+     Lists.beq_nat n m = b.
+Proof.
+intros.
+simpl in H. assumption.
+Qed.
+
+Theorem plus_n_n_injective : forall n m,
+     n + n = m + m ->
+     n = m.
+Proof.
+induction n. destruct m. reflexivity. simpl. intro h;inversion h.
+destruct m. simpl. intro h;inversion h.
+simpl. intro h.
+inversion h. clear h.
+Search "plus_comm".
+rewrite Induction.plus_comm in H0 . simpl in H0.
+symmetry in H0.
+rewrite Induction.plus_comm in H0. simpl in H0. inversion H0.
+specialize (IHn m). symmetry in H1. specialize (IHn H1). subst m. reflexivity.
+Qed.
+
+Definition double := Induction.double.
+
+Theorem double_injective: forall n m,
+      double n = double m -> n = m.
+intro n. induction n.
+simpl. destruct m. reflexivity. simpl. intro h;inversion h.
+intros m h.
+simpl in h.
+destruct m. inversion h.
+simpl in h. inversion h.
+specialize (IHn m H0). subst m. reflexivity.
+Qed.
+
+Theorem beq_nat_true : forall n m,
+    Lists.beq_nat n m = true -> n = m.
+induction n. destruct m. reflexivity. simpl. intro h;inversion h.
+simpl. destruct m. intro h;inversion h.
+intro h.
+rewrite (IHn m h). reflexivity.
+Qed.
+
+Theorem beq_id_true : forall x y,
+  Lists.beq_id x y = true -> x = y.
+Proof.
+  intros [m] [n]. simpl. intros H.
+  assert (H' : m = n). { apply beq_nat_true. apply H. }
+  rewrite H'. reflexivity.
+Qed.
+
+Theorem nth_error_after_last: forall (n : nat) (X : Type) (l : Poly.list X),
+     Poly.length l = n ->
+     Poly.nth_error l n = None.
+intros n X l.
+generalize dependent n.
+induction l.
+simpl. reflexivity.
+intros n h.
+simpl. destruct n. simpl. simpl in h. inversion h.
+simpl in h.
+inversion h. clear h.
+simpl.
+rewrite H0. apply IHl. assumption.
+Qed.
+
+Definition square n := n * n.
+
+Lemma square_mult : forall n m, square (n * m) = square n * square m.
+Proof.
+  intros n m.
+unfold square.
+Admitted.
+
+Fixpoint split {X Y : Type} (l : Poly.list (Poly.prod X Y))
+               : prod (Poly.list X) (Poly.list Y) :=
+  match l with
+  | Poly.nil => pair Poly.nil Poly.nil
+  | Poly.cons (Poly.pair x y) t =>
+      match split t with
+      | pair lx ly => pair (Poly.cons x lx) (Poly.cons y ly)
+      end
+  end.
+
+Search "combine".
+
+Theorem combine_split : forall X Y (l : Poly.list (Poly.prod X Y)) l1 l2,
+  split l = pair l1 l2 ->
+  Poly.combine l1 l2 = l.
+Proof.
+intros X Y.
+induction l.
+simpl. intros. inversion H. simpl. reflexivity.
+intros.
+destruct l1;destruct l2.
+{
+simpl in H. destruct x. destruct (split l). inversion H.
+}
+{
+simpl in H. destruct x. destruct (split l). inversion H.
+}
+{
+simpl in H. destruct x. destruct (split l). inversion H.
+}
+{
+simpl in H. destruct x. destruct (split l). inversion H.
+simpl. rewrite IHl. reflexivity.
+subst l2. subst y0. subst l1. subst x0. reflexivity.
+}
+Qed.
+
+Theorem bool_fn_applied_thrice :
+  forall (f : bool -> bool) (b : bool),
+  f (f (f b)) = f b.
+Proof.
+intros.
+destruct (f true) eqn:eqt;destruct (f false) eqn:eqf;destruct b eqn:eqb.
+rewrite eqt. rewrite eqt. rewrite eqt. reflexivity.
+rewrite eqf. rewrite eqt. rewrite eqt. reflexivity.
+rewrite eqt. rewrite eqt. rewrite eqt. reflexivity.
+rewrite eqf. rewrite eqf. rewrite eqf. reflexivity.
+rewrite eqt. rewrite eqf. rewrite eqt. reflexivity.
+rewrite eqf. rewrite eqt. rewrite eqf. reflexivity.
+rewrite eqt. rewrite eqf. rewrite eqf. reflexivity.
+rewrite eqf. rewrite eqf. rewrite eqf. reflexivity.
+Qed.
+
+Theorem beq_nat_sym : forall (n m : nat),
+  Lists.beq_nat n m = Lists.beq_nat m n.
+induction n. destruct m. reflexivity. simpl. reflexivity.
+destruct m. simpl. reflexivity.
+simpl. rewrite IHn. reflexivity.
+Qed.
+
+Theorem beq_nat_trans : forall n m p,
+  Lists.beq_nat n m = true ->
+  Lists.beq_nat m p = true ->
+  Lists.beq_nat n p = true.
+Proof.
+induction n.
+intros.
+destruct p. reflexivity. destruct m. simpl in H0. inversion H0. simpl in H. inversion H.
+intros.
+simpl. destruct p. destruct m. simpl in H. inversion H. simpl in H0. inversion H0.
+destruct m. simpl in H. inversion H.
+apply (IHn m).
+simpl in H. assumption. simpl in H0. assumption.
+Qed.
+
+Theorem filter_exercise : forall (X : Type) (test : X -> bool)
+                             (x : X) (l lf : Poly.list X),
+     Poly.filter test l = Poly.cons x lf ->
+     test x = true.
+Proof.
+intros X t x.
+induction l.
+simpl. intros. inversion H.
+simpl. intros.
+destruct (t x0) eqn:teq.
+{
+inversion H. subst x0. assumption.
+}
+{
+eapply IHl. eassumption.
+}
+Qed.
+
+Fixpoint forallb {A:Type} (l:list A) (p:A->bool) :=
+match l with
+| nil => true
+| cons h t => if p h then forallb t p else false
+end.
+
+Fixpoint existsb {A:Type} (l:list A) (p:A->bool) :=
+match l with
+| nil => false
+| cons h t => if p h then true else existsb t p
+end.
+
+Definition existsb' {A:Type} (l:list A) (p:A->bool) := negb (forallb l p).
+
+Theorem existsb_existsb' : forall (A:Type) (l:list A) (p:A->bool), existsb l p = existsb' l p.
+induction l.
+simpl. intro p. unfold existsb'. simpl. reflexivity.
+intro p.
+specialize (IHl p).
+simpl. unfold existsb'. simpl.
+destruct l.
+rewrite IHl.
+unfold existsb'. simpl.
+
+End Tactics.
 
 End V1.
