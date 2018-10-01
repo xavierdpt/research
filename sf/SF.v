@@ -1,3 +1,4 @@
+Require Import Coq.Setoids.Setoid.
 
 Module V1.
 
@@ -1770,6 +1771,96 @@ left;assumption.
 right;split;assumption.
 Qed.
 
-End Logic.
+Lemma mult_0 : forall n m, n * m = 0 <-> n = 0 \/ m = 0.
+destruct n;destruct m.
+simpl. split. intros. left. reflexivity. intro. reflexivity.
+simpl. split. intros. left. reflexivity. intros. reflexivity.
+simpl. split. intros. right. reflexivity. intros. clear H. induction n. simpl. reflexivity. simpl. assumption.
+simpl. split. intros. inversion H. intros. inversion H as [l | r]. inversion l. inversion r.
+Qed.
+
+Lemma or_assoc :
+  forall P Q R : Prop, P \/ (Q \/ R) <-> (P \/ Q) \/ R.
+Proof.
+intros P Q R.
+split.
+intros [p | [ q | r]].
+left. left. assumption.
+left. right. assumption.
+right. assumption.
+intros [ [ p | q ] | r ].
+left. assumption.
+right. left. assumption.
+right. right. assumption.
+Qed.
+
+Lemma mult_0_3 : forall n m p, n * m * p = 0 <-> n = 0 \/ m = 0 \/ p = 0.
+Proof.
+intros n m p.
+rewrite mult_0.
+rewrite mult_0.
+rewrite or_assoc.
+reflexivity.
+Qed.
+
+Lemma apply_iff_example : forall n m : nat, n * m = 0 -> n = 0 \/ m = 0.
+Proof.
+apply mult_0.
+Qed.
+
+Lemma four_is_even : exists n : nat, 4 = n + n.
+Proof.
+exists 2. reflexivity.
+Qed.
+
+Theorem exists_example_2 : forall n,
+  (exists m, n = 4 + m) ->
+  (exists o, n = 2 + o).
+Proof.
+intro n. intros [yipi yata]. subst n. exists (2+yipi). simpl. reflexivity.
+Qed.
+
+Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
+  (forall x, P x) -> not (exists x, not (P x)).
+Proof.
+intros X P h.
+intros [yipi yata].
+apply yata. apply h.
+Qed.
+
+Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
+  (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
+Proof.
+intros X P Q.
+split.
+intro h. inversion_clear h as [x o].
+inversion_clear o as [l|r].
+left. exists x. assumption. right. exists x. assumption.
+intro h. inversion_clear h as [l | r].
+inversion l as [x px]. exists x. left. assumption.
+inversion r as [x qx]. exists x. right. assumption.
+Qed.
+
+Fixpoint In {A : Type} (x : A) (l : Poly.list A) : Prop :=
+  match l with
+  | Poly.nil => False
+  | Poly.cons x' l' => x' = x \/ In x l'
+  end.
+
+Lemma In_map :
+  forall (A B : Type) (f : A -> B) (l : Poly.list A) (x : A),
+    In x l ->
+    In (f x) (Poly.map f l).
+Proof.
+intros A B f.
+induction l.
+simpl. intros;assumption.
+simpl. intro x'. intro h.
+inversion_clear h as [ ll | rr ].
+subst x'. left. reflexivity.
+right.
+specialize (IHl x'). specialize (IHl rr). assumption.
+Qed.
+
 
 End V1.
