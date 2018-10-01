@@ -1594,18 +1594,182 @@ match l with
 | cons h t => if p h then true else existsb t p
 end.
 
-Definition existsb' {A:Type} (l:list A) (p:A->bool) := negb (forallb l p).
+Definition existsb' {A:Type} (l:list A) (p:A->bool) := negb (forallb l (fun x => negb (p x))).
 
 Theorem existsb_existsb' : forall (A:Type) (l:list A) (p:A->bool), existsb l p = existsb' l p.
-induction l.
-simpl. intro p. unfold existsb'. simpl. reflexivity.
-intro p.
-specialize (IHl p).
+intros A l p. generalize dependent l.
+induction l. reflexivity.
 simpl. unfold existsb'. simpl.
-destruct l.
-rewrite IHl.
-unfold existsb'. simpl.
+rewrite IHl. unfold existsb'.
+clear IHl.
+induction l.
+simpl. destruct (p a). reflexivity. reflexivity.
+simpl.
+destruct (p a). simpl in IHl. simpl. reflexivity.
+simpl in IHl. simpl. reflexivity.
+Qed.
+
 
 End Tactics.
+
+Module Logic.
+
+Definition injective {A B} (f : A -> B) :=
+  forall x y : A, f x = f y -> x = y.
+
+Lemma succ_inj : injective S.
+Proof.
+unfold injective.
+intros x y h. inversion h. reflexivity.
+Qed.
+
+Example and_example : 3 + 4 = 7 /\ 2 * 2 = 4.
+split;reflexivity.
+Qed.
+
+Lemma and_intro : forall A B : Prop, A -> B -> A /\ B.
+Proof.
+intros. split;assumption.
+Qed.
+
+Example and_exercise :
+  forall n m : nat, n + m = 0 -> n = 0 /\ m = 0.
+Proof.
+intro n. induction n.
+simpl. intros. subst m. split;reflexivity.
+intros. simpl in H. inversion H.
+Qed.
+
+Lemma and_example2 :
+  forall n m : nat, n = 0 /\ m = 0 -> n + m = 0.
+Proof.
+intros n m [no mo].
+subst n;subst m;reflexivity.
+Qed.
+
+Lemma and_example3 :
+  forall n m : nat, n + m = 0 -> n * m = 0.
+Proof.
+intro n. induction n. reflexivity.
+intros. inversion H.
+Qed.
+
+Lemma proj1 : forall P Q : Prop,
+  P /\ Q -> P.
+Proof.
+intros P Q [p q]; assumption.
+Qed.
+
+Lemma proj2 : forall P Q : Prop,  P /\ Q -> Q.
+Proof.
+intros P Q [p q]; assumption.
+Qed.
+
+Theorem and_commut : forall P Q : Prop,  P /\ Q -> Q /\ P.
+Proof.
+intros P Q [p q]; split; assumption.
+Qed.
+
+Theorem and_assoc : forall P Q R : Prop,
+  P /\ (Q /\ R) -> (P /\ Q) /\ R.
+Proof.
+intros P Q R [p [q r]].
+split. split;assumption. assumption.
+Qed.
+
+Lemma or_example :
+  forall n m : nat, n = 0 \/ m = 0 -> n * m = 0.
+intros n m [l|r]. subst n;reflexivity. subst m.
+induction n. reflexivity. simpl. assumption.
+Qed.
+
+Lemma or_intro : forall A B : Prop, A -> A \/ B.
+Proof.
+intros A B a. left. assumption.
+Qed.
+
+Lemma zero_or_succ :
+  forall n : nat, n = 0 \/ n = S (pred n).
+Proof.
+destruct n. left. reflexivity.
+simpl. right. reflexivity.
+Qed.
+
+Theorem ex_falso_quodlibet : forall (P:Prop),  False -> P.
+intros P f. contradiction.
+Qed.
+
+Fact not_implies_our_not : forall (P:Prop),  not P -> (forall (Q:Prop), P -> Q).
+Proof.
+intros P hn.
+intros Q p.
+contradiction.
+Qed.
+
+Theorem zero_not_one : ~(0 = 1).
+Proof.
+intro heq. inversion heq.
+Qed.
+
+Theorem not_False : not False.
+intro f. assumption.
+Qed.
+
+Theorem contradiction_implies_anything : forall P Q : Prop,  (P /\ not P) -> Q.
+Proof.
+intros P Q [p np].
+contradiction.
+Qed.
+
+Theorem double_neg : forall P : Prop,  P -> not (not P).
+Proof.
+intros P p.
+intro hn. apply hn. assumption.
+Qed.
+
+Theorem contrapositive : forall (P Q : Prop),  (P -> Q) -> (not Q -> not P).
+Proof.
+intros P Q pq nq.
+intro p. apply nq. apply pq. assumption.
+Qed.
+
+Theorem not_both_true_and_false : forall P : Prop,  not (P /\ not P).
+Proof.
+intros P [p np]. contradiction.
+Qed.
+
+Theorem not_true_is_false : forall b : bool,  b <> true -> b = false.
+Proof.
+intros b neq. destruct b. contradiction. reflexivity.
+Qed.
+
+Theorem iff_sym : forall P Q : Prop,
+  (P <-> Q) -> (Q <-> P).
+Proof.
+intros P Q [pq qp].
+split;assumption.
+Qed.
+
+Lemma not_true_iff_false : forall b,  b <> true <-> b = false.
+Proof.
+intro b.
+split. destruct b. intro;contradiction. reflexivity.
+intro. subst b. intro h;inversion h.
+Qed.
+
+Theorem or_distributes_over_and : forall P Q R : Prop,
+  P \/ (Q /\ R) <-> (P \/ Q) /\ (P \/ R).
+Proof.
+intros P Q R.
+split. intros [p | [q r]]. split;left;assumption.
+split;right;assumption.
+intros [ [p|q] [p'|r] ].
+left;assumption.
+left;assumption.
+left;assumption.
+right;split;assumption.
+Qed.
+
+End Logic.
 
 End V1.
