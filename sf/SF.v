@@ -1984,10 +1984,40 @@ Theorem combine_odd_even_elim_even :
 Proof.
   (* FILL IN HERE *) Admitted.
 
-Print Assumptions
-In_app_iff.
+
+Theorem restricted_excluded_middle : forall P b,
+  (P <-> b = true) -> P \/ not P.
+Proof.
+intros. inversion_clear H. destruct b.
+left. apply H1. reflexivity.
+right. intro p.
+specialize (H0 p). inversion H0.
+Qed.
+
+Theorem restricted_excluded_middle_eq : forall (n m : nat),
+  n = m \/ n <> m.
+Proof.
+Admitted.
+
+
+
+Theorem excluded_middle_irrefutable: forall (P:Prop),
+  not ( not (P \/ not P)).
+Proof.
+unfold not. intros.
+apply H. right. intro p. apply H. left. assumption.
+Qed.
 
 Definition em := forall P:Prop, P \/ not P.
+
+Theorem not_exists_dist :
+  em -> forall (X:Type) (P : X -> Prop),
+  not (exists x, not (P x)) -> (forall x, P x).
+unfold em. intros.
+unfold not in H0.
+elim (H (P x)). intro;assumption.
+intro. apply False_ind. apply H0. exists x. assumption.
+Qed.
 
 Definition peirce := forall P Q : Prop, ((P->Q)->P)->P.
 
@@ -2050,6 +2080,254 @@ left. apply (H P False ). intro pf. apply pnpp.
 left. apply npp. intro p. apply pf. apply p.
 Qed.
 
+Theorem dne_em : dne -> em.
+Proof.
+unfold dne, em.
+intros.
+unfold not in H.
+apply (H (P \/ not P)). intro pnpf.
+apply (H (not P)). intro pff. apply pff. intro p. apply pnpf. left. assumption.
+apply (H P). intro pf. apply pnpf. right. unfold not. intro p. apply pf. assumption.
+Qed.
+
+Theorem mnn_em : mnn -> em.
+Proof.
+unfold mnn, em.
+intros.
+specialize (H P (not P)).
+apply H. unfold not. intros. inversion_clear H0.
+apply H2. assumption.
+Qed.
+
+Lemma or_comm : forall P Q : Prop, P \/ Q -> Q \/ P.
+Proof.
+intros P Q [ l | r]. right. assumption. left. assumption.
+Qed.
+
+Theorem ito_em : ito -> em.
+Proof.
+unfold ito, em.
+intros.
+apply or_comm. apply H. intro;assumption.
+Qed.
+
 End Logic.
+
+Module IndProp.
+
+Inductive ev : nat -> Prop :=
+| ev_0 : ev 0
+| ev_SS : forall n : nat, ev n -> ev (S (S n)).
+
+Theorem ev_plus4 : forall n, ev n -> ev (4 + n).
+Proof.
+intros.
+constructor.
+constructor.
+assumption.
+Qed.
+
+Search "double".
+
+Theorem ev_double : forall n,
+  ev (Induction.double n).
+Proof.
+induction n. simpl. constructor.
+simpl. constructor. assumption.
+Qed.
+
+Theorem ev_minus2 : forall n, ev n -> ev (pred (pred n)).
+Proof.
+induction n. intro. simpl. assumption.
+simpl. intros. inversion H. subst n. simpl. assumption.
+Qed.
+
+Theorem evSS_ev : forall n,
+  ev (S (S n)) -> ev n.
+Proof.
+intros. inversion H. assumption.
+Qed.
+
+Theorem one_not_even : not(ev 1).
+Proof.
+intro h. inversion h.
+Qed.
+
+Theorem SSSSev__even : forall n,
+  ev (S (S (S (S n)))) -> ev n.
+Proof.
+intros. inversion H. inversion H1. assumption.
+Qed.
+
+Theorem even5_nonsense : ev 5 -> 2 + 2 = 9.
+Proof.
+intro. inversion H. inversion H1. inversion H3.
+Qed.
+
+Lemma ev_even : forall n, ev n -> exists k, n = Nat.double k.
+Proof.
+intros n h.
+induction h.
+exists 0. reflexivity.
+inversion_clear IHh as [k eq].
+destruct k. subst n. exists 1. reflexivity.
+unfold Nat.double in eq.
+unfold Nat.double.
+exists (S (S k)). subst n. simpl. rewrite plus_n_Sm.  rewrite plus_n_Sm.  rewrite plus_n_Sm.
+reflexivity.
+Qed.
+
+Theorem ev_sum : forall n m, ev n -> ev m -> ev (n + m).
+Proof.
+intros n m evn.
+induction evn.
+simpl. intro;assumption.
+intro evm. destruct evm.
+simpl. constructor. apply IHevn. constructor.
+simpl. constructor. apply IHevn. constructor. assumption.
+Qed.
+
+Inductive ev' : nat -> Prop :=
+| ev'_0 : ev' 0
+| ev'_2 : ev' 2
+| ev'_sum : forall n m, ev' n -> ev' m -> ev' (n + m).
+
+Theorem ev'_ev : forall n, ev' n <-> ev n.
+Proof.
+intro n.
+split.
+intro evn'. induction evn'. constructor. constructor. constructor.
+apply ev_sum. assumption. assumption.
+intro evn. induction evn. constructor.
+assert (youpi:(S (S n)) = n+2). rewrite <- plus_n_Sm. rewrite <- plus_n_Sm. rewrite Induction.plus_comm. reflexivity.
+rewrite youpi. constructor. assumption. constructor.
+Qed.
+
+Theorem ev_ev__ev : forall n m,
+  ev (n+m) -> ev n -> ev m.
+Proof.
+intros n m evnm.
+intro evn. induction evn. simpl in evnm. assumption.
+apply IHevn.
+simpl in evnm. inversion evnm. assumption.
+Qed.
+
+Theorem ev_plus_plus : forall n m p,
+  ev (n+m) -> ev (n+p) -> ev (m+p).
+Proof.
+intros n m p evnm evnp.
+apply (ev_ev__ev (n+n) (m+p) ).
+assert (youpi:(n+n+(m+p)) = (n+m)+(n+p)).
+clear evnm evnp.
+induction n. simpl. reflexivity.
+simpl.
+rewrite <- plus_n_Sm.
+rewrite <- plus_n_Sm.
+simpl.
+rewrite IHn. reflexivity.
+rewrite youpi. apply ev_sum. assumption. assumption.
+clear evnm evnp.
+induction n. constructor. simpl. rewrite <- plus_n_Sm. constructor. assumption.
+Qed. 
+
+Inductive reg_exp {T : Type} : Type :=
+| EmptySet : reg_exp
+| EmptyStr : reg_exp
+| Char : T -> reg_exp
+| App : reg_exp -> reg_exp -> reg_exp
+| Union : reg_exp -> reg_exp -> reg_exp
+| Star : reg_exp -> reg_exp.
+
+Inductive exp_match {T} : list T -> reg_exp -> Prop :=
+| MEmpty : exp_match nil EmptyStr
+| MChar : forall x, exp_match (cons x nil) (Char x)
+| MApp : forall s1 re1 s2 re2,
+           exp_match s1 re1 ->
+           exp_match s2 re2 ->
+           exp_match (app s1 s2) (App re1 re2)
+| MUnionL : forall s1 re1 re2,
+              exp_match s1 re1 ->
+              exp_match s1 (Union re1 re2)
+| MUnionR : forall re1 s2 re2,
+              exp_match s2 re2 ->
+              exp_match s2 (Union re1 re2)
+| MStar0 : forall re, exp_match nil (Star re)
+| MStarApp : forall s1 s2 re,
+               exp_match s1 re ->
+               exp_match s2 (Star re) ->
+               exp_match (s1 ++ s2) (Star re).
+
+Example reg_exp_ex1 : exp_match  (cons 1 nil) (Char 1).
+constructor.
+Qed.
+
+Example reg_exp_ex2 : exp_match (cons 1 (cons 2 nil)) (App (Char 1) (Char 2)).
+apply (MApp (cons 1 nil) _ (cons 2 nil)).
+constructor.
+constructor.
+Qed.
+
+Lemma app_nil_r : forall (A:Type) (l:list A), app l nil = l.
+Proof.
+induction l. reflexivity.
+simpl. rewrite IHl. reflexivity.
+Qed.
+
+Lemma MStar1 :
+  forall T s (re : @reg_exp T) ,
+    exp_match s re ->
+    exp_match s (Star re).
+Proof.
+intros.
+rewrite <- (app_nil_r _ s).
+constructor. assumption.
+constructor.
+Qed.
+
+Fixpoint pumping_constant {T} (re : @reg_exp T) : nat :=
+  match re with
+  | EmptySet => 0
+  | EmptyStr => 1
+  | Char _ => 2
+  | App re1 re2 =>
+      pumping_constant re1 + pumping_constant re2
+  | Union re1 re2 =>
+      pumping_constant re1 + pumping_constant re2
+  | Star _ => 1
+  end.
+
+Fixpoint napp {T} (n : nat) (l : list T) : list T :=
+  match n with
+  | 0 => nil
+  | S n' => app l (napp n' l)
+  end.
+
+Lemma app_assoc : forall T (l m n : list T), app (app l m) n = app l (app m n).
+Proof.
+induction l.
+simpl. reflexivity.
+simpl. intros. rewrite IHl. reflexivity.
+Qed.
+
+Lemma napp_plus: forall T (n m : nat) (l : list T),
+  napp (n + m) l = app (napp n l) (napp m l).
+Proof.
+  intros T n m l.
+  induction n as [|n IHn].
+  - reflexivity.
+  - simpl. rewrite IHn, app_assoc. reflexivity.
+Qed.
+
+Lemma pumping : forall T (re : @reg_exp T) s,
+  exp_match s re ->
+  pumping_constant re <= length s ->
+  exists s1 s2 s3,
+    s = app s1 (app s2 s3) /\
+    s2 <> nil /\
+    forall m, exp_match (app s1 (app (napp m s2) s3)) re.
+Admitted.
+
+End IndProp.
+
 
 End V1.
