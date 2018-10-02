@@ -2068,6 +2068,33 @@ Lemma pumping : forall T (re : @reg_exp T) s,
     s = app s1 (app s2 s3) /\
     s2 <> nil /\
     forall m, exp_match (app s1 (app (napp m s2) s3)) re.
+intro T.
+intro re.
+intro s.
+intro m.
+inversion m.
+{
+  subst s.
+  subst re.
+  simpl.
+  intro impossible.
+  inversion impossible.
+}
+{
+  subst s.
+  subst re.
+  simpl.
+  intro impossible.
+  inversion impossible.
+  clear impossible;rename H0 into impossible.
+  inversion impossible.
+}
+{
+  subst s.
+  subst re.
+  simpl.
+  intro h.
+
 Admitted.
 
 End IndProp.
