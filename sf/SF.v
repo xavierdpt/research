@@ -1862,5 +1862,194 @@ right.
 specialize (IHl x'). specialize (IHl rr). assumption.
 Qed.
 
+Lemma In_map_iff :
+  forall (A B : Type) (f : A -> B) (l : Poly.list A) (y : B),
+    In y (Poly.map f l) <->
+    exists x, f x = y /\ In x l.
+Proof.
+intros A B f.
+induction l.
+simpl. intro y. split.
+intro;contradiction.
+intros [x [eq fa]]. contradiction.
+intro y. split.
+intro hin. simpl in hin. inversion_clear hin as [eq|iny].
+exists x. split. assumption.
+simpl. left. reflexivity.
+simpl. specialize (IHl y).
+inversion_clear IHl as [inyy he].
+specialize (inyy iny).
+inversion inyy as [z [ eq inxl]].
+exists z. split. assumption. right. assumption.
+intro h. inversion_clear h as [z [eq inc]].
+simpl.
+specialize (IHl y).
+inversion_clear IHl as [east west].
+simpl in inc. inversion_clear inc as [xz | inzl].
+subst z. left. assumption.
+right. apply west. exists z. split. assumption. assumption.
+Qed.
+
+Lemma In_app_iff : forall A l l' (a:A),
+  In a (Poly.app l l') <-> In a l \/ In a l'.
+Proof.
+intros A l l' a.
+induction l.
+{
+  simpl. intros. split.
+  { intro. right. assumption. }
+  { intros. inversion_clear H.
+    { contradiction. }
+    { assumption. }
+  }
+}
+{
+  intros. simpl. split.
+  { intros. inversion_clear H.
+    { left. left. assumption. }
+    { inversion_clear IHl.
+      elim (H H0).
+      { left. right. assumption. }
+      { right. assumption. }
+    }
+  }
+  { intros. inversion_clear H.
+    { inversion_clear H0.
+      { left. assumption. }
+      { inversion_clear IHl.
+        right. apply H1. left. assumption. }
+    }
+    { inversion_clear IHl.
+      right. apply H1. right. assumption. }
+  }
+}
+Qed.
+
+Fixpoint All {T:Type} (P:T->Prop) (l:Poly.list T) : Prop :=
+match l with
+| Poly.nil => True
+| Poly.cons h t => P h /\ All P t
+end.
+
+Theorem blah : forall (A:Type) (P:A->Prop) x l, All P l -> In x l -> P x.
+Proof.
+induction l. simpl. intros;contradiction.
+simpl. intros.
+inversion_clear H. inversion_clear H0. subst x0. assumption.
+apply IHl. assumption. assumption.
+Qed.
+
+Lemma All_In : forall T (P:T->Prop) (l:Poly.list T),
+(forall x, In x l -> P x) <-> All P l.
+Proof.
+intros T P.
+split.
+induction l. simpl. intros. trivial.
+simpl. intros.
+split. apply H. left. reflexivity.
+apply IHl. intros. apply H. right. assumption.
+
+intros.
+apply (blah _ _ _ l). assumption. assumption.
+Qed.
+
+Search "evenb".
+
+Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
+fun n => if Poly.evenb n then (Peven n) else (Podd n).
+
+Search "oddb".
+
+Theorem combine_odd_even_intro :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    (Poly.oddb n = true -> Podd n) ->
+    (Poly.oddb n = false -> Peven n) ->
+    combine_odd_even Podd Peven n.
+Proof.
+Admitted.
+
+Theorem combine_odd_even_elim_odd :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    Poly.oddb n = true ->
+    Podd n.
+Proof.
+  (* FILL IN HERE *) Admitted.
+
+Theorem combine_odd_even_elim_even :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    Poly.oddb n = false ->
+    Peven n.
+Proof.
+  (* FILL IN HERE *) Admitted.
+
+Print Assumptions
+In_app_iff.
+
+Definition em := forall P:Prop, P \/ not P.
+
+Definition peirce := forall P Q : Prop, ((P->Q)->P)->P.
+
+Definition dne := forall P : Prop, (not (not P)) -> P.
+
+Definition mnn := forall P Q : Prop, not (not P /\ not Q) -> (P \/ Q).
+
+Definition ito := forall P Q : Prop, (P->Q)->(not P \/ Q).
+
+Theorem em_peirce : em -> peirce.
+Proof.
+unfold em, peirce.
+intros.
+elim (H Q);elim (H P).
+intros. assumption.
+intros. apply H0. intros. assumption.
+intros. assumption.
+intros. apply H0. intro. contradiction.
+Qed.
+
+Theorem em_dne : em -> dne.
+Proof.
+unfold em, dne.
+intros.
+elim (H P).
+intro;assumption.
+intros. contradiction.
+Qed.
+
+Theorem em_mnn : em -> mnn.
+Proof.
+unfold em, mnn.
+intros.
+elim (H P);elim (H Q).
+intros. left. assumption.
+intros. left. assumption.
+intros. right. assumption.
+intros. apply False_ind. apply H0. split;assumption.
+Qed.
+
+Theorem em_ito : em -> ito.
+Proof.
+unfold em, ito.
+intros.
+elim (H P);elim (H Q).
+intros. right. assumption.
+intros. right. apply H0. assumption.
+intros. left. assumption.
+intros. left. assumption.
+Qed.
+
+Theorem peirce_em : peirce -> em.
+Proof.
+unfold peirce, em.
+intros.
+elim (H (P \/ not P) P ). intros. left. assumption. intros. right. assumption. intro pnpp.
+elim (H (P \/ not P) (not P) ). intros. left. assumption. intros. right. assumption. intro pnpnp.
+right. apply (H (not P) P ). intro npp. apply pnpnp.
+left. apply (H P False ). intro pf. apply pnpp.
+left. apply npp. intro p. apply pf. apply p.
+Qed.
+
+End Logic.
 
 End V1.
