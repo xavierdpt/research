@@ -2157,6 +2157,62 @@ induction r.
 }
 Admitted.
 
+Lemma youpi: forall (T:Type) (x:list T) lala, exp_match x lala -> exp_match x (App EmptyStr lala).
+Proof.
+intros T x.
+induction lala.
+{
+  intro h. inversion h.
+}
+{
+  intro h. inversion h. subst x.
+  assert (ouf:app (@nil T) (@nil T) = (@nil T)).
+  simpl. reflexivity.
+  rewrite <- ouf.
+  apply MApp. assumption. assumption.
+}
+{
+  intro h. inversion h. subst x0. subst x.
+  assert(ouf: (t::nil) = app nil (t::nil) ).
+  simpl. reflexivity.
+  rewrite ouf. apply MApp.
+  constructor. assumption.
+}
+{ intro h. inversion h. clear h. subst re2 re1. subst x.
+  assert(ouf: nil++(s1++s2)=s1++s2).
+  simpl. reflexivity.
+  rewrite <- ouf.
+  apply MApp. constructor. apply MApp. assumption. assumption.
+}
+{
+  intro h.
+  inversion h.
+  subst re2 re1.
+  subst x.
+  assert (ouf:s1=nil++s1). reflexivity.
+  rewrite ouf. apply MApp. constructor. assumption.
+  subst re2 re1. subst x.
+  assert (ouf:s2=nil++s2). reflexivity.
+  rewrite ouf. apply MApp. constructor. assumption.
+}
+{
+  intro h. inversion h.
+  subst x re.
+  assert (ouf: (@nil T) = (@nil T)++((@nil T)++(@nil T))).
+  reflexivity.
+  rewrite ouf. apply MApp. constructor.
+  simpl. assumption.
+  subst re x.
+  assert (ouf: s1++s2=nil++(s1++s2)).
+  reflexivity.
+  rewrite ouf. apply MApp.
+  constructor.
+  Print exp_match.
+  apply MStarApp. assumption. assumption.
+}
+Qed.
+
+
 Theorem pumping_attempt_3 : pumping.
 unfold pumping.
 intros T r s m.
@@ -2195,20 +2251,44 @@ induction m.
       simpl in l. inversion l. inversion H0.
     }
     {
+      rename s2 into s.
+      rename re2_1 into ra.
+      rename re2_2 into rb.
+      rename m1 into m_nil.
+      rename m2 into m_ra_rb.
+      rename IHm1 into i1.
+      rename IHm2 into i2.
       simpl in l.
-      inversion m2.
-      subst re2_2. subst re2_1. subst s2.
-      simpl in IHm2.
+      inversion m_ra_rb.
+      rename m_ra_rb into m_ra_rb_used.
+      subst re2. subst re1.
+      simpl in i2.
       apply le_Sn_le in l.
-      specialize (IHm2 l).
-      inversion IHm2. inversion H. inversion H0.
-      inversion H1. inversion H5.
-      exists x, x0, x1. split. simpl. assumption.
-      split. assumption.
-      intro m.
-      rename x into XXX. clear H0. clear H1. clear H5. clear H.
-      induction m. simpl. specialize (H7 0). simpl in H7. inversion H7.
-      admit.
+      specialize (i2 l).
+      rename l into l_used.
+      subst s.
+      rename H2 into ma.
+      rename H3 into mb.
+      rename s1 into sa.
+      rename s2 into sb.
+      inversion i2 as [ ta [tb [tc [eq [neq hm]]]]].
+      exists ta, tb, tc. split.
+      { simpl. assumption. }
+      { split.
+        { assumption. }
+        { intro m.
+          induction m.
+          {
+            simpl. 
+            specialize (hm 0). simpl in hm.
+            apply youpi.
+           assumption.
+          }
+          {
+            specialize (hm (S m)). apply youpi. assumption.
+          }
+        }
+      }
     }
     {
       admit.
