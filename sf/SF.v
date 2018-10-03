@@ -357,10 +357,10 @@ match count with
 | S count' => cons n (repeat n count')
 end.
 
-Fixpoint length (l:natlist) : nat :=
+Fixpoint natlength (l:natlist) : nat :=
 match l with
 | nil => O
-| cons h t => S (length t)
+| cons h t => S (natlength t)
 end.
 
 Fixpoint app (la lb : natlist) : natlist :=
@@ -410,7 +410,7 @@ oddmembers (cons 0 (cons 1 (cons 0 (cons 2 (cons 3 (cons 0 (cons 0 nil)))))))
 cons 1 (cons 3 nil).
 reflexivity. Qed.
 
-Definition countoddmembers (l:natlist) := length (oddmembers l).
+Definition countoddmembers (l:natlist) := natlength (oddmembers l).
 
 Example test_countoddmembers1:
 countoddmembers (cons 1 (cons 0 (cons 3 (cons 1 (cons 4 (cons 5 nil)))))) = 4.
@@ -567,7 +567,7 @@ Theorem nil_app : forall l:natlist,
 Proof. reflexivity. Qed.
 
 Theorem tl_length_pred : forall l:natlist,
-  pred (length l) = length (tl l).
+  pred (natlength l) = natlength (tl l).
 Proof.
 destruct l. simpl. reflexivity.
 simpl. reflexivity.
@@ -593,14 +593,14 @@ Example test_rev2: rev nil = nil.
 Proof. reflexivity. Qed.
 
 Theorem app_length : forall la lb : natlist,
-  length (app la lb) = (length la) + (length lb).
+  natlength (app la lb) = (natlength la) + (natlength lb).
 Proof.
 induction la. reflexivity.
 intro lb. simpl. rewrite IHla. reflexivity.
 Qed.
 
 Theorem rev_length : forall l : natlist,
-  length (rev l) = length l.
+  natlength (rev l) = natlength l.
 Proof.
 induction l. reflexivity.
 simpl. rewrite app_length. simpl. rewrite IHl. simpl.
@@ -2061,28 +2061,31 @@ Proof.
   - simpl. rewrite IHn, app_assoc. reflexivity.
 Qed.
 
-Lemma pumping : forall T (re : @reg_exp T) s,
+Definition pumping := forall T (re : @reg_exp T) s,
   exp_match s re ->
   pumping_constant re <= length s ->
   exists s1 s2 s3,
     s = app s1 (app s2 s3) /\
     s2 <> nil /\
     forall m, exp_match (app s1 (app (napp m s2) s3)) re.
+
+Theorem pumping_attempt_1 : pumping.
+unfold pumping.
 intro T.
-intro re.
+intro r.
 intro s.
 intro m.
 inversion m.
 {
   subst s.
-  subst re.
+  subst r.
   simpl.
   intro impossible.
   inversion impossible.
 }
 {
   subst s.
-  subst re.
+  subst r.
   simpl.
   intro impossible.
   inversion impossible.
@@ -2090,11 +2093,155 @@ inversion m.
   inversion impossible.
 }
 {
-  subst s.
-  subst re.
+  admit.
+}
+{
   simpl.
-  intro h.
+  admit.
+}
+{
+  simpl.
+  admit.
+}
+{
+  subst s.
+  simpl.
+  intro impossible.
+  inversion impossible.
+}
+{
+  simpl.
+  intros.
+  subst r. subst s.
+  admit.
+}
+Admitted.
 
+Theorem pumping_attempt_2 : pumping.
+unfold pumping.
+intros T r.
+induction r.
+{
+  simpl.
+  intros s m l.
+  inversion l.
+  {
+    clear l; rename H0 into l.
+    destruct s.
+    {
+      simpl in l.
+      admit.
+    }
+    {
+      admit.
+    }
+  }
+  {
+    admit.
+  }
+}
+{
+  admit.
+}
+{
+  admit.
+}
+{
+  admit.
+}
+{
+  admit.
+}
+{
+  admit.
+}
+Admitted.
+
+Theorem pumping_attempt_3 : pumping.
+unfold pumping.
+intros T r s m.
+induction m.
+{
+  simpl. intro i. inversion i.
+}
+{
+  simpl. intro i. inversion i. clear i. rename H0 into i. inversion i.
+}
+{
+  simpl.
+  intro l.
+  destruct re1.
+  {
+    inversion m1.
+  }
+  {
+    inversion m1.
+    subst s1.
+    simpl in l.
+    simpl in IHm1.
+    destruct re2.
+    {
+      inversion m2.
+    }
+    {
+      simpl in l.
+      inversion m2. subst s2.
+      simpl in l. inversion l.
+    }
+    {
+      simpl in l.
+      inversion m2.
+      subst x. subst s2.
+      simpl in l. inversion l. inversion H0.
+    }
+    {
+      simpl in l.
+      inversion m2.
+      subst re2_2. subst re2_1. subst s2.
+      simpl in IHm2.
+      apply le_Sn_le in l.
+      specialize (IHm2 l).
+      inversion IHm2. inversion H. inversion H0.
+      inversion H1. inversion H5.
+      exists x, x0, x1. split. simpl. assumption.
+      split. assumption.
+      intro m.
+      rename x into XXX. clear H0. clear H1. clear H5. clear H.
+      induction m. simpl. specialize (H7 0). simpl in H7. inversion H7.
+      admit.
+    }
+    {
+      admit.
+    }
+    {
+      admit.
+    }
+  }
+  {
+    admit.
+  }
+  {
+    admit.
+  }
+  {
+    admit.
+  }
+  {
+    admit.
+  }
+}
+{
+  admit.
+}
+{
+  admit.
+}
+{
+  admit.
+}
+{
+  admit.
+}
 Admitted.
 
 End IndProp.
