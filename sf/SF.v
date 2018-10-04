@@ -2142,13 +2142,13 @@ induction m as [
 }
 { (* m app *)
   simpl.
-  induction ra as [
+  destruct ra as [
       (* Empty Set *)
     | (* Empty String *)
     | (* Char *) ch
-    | (* App *) raa iraa rab irab
-    | (* Union *) w50 w51 w52 w53
-    | (* Star *) w60 w61
+    | (* App *) raa rab
+    | (* Union *) w50 w51
+    | (* Star *) w60
   ].
   { (* m app ; ra empty set *)
     inversion ram.
@@ -2198,23 +2198,10 @@ induction m as [
     }}
   }
   { (* m app ; ra app *)
-    intro l.
-    inversion ram as [ | | saa raa' sab rab' maa mab eq raa'eq | | | | ].
-    rename H into rab'eq.
-    subst rab'. subst raa'.
-    simpl in l.
+    simpl.
+    intro.
+    inversion ram.
     subst sa.
-    simpl in ia.
-    simpl in ib.
-    destruct rb.
-    { admit. } { admit. } { admit. }
-    {
-      simpl in ia, ib, l, irab, iraa.
-      clear irab iraa.
-      
-    }
-    
-    
   }
   {
     admit.
