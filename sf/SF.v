@@ -2086,6 +2086,117 @@ Definition pumping := forall T (re : @reg_exp T) s,
     s2 <> nil /\
     forall m, exp_match (app s1 (app (napp m s2) s3)) re.
 
+Lemma cons_app_nil : forall {T:Type} x (r:list T), x :: r = (x::nil)++r.
+Proof. reflexivity. Qed.
+
+Theorem pm_App_Empty : forall (T : Type) (sb : list T) (rb : reg_exp),
+exp_match sb rb ->
+(pumping_constant rb <= Datatypes.length sb ->
+ exists s1 s2 s3 : list T,
+   sb = s1 ++ s2 ++ s3 /\ s2 <> nil /\ (forall m : nat, exp_match (s1 ++ napp m s2 ++ s3) rb)) ->
+S (pumping_constant rb) <= Datatypes.length sb ->
+exists s1 s2 s3 : list T,
+  sb = s1 ++ s2 ++ s3 /\ s2 <> nil /\ (forall m : nat, exp_match (s1 ++ napp m s2 ++ s3) (App EmptyStr rb)).
+Proof.
+intros T sb rb rbm  i l.
+destruct rb as [
+  (* Empty Set *)
+  | (* Empty String *)
+  | (* Char *) chb
+  | (* App *) rba rbb
+  | (* Union *) rba rbb
+  | (* Star *) rz
+].
+{
+  inversion rbm.
+}
+{
+  simpl in l.
+  inversion rbm as [ eq | | | | | | ]. subst sb.
+  simpl in l. inversion l.
+}
+{
+  simpl in l.
+  inversion rbm as [ | chb' sbeq chb'eq | | | | | ].
+  subst chb'. subst sb.
+  simpl in l.
+  apply le_S_n in l.
+  inversion l.
+}
+{
+  simpl in l.
+  inversion rbm as [ | | sba rba' sbb rbb' mba mbb eq rba'eq | | | | ].
+  rename H into rbb'eq.
+  subst rbb'. subst rba'.
+  simpl in i.
+  apply le_Sn_le in l.
+  specialize (i l).
+  subst sb.
+  inversion i as [ ta [tb [tc [eq [neq hm]]]]].
+  exists ta, tb, tc. split.
+  { simpl. assumption. }
+  { split.
+    { assumption. }
+    { intro m.
+      apply match_r_er.
+      specialize (hm m).
+      assumption.
+    }
+  }
+}
+{
+  simpl in l.
+  inversion rbm as [ | | | sb' rba' rbb' mba sb'eq rba'eq | rba' sb' rbb' mbb sb'eq rba'eq | | ].
+  {
+    rename H into rbb'eq.
+    subst rbb'. subst rba'. subst sb'.
+    apply le_Sn_le in l.
+    specialize (i l).
+    inversion i as [ ta [tb [tc [eq [neq hm]]]]].
+    exists ta, tb, tc.
+    split.
+    { simpl. assumption. }
+    { split.
+      { assumption. }
+      { intro m. apply match_r_er. specialize (hm m).  assumption. }
+    }
+  }
+  {
+    rename H into rbb'eq.
+    subst rbb'. subst rba'. subst sb'.
+    apply le_Sn_le in l.
+    specialize (i l).
+    inversion i as [ ta [tb [tc [eq [neq hm]]]]].
+    exists ta, tb, tc.
+    split.
+    { simpl. assumption. }
+    { split.
+      { assumption. }
+      { intro m. apply match_r_er. specialize (hm m). assumption. }
+    }
+  }
+}
+{
+  inversion rbm as [ | | | | | rz' eq rz'eq | sza szn rz' mz mn sbeq rz'eq ].
+  {
+    subst rz'. subst sb.
+    simpl in l. inversion l.
+  }
+  {
+    subst rz'.
+    apply le_Sn_le in l.
+    specialize (i l).
+    inversion i as [ ta [tb [tc [eq [neq hm]]]]].
+    exists ta, tb, tc.
+    split.
+    { simpl. rewrite sbeq. assumption. }
+    { split.
+      { assumption. }
+      { intro m. apply match_r_er. specialize (hm m). assumption. }
+    }
+  }
+}
+Qed.
 
 Theorem pumping_attempt_3 : pumping.
 unfold pumping.
@@ -2111,8 +2222,8 @@ induction m as [
   destruct ra as [
     (* Empty Set *)
     | (* Empty String *)
-    | (* Char *) w21
-    | (* App *) w31 w32
+    | (* Char *) ch
+    | (* App *) raa rab
     | (* Union *) w41 w42
     | (* Star *) w51
   ].
@@ -2123,123 +2234,46 @@ induction m as [
     inversion ram as [ eq | | | | | | ].
     subst sa.
     simpl in l.
+    simpl.
+    apply pm_App_Empty;assumption.
+  }
+  {
+    inversion ram as [ | ch' eq ch'eq | | | | | ].
+    subst ch'.
+    subst sa.
+    simpl in l.
     simpl in ia.
-    destruct rb as [
-      (* Empty Set *)
-      | (* Empty String *)
-      | (* Char *) chb
-      | (* App *) rba rbb
-      | (* Union *) rba rbb
-      | (* Star *) rz
-    ].
+    apply le_Sn_le in l.
+    apply le_S_n in l.
+    specialize (ib l).
+    inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
+    simpl.
+    subst sb.
+    exists (ch::ta), tb, tc.
+    split.
     {
-      inversion rbm.
+      simpl. reflexivity.
     }
     {
-      simpl in l.
-      inversion rbm as [ eq | | | | | | ]. subst sb.
-      simpl in l. inversion l.
-    }
-    {
-      simpl in l.
-      inversion rbm as [ | chb' sbeq chb'eq | | | | | ].
-      subst chb'. subst sb.
-      simpl in l.
-      apply le_S_n in l.
-      inversion l.
-    }
-    {
-      simpl in l.
-      inversion rbm as [ | | sba rba' sbb rbb' mba mbb eq rba'eq | | | | ].
-      rename H into rbb'eq.
-      subst rbb'. subst rba'.
-      simpl in ib.
-      apply le_Sn_le in l.
-      specialize (ib l).
-      subst sb.
-      inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
-      exists ta, tb, tc. split.
-      { simpl. assumption. }
-      { split.
-        { assumption. }
-        { intro m.
-          apply match_r_er.
-          induction m.
-          {
-            simpl. 
-            specialize (hm 0). simpl in hm.
-            assumption.
-          }
-          {
-            specialize (hm (S m)). assumption.
-          }
-        }
-      }
-    }
-    {
-      simpl in l.
-      inversion rbm as [ | | | sb' rba' rbb' mba sb'eq rba'eq | rba' sb' rbb' mbb sb'eq rba'eq | | ].
+      split.
       {
-        rename H into rbb'eq.
-        subst rbb'. subst rba'. subst sb'.
-        apply le_Sn_le in l.
-        specialize (ib l).
-        inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
-        exists ta, tb, tc.
-        split.
-        { simpl. assumption. }
-        { split.
-          { assumption. }
-          { intro m. apply match_r_er. induction m as [ | m im].
-            { simpl. specialize (hm 0). simpl in hm. assumption. }
-            { specialize (hm (S m)). assumption. }
-          }
-        }
+        assumption.
       }
       {
-        rename H into rbb'eq.
-        subst rbb'. subst rba'. subst sb'.
-        apply le_Sn_le in l.
-        specialize (ib l).
-        inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
-        exists ta, tb, tc.
-        split.
-        { simpl. assumption. }
-        { split.
-          { assumption. }
-          { intro m. apply match_r_er. induction m as [ | m im].
-            { simpl. specialize (hm 0). simpl in hm. assumption. }
-            { specialize (hm (S m)). assumption. }
-          }
-        }
-      }
-    }
-    {
-      inversion rbm as [ | | | | | rz' eq rz'eq | sza szn rz' mz mn sbeq rz'eq ].
-      {
-        subst rz'. subst sb.
-        simpl in l. inversion l.
-      }
-      {
-        subst rz'.
-        apply le_Sn_le in l.
-        specialize (ib l).
-        inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
-        exists ta, tb, tc.
-        split.
-        { simpl. rewrite sbeq. assumption. }
-        { split.
-          { assumption. }
-          { intro m. apply match_r_er. specialize (hm m). assumption. }
-        }
+        intro m.
+        simpl. specialize (hm m). simpl in hm.
+        rewrite cons_app_nil.
+        constructor.
+        - assumption.
+        - assumption.
       }
     }
   }
   {
-    admit.
-  }
-  {
-    admit.
+    inversion ram as [ | | saa raa' sab rab' maa mab eq raa'eq | | | | ].
+    rename H into rab'eq.
+    subst rab'. subst raa'.
+    simpl in l.
   }
   {
     admit.
