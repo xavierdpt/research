@@ -1973,6 +1973,8 @@ clear evnm evnp.
 induction n. constructor. simpl. rewrite <- plus_n_Sm. constructor. assumption.
 Qed. 
 
+Module RegExp.
+
 Inductive reg_exp {T : Type} : Type :=
 | EmptySet : reg_exp
 | EmptyStr : reg_exp
@@ -2061,6 +2063,21 @@ Proof.
   - simpl. rewrite IHn, app_assoc. reflexivity.
 Qed.
 
+Lemma nil_app_nil_nil : forall (T:Type), nil = @app T nil nil.
+Proof. reflexivity. Qed.
+
+Lemma app_nil_l: forall {T:Type} (s:list T), s = app nil s.
+Proof. reflexivity. Qed.
+
+Lemma match_r_er: forall (T:Type) (s:list T) r, exp_match s r -> exp_match s (App EmptyStr r).
+Proof.
+intros T s r hm.
+rewrite (app_nil_l s).
+constructor.
+- constructor.
+- assumption.
+Qed.
+
 Definition pumping := forall T (re : @reg_exp T) s,
   exp_match s re ->
   pumping_constant re <= length s ->
@@ -2068,149 +2085,6 @@ Definition pumping := forall T (re : @reg_exp T) s,
     s = app s1 (app s2 s3) /\
     s2 <> nil /\
     forall m, exp_match (app s1 (app (napp m s2) s3)) re.
-
-Theorem pumping_attempt_1 : pumping.
-unfold pumping.
-intro T.
-intro r.
-intro s.
-intro m.
-inversion m.
-{
-  subst s.
-  subst r.
-  simpl.
-  intro impossible.
-  inversion impossible.
-}
-{
-  subst s.
-  subst r.
-  simpl.
-  intro impossible.
-  inversion impossible.
-  clear impossible;rename H0 into impossible.
-  inversion impossible.
-}
-{
-  admit.
-}
-{
-  simpl.
-  admit.
-}
-{
-  simpl.
-  admit.
-}
-{
-  subst s.
-  simpl.
-  intro impossible.
-  inversion impossible.
-}
-{
-  simpl.
-  intros.
-  subst r. subst s.
-  admit.
-}
-Admitted.
-
-Theorem pumping_attempt_2 : pumping.
-unfold pumping.
-intros T r.
-induction r.
-{
-  simpl.
-  intros s m l.
-  inversion l.
-  {
-    clear l; rename H0 into l.
-    destruct s.
-    {
-      simpl in l.
-      admit.
-    }
-    {
-      admit.
-    }
-  }
-  {
-    admit.
-  }
-}
-{
-  admit.
-}
-{
-  admit.
-}
-{
-  admit.
-}
-{
-  admit.
-}
-{
-  admit.
-}
-Admitted.
-
-Lemma youpi: forall (T:Type) (x:list T) lala, exp_match x lala -> exp_match x (App EmptyStr lala).
-Proof.
-intros T x.
-induction lala.
-{
-  intro h. inversion h.
-}
-{
-  intro h. inversion h. subst x.
-  assert (ouf:app (@nil T) (@nil T) = (@nil T)).
-  simpl. reflexivity.
-  rewrite <- ouf.
-  apply MApp. assumption. assumption.
-}
-{
-  intro h. inversion h. subst x0. subst x.
-  assert(ouf: (t::nil) = app nil (t::nil) ).
-  simpl. reflexivity.
-  rewrite ouf. apply MApp.
-  constructor. assumption.
-}
-{ intro h. inversion h. clear h. subst re2 re1. subst x.
-  assert(ouf: nil++(s1++s2)=s1++s2).
-  simpl. reflexivity.
-  rewrite <- ouf.
-  apply MApp. constructor. apply MApp. assumption. assumption.
-}
-{
-  intro h.
-  inversion h.
-  subst re2 re1.
-  subst x.
-  assert (ouf:s1=nil++s1). reflexivity.
-  rewrite ouf. apply MApp. constructor. assumption.
-  subst re2 re1. subst x.
-  assert (ouf:s2=nil++s2). reflexivity.
-  rewrite ouf. apply MApp. constructor. assumption.
-}
-{
-  intro h. inversion h.
-  subst x re.
-  assert (ouf: (@nil T) = (@nil T)++((@nil T)++(@nil T))).
-  reflexivity.
-  rewrite ouf. apply MApp. constructor.
-  simpl. assumption.
-  subst re x.
-  assert (ouf: s1++s2=nil++(s1++s2)).
-  reflexivity.
-  rewrite ouf. apply MApp.
-  constructor.
-  Print exp_match.
-  apply MStarApp. assumption. assumption.
-}
-Qed.
 
 
 Theorem pumping_attempt_3 : pumping.
@@ -2277,15 +2151,15 @@ induction m.
       { split.
         { assumption. }
         { intro m.
+          apply match_r_er.
           induction m.
           {
             simpl. 
             specialize (hm 0). simpl in hm.
-            apply youpi.
-           assumption.
+            assumption.
           }
           {
-            specialize (hm (S m)). apply youpi. assumption.
+            specialize (hm (S m)). assumption.
           }
         }
       }
@@ -2323,6 +2197,8 @@ induction m.
   admit.
 }
 Admitted.
+
+End RegExp.
 
 End IndProp.
 
