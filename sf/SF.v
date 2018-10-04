@@ -2198,13 +2198,23 @@ induction m as [
     }}
   }
   { (* m app ; ra app *)
+    intro l.
     inversion ram as [ | | saa raa' sab rab' maa mab eq raa'eq | | | | ].
     rename H into rab'eq.
     subst rab'. subst raa'.
-    intros sb rb rbm ia ib l.
     simpl in l.
     subst sa.
-    admit.
+    simpl in ia.
+    simpl in ib.
+    destruct rb.
+    { admit. } { admit. } { admit. }
+    {
+      simpl in ia, ib, l, irab, iraa.
+      clear irab iraa.
+      
+    }
+    
+    
   }
   {
     admit.
