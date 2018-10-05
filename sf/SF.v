@@ -5,6 +5,7 @@ Require Export Coq.Strings.String.
 Require Import Coq.Lists.List.
 Require Import Coq.Setoids.Setoid.
 Require Import Coq.Logic.FunctionalExtensionality.
+Require Import Datatypes.
 
 Module V1.
 
@@ -2078,6 +2079,15 @@ constructor.
 - assumption.
 Qed.
 
+Lemma match_r_re: forall (T:Type) (s:list T) r, exp_match s r -> exp_match s (App r EmptyStr).
+Proof.
+intros T s r hm.
+rewrite <- (app_nil_r T s).
+constructor.
+- assumption.
+- constructor.
+Qed.
+
 Definition pumping := forall T (re : @reg_exp T) s,
   exp_match s re ->
   pumping_constant re <= length s ->
@@ -2088,6 +2098,24 @@ Definition pumping := forall T (re : @reg_exp T) s,
 
 Lemma cons_app_nil : forall {T:Type} x (r:list T), x :: r = (x::nil)++r.
 Proof. reflexivity. Qed.
+
+Lemma youpi : forall {T:Type} (x:T) (l:list T)  (p:nat),
+S p <= length (l ++ x :: nil) ->
+p <= length l.
+intros T x.
+induction l.
+simpl. intros. inversion H. constructor. inversion H1.
+simpl.
+intros.
+destruct p. Search ( 0 <= _). apply Nat.le_0_l.
+apply le_n_S. apply IHl. apply le_S_n. assumption.
+Qed.
+
+Lemma youpi2 : forall {T:Type} (x:T) (l:list T)  (p:nat),
+exists p', p' <= length l  ->
+p <= length (l ++ x :: nil).
+Proof.
+Admitted.
 
 Theorem pl_App_Char : forall (T : Type) (ch : T) (sb : list T) (rb : reg_exp),
 exp_match (ch :: nil) (Char ch) ->
@@ -2122,7 +2150,7 @@ Proof.
   }}
 Qed.
 
-Theorem pumping_lemma : pumping.
+Theorem pumping_lemma_0 : pumping.
 unfold pumping.
 intros T r s m.
 induction m as [
@@ -2135,92 +2163,40 @@ induction m as [
 | (* star next *) z60 z61 z62 z63 z64 z65 z66
 ].
 { (* m empty *)
-  simpl. intro i. inversion i.
+  simpl. intro h. inversion h.
 }
 { (* m char *)
   simpl. intro i. apply Nat.nle_succ_diag_l in i. contradiction.
 }
 { (* m app *)
   simpl.
-  destruct ra as [
-      (* Empty Set *)
-    | (* Empty String *)
-    | (* Char *) ch
-    | (* App *) raa rab
-    | (* Union *) w50 w51
-    | (* Star *) w60
-  ].
-  { (* m app ; ra empty set *)
-    inversion ram.
-  }
-  { (* m app ; ra empty string *)
-    inversion ram as [ eq | | | | | | ].
-    subst sa.
-    intro l.
-    simpl in l.
-    simpl.
-    apply le_Sn_le in l.
-    specialize (ib l).
-    inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
-    exists ta, tb, tc.
-    split.
-    - simpl. assumption.
-    - split.
-    + assumption.
-    + intro m. apply match_r_er. specialize (hm m). assumption.
-  }
-  { (* m app ; ra char *)
-    inversion ram as [ | ch' eq ch'eq | | | | | ].
-    subst ch'.
-    subst sa.
-    intro l.
-    simpl in l.
-    simpl.
-    apply le_Sn_le in l.
-    apply le_S_n in l.
-    specialize (ib l).
-    inversion ib as [ ta [tb [tc [eq [neq hm]]]]].
-    simpl.
-    subst sb.
-    exists (ch::ta), tb, tc.
-    split. {
-      simpl. reflexivity.
-    }
-    { split. {
-      assumption.
-    } {
-      intro m.
-      simpl. specialize (hm m). simpl in hm.
-      rewrite cons_app_nil.
-      constructor.
-      - assumption.
-      - assumption.
-    }}
-  }
-  { (* m app ; ra app *)
-    simpl.
-    intro.
-    inversion ram.
-    subst sa.
-  }
-  {
-    admit.
-  }
-  {
-    admit.
-  }
-}
-{
   admit.
 }
-{
-  admit.
+{ (* m Union left *)
+  simpl. intro h.
+  induction (pumping_constant z32). rewrite plus_comm in h. simpl in h. specialize (z34 h).
+  inversion z34 as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+  exists ta, tb, tc. split. assumption. split. assumption.
+  intro m. apply MUnionL. apply hz.
+  rewrite plus_comm in h. simpl in h.
+  apply le_Sn_le in h.
+  rewrite plus_comm in h. specialize (IHn h).
+  inversion IHn as [ta [tb [tc [ hx [hy hz]]]]].
+  exists ta, tb, tc.
+  split. assumption. split. assumption. assumption.
 }
-{
-  admit.
+{ (* m Union right *)
+  simpl. intro h. induction (pumping_constant z40).
+  simpl in h. specialize (z44 h). inversion z44 as [ta [tb [ tc [ hx [ hy hz]]]]].
+  exists ta, tb, tc. split. assumption. split. assumption. intro m. apply MUnionR. apply hz.
+  simpl in h. apply le_Sn_le in h. specialize (IHn h). inversion IHn as [ta [tb [tc [hx [ hy hz]]]]].
+  exists ta, tb, tc. split. assumption. split. assumption. assumption.
 }
-{
-  admit.
+{ (* m star none *)
+  simpl. intro h. inversion h.
+}
+{ (* m star some *)
+admit.
 }
 Admitted.
 
