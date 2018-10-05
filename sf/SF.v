@@ -2170,6 +2170,11 @@ right. apply (le_trans _ n _). assumption. constructor. constructor.
 Qed.
 
 
+Lemma list_dec : forall {T:Type} (l:list T), l = nil \/ l <> nil.
+Proof.
+destruct l. left;reflexivity. right. intro h. inversion h.
+Qed.
+
 Theorem pumping_lemma_0 : pumping.
 unfold pumping.
 intros T r s m.
@@ -2180,20 +2185,19 @@ induction m as [
 | (* union left *) z30 z31 z32 z33 z34
 | (* union right *) z40 z41 z42 z43 z44
 | (* star empty *) z50
-| (* star next *) z60 z61 z62 z63 z64 z65 z66
-].
+| (* star next *) sr srs R mr ir mrs irs
+];simpl.
 { (* m empty *)
-  simpl. intro h. inversion h.
+  intro h. inversion h.
 }
 { (* m char *)
-  simpl. intro i. apply Nat.nle_succ_diag_l in i. contradiction.
+  intro i. apply Nat.nle_succ_diag_l in i. contradiction.
 }
 { (* m app *)
-  simpl.
   admit.
 }
 { (* m Union left *)
-  simpl. intro h.
+  intro h.
   induction (pumping_constant z32). rewrite plus_comm in h. simpl in h. specialize (z34 h).
   inversion z34 as [ ta [ tb [ tc [ hx [ hy hz]]]]].
   exists ta, tb, tc. split. assumption. split. assumption.
@@ -2213,62 +2217,27 @@ induction m as [
   exists ta, tb, tc. split. assumption. split. assumption. assumption.
 }
 { (* m star none *)
-  simpl. intro h. inversion h.
+  intro h. inversion h.
 }
 { (* m star some *)
-  (*simpl. simpl in z64, z66. *)
-  rename z62 into R.
-  rename z63 into mr.
-  rename z65 into mrs.
-  rename z60 into sr.
-  rename z61 into srs.
-  rename z64 into ir.
-  rename z66 into irs.
   intro l.
-  rewrite thm in l.
-  simpl in l, ir, irs.
-
-
-  generalize dependent l.
-  generalize dependent irs.
-  generalize dependent ir.
-  generalize dependent mrs.
-  generalize dependent mr.
-
-  destruct R;simpl;intros.
-  { inversion mr. }
-  { inversion mr. subst sr. simpl in l, irs, ir. clear ir. specialize (irs l). clear l. admit. }
-  { inversion mr. subst t. subst sr. simpl in l, irs, ir. clear ir.
-    apply le_S_n in l.
-    Theorem tada : forall n:nat, 0 <= n -> n = 0 \/ 1 <= n.
-    destruct n. intros. left. reflexivity. intros. inversion H. subst m. right. apply le_n_S. apply le_0_n. Qed.
-    apply tada in l. inversion_clear l. rewrite H in irs. clear irs.
-   Theorem tidi : forall {T:Type} (l:list T), length l = 0 -> l = nil.
-   destruct l. reflexivity. simpl. intro h. inversion h. Qed.
-   apply tidi in H. subst srs. simpl. exists nil, (x::nil), nil. split. simpl. reflexivity. split.
-   intro h . inversion h. induction m. simpl. constructor. simpl.
-   rewrite app_nil_r. rewrite app_nil_r in IHm. simpl in IHm.
-   assert (eq: x :: napp m (x :: nil) = (x::nil) ++ napp m (x :: nil)).
-   simpl. reflexivity.
-   rewrite eq. constructor. assumption. assumption.
-   specialize (irs H). admit.
-   }
-   { inversion mr. subst re1 re2. subst sr. admit. }
-   { admit. }
-   { Theorem weird : forall n m : nat, 1 <= n + m -> (1 <= n \/ 1 <= m) \/ (n = 0 \/ m = 0).
-     induction n;simpl;intros. right;left;reflexivity.
-  
-  generalize dependent R.
-
-
-  exists nil, sr, srs. simpl.
-  split. reflexivity. split. {
-    intro h. subst sr. destruct R. inversion mr.  admit. inversion mr.  inversion mr.
-  } induction m. simpl. assumption. simpl.
-  assert (eq: (sr ++ napp m sr) ++ srs=sr ++ ((napp m sr) ++ srs)).
-  repeat (rewrite app_assoc);reflexivity.
-  rewrite eq. constructor. assumption. assumption.
+  simpl in ir, irs.
+  elim (list_dec sr);simpl.
+  {
+    intro h. subst sr. simpl in l. specialize (irs l).
+    inversion irs as [ta [tb [ tc [ hx [ hy hz]]]]].
+    exists ta, tb, tc;simpl.
+    split. assumption. split. assumption. assumption.
+  }
+  {
+    intro neq.
+    exists nil, sr, srs;simpl.
+    split. reflexivity. split. assumption.
+    simpl. induction m;simpl. assumption.
+    rewrite app_assoc. constructor. assumption. assumption.
+  }
 }
+
 
 
 End RegExp.
