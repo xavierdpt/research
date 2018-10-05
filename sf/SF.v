@@ -2194,7 +2194,47 @@ induction m as [
   intro i. apply Nat.nle_succ_diag_l in i. contradiction.
 }
 { (* m app *)
-  admit.
+  elim (list_dec sa).
+  {
+    intro eq. subst sa. simpl. simpl in ia.
+    intro l. assert (pumping_constant rb <= length sb).
+    apply (le_trans _ (pumping_constant ra+pumping_constant rb) _).
+    rewrite plus_comm.
+    Search ( _ <= _ + _).
+    apply Nat.le_add_r. assumption.
+    specialize (ib H).
+    inversion ib as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+    exists ta, tb, tc. split. assumption. split. assumption.
+    intro m.
+    assert (ta++(napp m tb) ++ tc=nil++(ta++(napp m tb) ++ tc)).
+    simpl. reflexivity.
+    rewrite H0. constructor. assumption. apply hz.
+  }
+  {
+    intro neq.
+    elim (list_dec sb).
+    {
+      intro eq. subst sb. simpl. simpl in ib.
+      intro l. assert (pumping_constant ra <= length sa).
+      apply (le_trans _ (pumping_constant ra+pumping_constant rb) _).
+      apply Nat.le_add_r. rewrite app_nil_r in l. assumption.
+      specialize (ia H).
+      inversion ia as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+      exists ta, tb, tc. split. rewrite app_nil_r. assumption. split. assumption.
+      intro m.
+      assert (ta++(napp m tb) ++ tc=(ta++(napp m tb) ++ tc)++nil).
+      rewrite app_nil_r. reflexivity.
+      rewrite H0. constructor. apply hz. assumption.
+    }
+    {
+      intro neqb.
+      intro l.
+      exists nil, (sa++sb), nil.
+      split. simpl. rewrite app_nil_r. reflexivity. split.
+      intro h. admit.
+      simpl. intro m. rewrite app_nil_r. induction m. simpl.
+     
+  }
 }
 { (* m Union left *)
   intro h.
