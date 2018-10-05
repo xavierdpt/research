@@ -2150,6 +2150,26 @@ Proof.
   }}
 Qed.
 
+Theorem thm : forall {T:Type} (x y:list T), length (x++y) = length x + length y.
+Proof.
+induction x;simpl. reflexivity. intros. rewrite IHx. reflexivity.
+Qed.
+
+Theorem thm' : forall (n:nat), 1 <= S n.
+Proof.
+induction n. constructor. apply (le_trans _ (S n) _). assumption. constructor. constructor.
+Qed.
+
+Theorem thm'' : forall n m : nat, n <= m -> n = 0 \/ 1 <= n.
+Proof.
+induction n. intros. left. reflexivity.
+destruct m. intros. inversion H.
+intros. specialize (IHn m).
+apply le_S_n in H. specialize (IHn H). inversion_clear IHn. subst n. right. constructor.
+right. apply (le_trans _ n _). assumption. constructor. constructor.
+Qed.
+
+
 Theorem pumping_lemma_0 : pumping.
 unfold pumping.
 intros T r s m.
@@ -2196,9 +2216,60 @@ induction m as [
   simpl. intro h. inversion h.
 }
 { (* m star some *)
-admit.
+  (*simpl. simpl in z64, z66. *)
+  rename z62 into R.
+  rename z63 into mr.
+  rename z65 into mrs.
+  rename z60 into sr.
+  rename z61 into srs.
+  rename z64 into ir.
+  rename z66 into irs.
+  intro l.
+  rewrite thm in l.
+  simpl in l, ir, irs.
+
+
+  generalize dependent l.
+  generalize dependent irs.
+  generalize dependent ir.
+  generalize dependent mrs.
+  generalize dependent mr.
+
+  destruct R;simpl;intros.
+  { inversion mr. }
+  { inversion mr. subst sr. simpl in l, irs, ir. clear ir. specialize (irs l). clear l. admit. }
+  { inversion mr. subst t. subst sr. simpl in l, irs, ir. clear ir.
+    apply le_S_n in l.
+    Theorem tada : forall n:nat, 0 <= n -> n = 0 \/ 1 <= n.
+    destruct n. intros. left. reflexivity. intros. inversion H. subst m. right. apply le_n_S. apply le_0_n. Qed.
+    apply tada in l. inversion_clear l. rewrite H in irs. clear irs.
+   Theorem tidi : forall {T:Type} (l:list T), length l = 0 -> l = nil.
+   destruct l. reflexivity. simpl. intro h. inversion h. Qed.
+   apply tidi in H. subst srs. simpl. exists nil, (x::nil), nil. split. simpl. reflexivity. split.
+   intro h . inversion h. induction m. simpl. constructor. simpl.
+   rewrite app_nil_r. rewrite app_nil_r in IHm. simpl in IHm.
+   assert (eq: x :: napp m (x :: nil) = (x::nil) ++ napp m (x :: nil)).
+   simpl. reflexivity.
+   rewrite eq. constructor. assumption. assumption.
+   specialize (irs H). admit.
+   }
+   { inversion mr. subst re1 re2. subst sr. admit. }
+   { admit. }
+   { Theorem weird : forall n m : nat, 1 <= n + m -> (1 <= n \/ 1 <= m) \/ (n = 0 \/ m = 0).
+     induction n;simpl;intros. right;left;reflexivity.
+  
+  generalize dependent R.
+
+
+  exists nil, sr, srs. simpl.
+  split. reflexivity. split. {
+    intro h. subst sr. destruct R. inversion mr.  admit. inversion mr.  inversion mr.
+  } induction m. simpl. assumption. simpl.
+  assert (eq: (sr ++ napp m sr) ++ srs=sr ++ ((napp m sr) ++ srs)).
+  repeat (rewrite app_assoc);reflexivity.
+  rewrite eq. constructor. assumption. assumption.
 }
-Admitted.
+
 
 End RegExp.
 
