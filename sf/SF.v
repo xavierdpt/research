@@ -2175,7 +2175,7 @@ Proof.
 destruct l. left;reflexivity. right. intro h. inversion h.
 Qed.
 
-Theorem pumping_lemma_0 : pumping.
+Theorem pumping_lemma : pumping.
 unfold pumping.
 intros T r s m.
 induction m as [
@@ -2194,46 +2194,30 @@ induction m as [
   intro i. apply Nat.nle_succ_diag_l in i. contradiction.
 }
 { (* m app *)
-  elim (list_dec sa).
+  intro l. rewrite thm in l.
+  apply Nat.add_le_cases in l.
+  inversion_clear l as [ ha | hb ].
   {
-    intro eq. subst sa. simpl. simpl in ia.
-    intro l. assert (pumping_constant rb <= length sb).
-    apply (le_trans _ (pumping_constant ra+pumping_constant rb) _).
-    rewrite plus_comm.
-    Search ( _ <= _ + _).
-    apply Nat.le_add_r. assumption.
-    specialize (ib H).
-    inversion ib as [ ta [ tb [ tc [ hx [ hy hz]]]]].
-    exists ta, tb, tc. split. assumption. split. assumption.
+    specialize (ia ha). clear ib.
+    inversion ia as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+    exists ta, tb, (tc++sb).
+    split. subst sa. repeat (rewrite app_assoc). reflexivity.
+    split. assumption.
     intro m.
-    assert (ta++(napp m tb) ++ tc=nil++(ta++(napp m tb) ++ tc)).
-    simpl. reflexivity.
-    rewrite H0. constructor. assumption. apply hz.
+    assert (eq: ta++napp m tb ++ tc ++ sb = (ta++napp m tb ++ tc) ++ sb).
+    repeat (rewrite app_assoc). reflexivity.
+    rewrite eq. constructor. apply hz. assumption.
   }
   {
-    intro neq.
-    elim (list_dec sb).
-    {
-      intro eq. subst sb. simpl. simpl in ib.
-      intro l. assert (pumping_constant ra <= length sa).
-      apply (le_trans _ (pumping_constant ra+pumping_constant rb) _).
-      apply Nat.le_add_r. rewrite app_nil_r in l. assumption.
-      specialize (ia H).
-      inversion ia as [ ta [ tb [ tc [ hx [ hy hz]]]]].
-      exists ta, tb, tc. split. rewrite app_nil_r. assumption. split. assumption.
-      intro m.
-      assert (ta++(napp m tb) ++ tc=(ta++(napp m tb) ++ tc)++nil).
-      rewrite app_nil_r. reflexivity.
-      rewrite H0. constructor. apply hz. assumption.
-    }
-    {
-      intro neqb.
-      intro l.
-      exists nil, (sa++sb), nil.
-      split. simpl. rewrite app_nil_r. reflexivity. split.
-      intro h. admit.
-      simpl. intro m. rewrite app_nil_r. induction m. simpl.
-     
+    specialize (ib hb). clear ia.
+    inversion ib as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+    exists (sa++ta), tb, tc.
+    split. subst sb. repeat (rewrite app_assoc). reflexivity.
+    split. assumption.
+    intro m.
+    assert (eq: (sa++ta)++napp m tb ++ tc = sa++(ta++napp m tb ++ tc)).
+    repeat (rewrite app_assoc). reflexivity.
+    rewrite eq. constructor. assumption. apply hz.
   }
 }
 { (* m Union left *)
@@ -2277,7 +2261,7 @@ induction m as [
     rewrite app_assoc. constructor. assumption. assumption.
   }
 }
-
+Qed.
 
 
 End RegExp.
