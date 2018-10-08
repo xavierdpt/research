@@ -2448,7 +2448,30 @@ Qed.
 Theorem rtc_rsc_coincide : forall (X:Type) (R: relation X) (x y : X),
   clos_refl_trans _ R x y <-> clos_refl_trans_1n _ R x y.
 Proof.
-
+intros X R x y.
+split.
+{
+  intro h.
+  induction h.
+  { apply (rt1n_trans _ _ _ y).
+    { assumption. }
+    { apply rt1n_refl. }
+  }
+  { apply rt1n_refl. }
+  { admit.
+  }
+}
+{
+  intro h.
+  induction h.
+  {
+    apply rt_refl.
+  }
+  { apply (rt_trans _ _ _ y).
+    { apply rt_step. assumption. }
+    { assumption. }
+  }
+}
 Qed.
 
 End Rel.
