@@ -2106,6 +2106,352 @@ Admitted.
 
 End RegExp.
 
+Theorem filter_not_empty_In : forall n l,
+  filter (beq_nat n) l <> nil ->  In n l.
+Proof.
+intros n l. induction l.
+simpl. intros. contradiction.
+simpl. intros. destruct (beq_nat n a) eqn:eq.
+left. rewrite beq_nat_true_iff in eq. subst a. reflexivity. 
+right. apply IHl. assumption.
+Qed.
+
+Theorem iff_reflect : forall P b, (P <-> b = true) -> reflect P b.
+Proof.
+intros P b. destruct b.
+intros [a b]. constructor. apply b. reflexivity.
+intros [a b]. constructor. intro p. specialize (a p). inversion a.
+Qed.
+
+Theorem reflect_iff : forall P b, reflect P b -> (P <-> b = true).
+Proof.
+intros P b h.
+inversion h. subst b. split. intro p;reflexivity. intro tt. assumption.
+split. intro p. contradiction. intro neq. inversion neq.
+Qed.
+
+Lemma beq_natP : forall n m, reflect (n=m) (beq_nat n m).
+Proof.
+intros n m. apply iff_reflect. rewrite beq_nat_true_iff. reflexivity.
+Qed.
+
+Theorem filter_not_empty_In' : forall n l, filter (beq_nat n) l <> nil -> In n l.
+Proof.
+intros n l. induction l.
+simpl. intros. contradiction.
+simpl. destruct (beq_natP n a). subst a. intros. left;reflexivity.
+intros. right. apply IHl. assumption.
+Qed.
+
+Fixpoint count n l :=
+  match l with
+  | nil => 0
+  | cons m l' => (if beq_nat n m then 1 else 0) + count n l'
+  end.
+
+Theorem beq_natP_practice : forall n l,
+  count n l = 0 -> ~(In n l).
+Proof.
+Admitted.
+
+Inductive nostutter {X:Type} : list X -> Prop :=
+.
+
+Example test_nostutter_2: nostutter (@nil nat).
+Admitted.
+
+Import ListNotations.
+
+Example test_nostutter_3: nostutter [5].
+Admitted.
+
+Example test_nostutter_4: not (nostutter [3;1;1;4]).
+Admitted.
+
+(* filter_challenge *)
+
+(* filter_challenge_2 *)
+
+(* palindromes *)
+
+Inductive pal {T:Type} (l:list T) : Prop :=
+.
+
+Theorem pal_app_rev : forall {T:Type} (l:list T), pal (l ++ rev l).
+Admitted.
+
+Theorem pal_rev : forall {T:Type} (l:list T), pal l -> l = rev l.
+Admitted.
+
+Theorem palindrome_converse : forall {T:Type} (l:list T), l = rev l -> pal l.
+Admitted.
+
+
+ (* disjoint *)
+ (* NoDup *)
+
+(* pigeonhole *)
+
+Lemma in_split : forall (X:Type) (x:X) (l:list X),
+  In x l ->
+  exists l1 l2, l = l1 ++ x :: l2.
+Proof.
+Admitted.
+
+Inductive repeats {X:Type} : list X -> Prop :=
+.
+
+Definition excluded_middle := forall P, P \/ not P.
+
+Theorem pigeonhole_principle: forall (X:Type) (l1 l2:list X),
+   excluded_middle ->
+   (forall x, In x l1 -> In x l2) ->
+   length l2 < length l1 ->
+   repeats l1.
+Proof.
+Admitted.
+
+(* verified regular-expression matcher *)
+
 End IndProp.
+
+Module Maps.
+
+Definition beq_string x y :=
+  if string_dec x y then true else false.
+
+Theorem beq_string_refl : forall s, true = beq_string s s.
+Proof.
+unfold beq_string. intro s.
+destruct (string_dec s s). reflexivity. contradiction.
+Qed.
+
+
+Theorem beq_string_true_iff : forall x y : string,
+  beq_string x y = true <-> x = y.
+Proof.
+unfold beq_string. intros x y.
+destruct (string_dec x y). split. subst y. intros;reflexivity. intros;reflexivity.
+split. intro h;inversion h. intro h;contradiction.
+Qed.
+
+Theorem beq_string_false_iff : forall x y : string,
+  beq_string x y = false
+  <-> x <> y.
+Proof.
+unfold beq_string. intros x y.
+destruct (string_dec x y);split;intros. inversion H. contradiction. assumption. reflexivity.
+Qed.
+
+Theorem false_beq_string : forall x y : string,
+   x <> y -> beq_string x y = false.
+Proof.
+intros x y.
+unfold beq_string.
+destruct (string_dec x y);intros. contradiction. reflexivity.
+Qed.
+
+Definition total_map (A:Type) := string -> A.
+
+Definition t_empty {A:Type} (v : A) : total_map A :=
+  (fun _ => v).
+
+Definition t_update {A:Type} (m : total_map A)
+                    (x : string) (v : A) :=
+  fun x' => if beq_string x x' then v else m x'.
+
+Lemma t_apply_empty: forall (A:Type) (x: string) (v: A), t_empty v x = v.
+Proof.
+intros. unfold t_empty. reflexivity.
+Qed.
+
+Lemma t_update_eq : forall A (m: total_map A) x v,
+t_update m x v x = v.
+Proof.
+intros. unfold t_update. rewrite <- beq_string_refl. reflexivity.
+Qed.
+
+Theorem t_update_neq : forall (X:Type) v x1 x2 (m : total_map X),
+  x1 <> x2 ->
+  t_update m x1 v x2 = m x2.
+Proof.
+intros. unfold t_update. unfold beq_string. destruct (string_dec x1 x2).
+subst x2. contradiction. reflexivity.
+Qed.
+
+Lemma t_update_shadow : forall A (m: total_map A) v1 v2 x,
+t_update (t_update m x v1) x v2 = t_update m x v2.
+Proof.
+intros. apply functional_extensionality. intro y.
+unfold t_update. unfold beq_string. destruct (string_dec x y).
+reflexivity. reflexivity.
+Qed.
+
+Lemma beq_stringP : forall x y, reflect (x = y) (beq_string x y).
+Proof.
+intros x y.
+unfold beq_string. destruct (string_dec x y).
+constructor. assumption. constructor. assumption.
+Qed.
+
+Theorem t_update_same : forall X x (m : total_map X),
+    t_update m x (m x) = m.
+Proof.
+intros. apply functional_extensionality.
+intro y. unfold t_update. unfold beq_string. destruct (string_dec x y).
+subst y. reflexivity. reflexivity.
+Qed.
+
+Theorem t_update_permute : forall (X:Type) v1 v2 x1 x2
+                             (m : total_map X),
+x2 <> x1 -> t_update (t_update m x2 v2) x1 v1 = t_update (t_update m x1 v1) x2 v2.
+Proof.
+intros X x y a b m.
+intro neq.
+unfold t_update. apply functional_extensionality.
+intro z. unfold beq_string. destruct (string_dec a z).
+subst a. destruct (string_dec b z). subst b. contradiction. reflexivity.
+destruct (string_dec b z). reflexivity. reflexivity.
+Qed.
+
+Definition partial_map (A:Type) := total_map (option A).
+
+Definition empty {A:Type} : partial_map A :=  t_empty None.
+
+Definition update {A:Type} (m : partial_map A) (x : string) (v : A) := t_update m x (Some v).
+
+Lemma apply_empty : forall (A: Type) (x: string), @empty A x = None.
+Proof.
+unfold empty. unfold t_empty. reflexivity.
+Qed.
+
+Lemma update_eq : forall A (m: partial_map A) x v,
+update m x v x = Some v.
+Proof.
+intros. unfold update. unfold t_update. rewrite <- beq_string_refl. reflexivity.
+Qed.
+
+Theorem update_neq : forall (X:Type) v x1 x2 (m : partial_map X),
+  x2 <> x1 -> update m x2 v x1 = m x1.
+Proof.
+intros. unfold update. unfold t_update. unfold beq_string. destruct (string_dec x2 x1).
+subst x1. contradiction. reflexivity.
+Qed.
+
+Lemma update_shadow : forall A (m: partial_map A) v1 v2 x,
+update (update m x v1) x v2 = update m x v2.
+Proof.
+intros. apply functional_extensionality. intro y.
+unfold update. unfold t_update. unfold beq_string.
+destruct (string_dec x y). reflexivity. reflexivity.
+Qed.
+
+
+Theorem update_same : forall X v x (m : partial_map X),
+  m x = Some v ->
+  update m x v = m.
+Proof.
+intros. unfold update. unfold t_update. apply functional_extensionality. intro y.
+unfold beq_string. destruct (string_dec x y). subst y. symmetry. assumption. reflexivity.
+Qed.
+
+Theorem update_permute : forall (X:Type) v1 v2 x1 x2 (m : partial_map X),
+  x2 <> x1 ->
+  update (update m x2 v2) x1 v1 = update (update m x1 v1) x2 v2.
+Proof.
+intros X x y a b m neq.
+unfold update. unfold t_update. apply functional_extensionality.
+intro c. unfold beq_string. destruct (string_dec a c).
+subst c.
+destruct (string_dec b a). subst b. contradiction. reflexivity.
+destruct (string_dec b c). reflexivity. reflexivity.
+Qed.
+
+End Maps.
+
+Module ProofObjects.
+
+Lemma equality__leibniz_equality : forall (X : Type) (x y: X),
+  x = y -> forall P:X->Prop, P x -> P y.
+Proof.
+intros X x y eq. subst y. intros P px. assumption.
+Qed.
+
+End ProofObjects.
+
+Module IndPrinciples.
+
+Theorem mult_0_r' : forall n : nat, n * 0 = 0.
+Proof.
+apply nat_ind. reflexivity.
+intros n i. simpl.  assumption.
+Qed.
+
+End IndPrinciples.
+
+Module Rel.
+
+Search "clos_refl_trans".
+
+Inductive next_nat : nat -> nat -> Prop := | nn : forall n:nat, next_nat n (S n).
+
+Import Relation_Operators.
+
+Theorem next_nat_closure_is_le : forall n m,  (n <= m) <-> ((clos_refl_trans _ next_nat) n m).
+Proof.
+intros n m. split.
+{
+  intro hnm.
+  induction hnm.
+  {
+    apply rt_refl.
+  }
+  {
+    apply (rt_trans _ _ _ m).
+    { assumption. }
+    { apply rt_step. constructor. }
+  }
+}
+{
+  intro h.
+  induction h.
+  inversion H. constructor.  constructor.
+  constructor.
+  apply (le_trans _ y _);assumption.
+}
+Qed.
+
+Lemma rsc_R : forall (X:Type) (R:relation X) (x y : X), R x y -> clos_refl_trans_1n _ R x y.
+Proof.
+intros X R x y h.
+apply (rt1n_trans _ _ _ y). assumption. constructor.
+Qed.
+
+Lemma rsc_trans : forall (X:Type) (R: relation X) (x y z : X),
+      clos_refl_trans_1n _ R x y ->
+      clos_refl_trans_1n _ R y z ->
+      clos_refl_trans_1n _ R x z.
+Proof.
+intros X R x y z.
+intros hxy hyz.
+induction hxy.
+{ inversion hyz.
+  { subst z. constructor. }
+  { assumption. }
+} 
+{ apply (rt1n_trans _ _ _ y).
+  { assumption. }
+  { apply IHhxy. assumption. }
+}
+Qed.
+
+Theorem rtc_rsc_coincide : forall (X:Type) (R: relation X) (x y : X),
+  clos_refl_trans _ R x y <-> clos_refl_trans_1n _ R x y.
+Proof.
+
+Qed.
+
+End Rel.
+
 
 End V1.
