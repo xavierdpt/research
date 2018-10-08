@@ -2088,118 +2088,43 @@ constructor.
 - constructor.
 Qed.
 
-Definition pumping := forall T (re : @reg_exp T) s,
+Lemma list_dec : forall {T:Type} (l:list T), l = nil \/ l <> nil.
+Proof.
+destruct l. left;reflexivity. right. intro h. inversion h.
+Qed.
+
+Theorem pumping_lemma : forall T (re : @reg_exp T) s,
   exp_match s re ->
   pumping_constant re <= length s ->
   exists s1 s2 s3,
     s = app s1 (app s2 s3) /\
     s2 <> nil /\
     forall m, exp_match (app s1 (app (napp m s2) s3)) re.
-
-Lemma cons_app_nil : forall {T:Type} x (r:list T), x :: r = (x::nil)++r.
-Proof. reflexivity. Qed.
-
-Lemma youpi : forall {T:Type} (x:T) (l:list T)  (p:nat),
-S p <= length (l ++ x :: nil) ->
-p <= length l.
-intros T x.
-induction l.
-simpl. intros. inversion H. constructor. inversion H1.
-simpl.
-intros.
-destruct p. Search ( 0 <= _). apply Nat.le_0_l.
-apply le_n_S. apply IHl. apply le_S_n. assumption.
-Qed.
-
-Lemma youpi2 : forall {T:Type} (x:T) (l:list T)  (p:nat),
-exists p', p' <= length l  ->
-p <= length (l ++ x :: nil).
 Proof.
-Admitted.
-
-Theorem pl_App_Char : forall (T : Type) (ch : T) (sb : list T) (rb : reg_exp),
-exp_match (ch :: nil) (Char ch) ->
-exp_match sb rb ->
-(pumping_constant rb <= Datatypes.length sb ->
- exists s1 s2 s3 : list T,
-   sb = s1 ++ s2 ++ s3 /\ s2 <> nil /\ (forall m : nat, exp_match (s1 ++ napp m s2 ++ s3) rb)) ->
-S (S (pumping_constant rb)) <= S (Datatypes.length sb) ->
-exists s1 s2 s3 : list T,
-  ch :: sb = s1 ++ s2 ++ s3 /\ s2 <> nil /\ (forall m : nat, exp_match (s1 ++ napp m s2 ++ s3) (App (Char ch) rb)).
-Proof.
-  intros T ch sb rb ram rbm i l.
-  apply le_Sn_le in l.
-  apply le_S_n in l.
-  specialize (i l).
-  inversion i as [ ta [tb [tc [eq [neq hm]]]]].
-  simpl.
-  subst sb.
-  exists (ch::ta), tb, tc.
-  split. {
-    simpl. reflexivity.
-  }
-  { split. {
-    assumption.
-  } {
-    intro m.
-    simpl. specialize (hm m). simpl in hm.
-    rewrite cons_app_nil.
-    constructor.
-    - assumption.
-    - assumption.
-  }}
-Qed.
-
-Theorem thm : forall {T:Type} (x y:list T), length (x++y) = length x + length y.
-Proof.
-induction x;simpl. reflexivity. intros. rewrite IHx. reflexivity.
-Qed.
-
-Theorem thm' : forall (n:nat), 1 <= S n.
-Proof.
-induction n. constructor. apply (le_trans _ (S n) _). assumption. constructor. constructor.
-Qed.
-
-Theorem thm'' : forall n m : nat, n <= m -> n = 0 \/ 1 <= n.
-Proof.
-induction n. intros. left. reflexivity.
-destruct m. intros. inversion H.
-intros. specialize (IHn m).
-apply le_S_n in H. specialize (IHn H). inversion_clear IHn. subst n. right. constructor.
-right. apply (le_trans _ n _). assumption. constructor. constructor.
-Qed.
-
-
-Lemma list_dec : forall {T:Type} (l:list T), l = nil \/ l <> nil.
-Proof.
-destruct l. left;reflexivity. right. intro h. inversion h.
-Qed.
-
-Theorem pumping_lemma : pumping.
-unfold pumping.
 intros T r s m.
 induction m as [
 (* empty *)
 | (* char *) ch
 | (* app *) sa ra sb rb ram ia rbm ib
-| (* union left *) z30 z31 z32 z33 z34
-| (* union right *) z40 z41 z42 z43 z44
-| (* star empty *) z50
+| (* union left *) sl rl rr ml il
+| (* union right *) sr rl rr mr ir
+| (* star empty *) r
 | (* star next *) sr srs R mr ir mrs irs
 ];simpl.
-{ (* m empty *)
-  intro h. inversion h.
+{ (* Empty *)
+  intro l. inversion l.
 }
-{ (* m char *)
-  intro i. apply Nat.nle_succ_diag_l in i. contradiction.
+{ (* Char *)
+  intro l. apply Nat.nle_succ_diag_l in l. contradiction.
 }
-{ (* m app *)
-  intro l. rewrite thm in l.
+{ (* App *)
+  intro l. 
+  rewrite app_length in l.
   apply Nat.add_le_cases in l.
   inversion_clear l as [ ha | hb ].
   {
     specialize (ia ha). clear ib.
-    inversion ia as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+    inversion ia as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
     exists ta, tb, (tc++sb).
     split. subst sa. repeat (rewrite app_assoc). reflexivity.
     split. assumption.
@@ -2210,7 +2135,7 @@ induction m as [
   }
   {
     specialize (ib hb). clear ia.
-    inversion ib as [ ta [ tb [ tc [ hx [ hy hz]]]]].
+    inversion ib as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
     exists (sa++ta), tb, tc.
     split. subst sb. repeat (rewrite app_assoc). reflexivity.
     split. assumption.
@@ -2220,53 +2145,68 @@ induction m as [
     rewrite eq. constructor. assumption. apply hz.
   }
 }
-{ (* m Union left *)
-  intro h.
-  induction (pumping_constant z32). rewrite plus_comm in h. simpl in h. specialize (z34 h).
-  inversion z34 as [ ta [ tb [ tc [ hx [ hy hz]]]]].
-  exists ta, tb, tc. split. assumption. split. assumption.
-  intro m. apply MUnionL. apply hz.
-  rewrite plus_comm in h. simpl in h.
-  apply le_Sn_le in h.
-  rewrite plus_comm in h. specialize (IHn h).
-  inversion IHn as [ta [tb [tc [ hx [hy hz]]]]].
-  exists ta, tb, tc.
-  split. assumption. split. assumption. assumption.
+{ (* Union left *)
+  intro l.
+  induction (pumping_constant rr) as [ | pc ipc].
+  {
+    rewrite plus_comm in l. simpl in l. specialize (il l).
+    inversion il as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
+    exists ta, tb, tc. split. assumption. split. assumption.
+    intro m. apply MUnionL. apply hz.
+  }
+  {
+    rewrite plus_comm in l. simpl in l. apply le_Sn_le in l. rewrite plus_comm in l.
+    specialize (ipc l).
+    inversion ipc as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
+    exists ta, tb, tc.
+    split. assumption. split. assumption.
+    assumption.
+  }
 }
-{ (* m Union right *)
-  simpl. intro h. induction (pumping_constant z40).
-  simpl in h. specialize (z44 h). inversion z44 as [ta [tb [ tc [ hx [ hy hz]]]]].
-  exists ta, tb, tc. split. assumption. split. assumption. intro m. apply MUnionR. apply hz.
-  simpl in h. apply le_Sn_le in h. specialize (IHn h). inversion IHn as [ta [tb [tc [hx [ hy hz]]]]].
-  exists ta, tb, tc. split. assumption. split. assumption. assumption.
+{ (* Union right *)
+  intro l. induction (pumping_constant sr) as [ | pc ipc ].
+  {
+    simpl in l. specialize (ir l).
+    inversion ir as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
+    exists ta, tb, tc. split. assumption. split. assumption.
+    intro m. apply MUnionR. apply hz.
+  }
+  {
+    simpl in l. apply le_Sn_le in l. specialize (ipc l).
+    inversion ipc as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
+    exists ta, tb, tc. split. assumption. split. assumption.
+    assumption.
+  }
 }
-{ (* m star none *)
+{ (* Star none *)
   intro h. inversion h.
 }
-{ (* m star some *)
+{ (* Star some *)
   intro l.
-  simpl in ir, irs.
+  simpl in irs.
   elim (list_dec sr);simpl.
   {
     intro h. subst sr. simpl in l. specialize (irs l).
-    inversion irs as [ta [tb [ tc [ hx [ hy hz]]]]].
+    inversion irs as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
     exists ta, tb, tc;simpl.
-    split. assumption. split. assumption. assumption.
+    split. assumption. split. assumption.
+    assumption.
   }
   {
     intro neq.
-    exists nil, sr, srs;simpl.
+    exists nil, sr, srs. simpl.
     split. reflexivity. split. assumption.
-    simpl. induction m;simpl. assumption.
-    rewrite app_assoc. constructor. assumption. assumption.
+    simpl. induction m as [ | m im ];simpl.
+    - assumption.
+    - rewrite app_assoc. constructor.
+      + assumption.
+      + assumption.
   }
 }
 Qed.
 
-
 End RegExp.
 
 End IndProp.
-
 
 End V1.
