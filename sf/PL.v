@@ -28,16 +28,16 @@ Inductive exp_match {T} : list T -> reg_exp -> Prop :=
                exp_match s2 (Star re) ->
                exp_match (s1 ++ s2) (Star re).
 
-
-Fixpoint pumping_constant {T} (re : @reg_exp T) : nat :=
+(* pumping constant *)
+Fixpoint pc {T} (re : @reg_exp T) : nat :=
   match re with
   | EmptySet => 0
   | EmptyStr => 1
   | Char _ => 2
   | App re1 re2 =>
-      pumping_constant re1 + pumping_constant re2
+      pc re1 + pc re2
   | Union re1 re2 =>
-      pumping_constant re1 + pumping_constant re2
+      pc re1 + pc re2
   | Star _ => 1
   end.
 
@@ -62,7 +62,7 @@ Qed.
 
 Theorem pumping_lemma : forall T (re : @reg_exp T) s,
   exp_match s re ->
-  pumping_constant re <= length s ->
+  pc re <= length s ->
   exists s1 s2 s3,
     s = app s1 (app s2 s3) /\
     s2 <> nil /\
@@ -70,11 +70,11 @@ Theorem pumping_lemma : forall T (re : @reg_exp T) s,
 Proof.
 intros T r s m.
 induction m as [
-(* empty *)
+  (* empty *)
 | (* char *) ch
-| (* app *) sa ra sb rb ram ia rbm ib
+| (* app *) sa ra sb rb ma ia mb ib
 | (* union left *) sl rl rr ml il
-| (* union right *) sr rl rr mr ir
+| (* union right *) rl sr rr mr ir
 | (* star empty *) r
 | (* star next *) sr srs R mr ir mrs irs
 ];simpl.
@@ -88,62 +88,47 @@ induction m as [
   intro l. 
   rewrite app_length in l.
   apply Nat.add_le_cases in l.
-  inversion_clear l as [ ha | hb ].
+  inversion_clear l as [ la | lb ].
   {
-    specialize (ia ha). clear ib.
+    specialize (ia la). clear ib.
     inversion ia as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
     exists ta, tb, (tc++sb).
     split. subst sa. repeat (rewrite app_assoc). reflexivity.
     split. assumption.
     intro m.
-    assert (eq: ta++napp m tb ++ tc ++ sb = (ta++napp m tb ++ tc) ++ sb).
-    repeat (rewrite app_assoc). reflexivity.
+      assert (eq: ta++napp m tb ++ tc ++ sb = (ta++napp m tb ++ tc) ++ sb).
+      repeat (rewrite app_assoc). reflexivity.
     rewrite eq. constructor. apply hz. assumption.
   }
   {
-    specialize (ib hb). clear ia.
+    specialize (ib lb). clear ia.
     inversion ib as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
     exists (sa++ta), tb, tc.
     split. subst sb. repeat (rewrite app_assoc). reflexivity.
     split. assumption.
     intro m.
-    assert (eq: (sa++ta)++napp m tb ++ tc = sa++(ta++napp m tb ++ tc)).
-    repeat (rewrite app_assoc). reflexivity.
+      assert (eq: (sa++ta)++napp m tb ++ tc = sa++(ta++napp m tb ++ tc)).
+      repeat (rewrite app_assoc). reflexivity.
     rewrite eq. constructor. assumption. apply hz.
   }
 }
 { (* Union left *)
   intro l.
-  induction (pumping_constant rr) as [ | pc ipc].
-  {
-    rewrite plus_comm in l. simpl in l. specialize (il l).
-    inversion il as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
-    exists ta, tb, tc. split. assumption. split. assumption.
-    intro m. apply MUnionL. apply hz.
-  }
-  {
-    rewrite plus_comm in l. simpl in l. apply le_Sn_le in l. rewrite plus_comm in l.
-    specialize (ipc l).
-    inversion ipc as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
-    exists ta, tb, tc.
-    split. assumption. split. assumption.
-    assumption.
-  }
+    assert (ll:pc rl <= length sl).
+    apply (le_trans _ (pc rl + pc rr) _). apply le_plus_trans. constructor. assumption.
+  specialize (il ll).
+  inversion il as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
+  exists ta, tb, tc. split. assumption. split. assumption.
+  intro m. apply MUnionL. apply hz.
 }
 { (* Union right *)
-  intro l. induction (pumping_constant sr) as [ | pc ipc ].
-  {
-    simpl in l. specialize (ir l).
-    inversion ir as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
-    exists ta, tb, tc. split. assumption. split. assumption.
-    intro m. apply MUnionR. apply hz.
-  }
-  {
-    simpl in l. apply le_Sn_le in l. specialize (ipc l).
-    inversion ipc as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
-    exists ta, tb, tc. split. assumption. split. assumption.
-    assumption.
-  }
+  intro l.
+    assert (lr:pc rr <= length sr).
+    apply (le_trans _ (pc rl + pc rr) _). rewrite plus_comm. apply le_plus_trans. constructor. assumption.
+  specialize (ir lr).
+  inversion ir as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
+  exists ta, tb, tc. split. assumption. split. assumption.
+  intro m. apply MUnionR. apply hz.
 }
 { (* Star none *)
   intro h. inversion h.
@@ -153,7 +138,7 @@ induction m as [
   simpl in irs.
   elim (list_dec sr);simpl.
   {
-    intro h. subst sr. simpl in l. specialize (irs l).
+    intro eq. subst sr. simpl in l. specialize (irs l).
     inversion irs as [ ta [ tb [ tc [ hx [ hy hz ]]]]].
     exists ta, tb, tc;simpl.
     split. assumption. split. assumption.
