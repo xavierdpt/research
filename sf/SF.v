@@ -2696,42 +2696,86 @@ intros c src dst1 dst2 h1.
 generalize dependent dst2.
 induction h1 as [
   src
-| src exp n1 z4 heval1
-| z1 z2 z3 z4 z5 z6 z7 z8 z9
-| z1 z2 z3 z4 z5 z6 z7 z8
-| z1 z2 z3 z4 z5 z6 z7 z8
-| z1 z2 z3 z4
+| src exp n id heval
+| ca cb src tmp dst hevala ia hevalb ib
+| src dst1 exp ct cf bevalt heval ict
+| src dst1 exp ct cf bevalf heval ict
+| exp dst1 c bevalf
 | z1 z2 z3 z4 z5 z6 z7 z8 z9 z10
-].
+];  intros dst2 h.
 {
-  intros dst2 h. inversion_clear h. reflexivity.
+  inversion h as [ src' u src'eq eq | | | | | | ];clear h u eq;subst src'.
+  reflexivity.
 }
 {
-  intros dst2 h.
-  inversion_clear h as [ | x1 x2 n2 x4 heval2 x6 x7 x8 | | | | | ].
-  rewrite <- heval1. rewrite <- heval2. reflexivity.
+  inversion h as [ | src' exp' n' id' heval' id'eq src'eq hupdate | | | | | ];
+  clear h;
+  rename H into exp'eq;
+  subst src' exp' id';
+  clear hupdate.
+  rewrite <- heval. rewrite <- heval'. reflexivity.
 }
-
-intros. inversion H;clear H. subst st''0. subst st0. subst c3 c0.
-rename c1 into ca.
-rename c2 into cb.
-rename h1_1 into hevala.
-rename h1_2 into hevalb.
-rename st into src.
-rename st' into tmp1.
-rename st'' into dst1.
-rename IHh1_1 into ia.
-rename IHh1_2 into ib.
-rename st'0 into tmp2.
-rewrite (ib dst2). reflexivity.
-rewrite (ia tmp2). assumption. assumption.
-
-intros. inversion H0.
-subst st'0 st0 c3 c0 b0. clear H6 H.
-rewrite (IHh1 dst2). reflexivity. assumption.
-subst st'0 st0 c3 c0 b0.
-rewrite H in H6. inversion H6.
-
+{
+  inversion h as [ | | ca' cb' src' tmp' dst2' hevala' hevalb' ca'eq src'eq dst2'eq | | | | ];
+  rename H into cb'eq;
+  subst dst2' src' cb' ca';
+  clear h hevala hevalb.
+  rewrite (ib dst2); clear ib.
+  { reflexivity. }
+  { rewrite (ia tmp') ; clear ia.
+    { apply hevalb'. }
+    { apply hevala'. }
+  }
+}
+{
+  inversion h as [ | |
+  | src' dst2' exp' ct' cf' bevalt' heval' exp'eq src'eq dst2'eq
+  | src' dst2' exp' ct' cf' bevalf' heval' exp'eq src'eq dst2'eq
+  | | ];clear h.
+  {
+    rename H into ct'eq; rename H0 into cf'eq;
+    subst dst2' src' cf' ct' exp';
+    clear bevalt bevalt' heval.
+    rewrite (ict dst2).
+    { reflexivity. }
+    { apply heval'. }
+  }
+  {
+    rename H into ct'eq;rename H0 into cf'eq;
+    subst dst2' src' cf' ct' exp';
+    clear heval' heval ict.
+    rewrite bevalf' in bevalt.
+    inversion bevalt.
+  }
+}
+{
+  inversion h as [ | |
+  | src' dst2' exp' ct' cf' bevalt' heval' exp'eq src'eq dst2'eq
+  | src' dst2' exp' ct' cf' bevalf' heval' exp'eq src'eq dst2'eq
+  | | ];clear h.
+  {
+    rename H into ct'eq;
+    rename H0 into cf'eq;
+    subst dst2' src' cf' ct' exp';
+    clear heval' heval ict.
+    rewrite bevalt' in bevalf.
+    inversion bevalf.
+  }
+  {
+    rename H into ct'eq; rename H0 into cf'eq;
+    subst dst2' src' cf' ct' exp';
+    clear bevalf bevalf' heval.
+    rewrite (ict dst2).
+    { reflexivity. }
+    { apply heval'. }
+  }
+}
+{
+  inversion h as [ | | |  | 
+  | z1 z2 z3 z4 z5 z6 z7
+  | z1 z2 z3 z4 z5 z6 z7 z8 z9 z10 z11
+  ];clear h.
+}
 intros. inversion H0.
 subst st'0 st0 c3 c0 b0. rewrite H6 in H. inversion H.
 
