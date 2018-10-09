@@ -2694,11 +2694,23 @@ Proof.
 unfold ceval_deterministic.
 intros c src dst1 dst2 h1.
 generalize dependent dst2.
-induction h1.
-
-intros. inversion_clear H. reflexivity.
-
-intros. inversion H0. subst st0 a0 x0. rewrite <- H5. rewrite <- H. reflexivity.
+induction h1 as [
+  src
+| src exp n1 z4 heval1
+| z1 z2 z3 z4 z5 z6 z7 z8 z9
+| z1 z2 z3 z4 z5 z6 z7 z8
+| z1 z2 z3 z4 z5 z6 z7 z8
+| z1 z2 z3 z4
+| z1 z2 z3 z4 z5 z6 z7 z8 z9 z10
+].
+{
+  intros dst2 h. inversion_clear h. reflexivity.
+}
+{
+  intros dst2 h.
+  inversion_clear h as [ | x1 x2 n2 x4 heval2 x6 x7 x8 | | | | | ].
+  rewrite <- heval1. rewrite <- heval2. reflexivity.
+}
 
 intros. inversion H;clear H. subst st''0. subst st0. subst c3 c0.
 rename c1 into ca.
