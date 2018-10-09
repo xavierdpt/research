@@ -2684,10 +2684,68 @@ Theorem pup_to_2_ceval :
 (t_update
 (t_update (t_empty 0) "X" 2) "Y" 0) "Y" 2) "X" 1) "Y" 3) "X" 0).
 
-Theorem ceval_deterministic: forall c src dst1 dst2,
+Definition ceval_deterministic := forall c src dst1 dst2,
      ceval c src dst1 ->
      ceval c src dst2 ->
      dst1 = dst2.
+
+Theorem ceval_deterministic_simple: ceval_deterministic.
+Proof.
+unfold ceval_deterministic.
+intros c src dst1 dst2 h1.
+generalize dependent dst2.
+induction h1.
+
+intros. inversion_clear H. reflexivity.
+
+intros. inversion H0. subst st0 a0 x0. rewrite <- H5. rewrite <- H. reflexivity.
+
+intros. inversion H;clear H. subst st''0. subst st0. subst c3 c0.
+rename c1 into ca.
+rename c2 into cb.
+rename h1_1 into hevala.
+rename h1_2 into hevalb.
+rename st into src.
+rename st' into tmp1.
+rename st'' into dst1.
+rename IHh1_1 into ia.
+rename IHh1_2 into ib.
+rename st'0 into tmp2.
+rewrite (ib dst2). reflexivity.
+rewrite (ia tmp2). assumption. assumption.
+
+intros. inversion H0.
+subst st'0 st0 c3 c0 b0. clear H6 H.
+rewrite (IHh1 dst2). reflexivity. assumption.
+subst st'0 st0 c3 c0 b0.
+rewrite H in H6. inversion H6.
+
+intros. inversion H0.
+subst st'0 st0 c3 c0 b0. rewrite H6 in H. inversion H.
+
+subst st'0 st0 c3 c0 b0. rename st' into dst1.
+rewrite (IHh1 dst2). reflexivity. assumption.
+
+intros. inversion H0. clear H0.
+subst st st0 c0 b0. reflexivity.
+
+rewrite H3 in H. inversion H.
+
+intros. rename st'' into dst1. rename b into exp.
+rename st into src.
+inversion H0;clear H0.
+subst src st c0 b. rewrite H5 in H. inversion H.
+
+subst st'' st c0 b. clear H H3.
+rename st'0 into tmp.
+rename IHh1_2 into il. rename IHh1_1 into ic.
+rewrite (il dst2). reflexivity.
+rewrite (ic tmp). assumption. assumption.
+Qed.
+
+
+Theorem ceval_deterministic_convoluted: ceval_deterministic.
+unfold ceval_deterministic.
 intros c src dst1 dst2.
 generalize dependent dst2.
 generalize dependent dst1.
@@ -2821,7 +2879,7 @@ induction c as [
     }
   }
 }
-Qed.
+Admitted.
 
 End Imp.
 
