@@ -2458,7 +2458,10 @@ split.
     { apply rt1n_refl. }
   }
   { apply rt1n_refl. }
-  { admit.
+  { (* Challenge : Make the proof without using rsc_trans. Why is it more difficult ? *)
+    apply (rsc_trans _ _ _ y).
+    { assumption. }
+    { assumption. }
   }
 }
 {
@@ -2475,6 +2478,352 @@ split.
 Qed.
 
 End Rel.
+
+Module Imp.
+
+Import Maps.
+Import Nat.
+
+Definition state := total_map nat.
+
+Inductive aexp : Type :=
+  | ANum : nat -> aexp
+  | AId : string -> aexp
+  | APlus : aexp -> aexp -> aexp
+  | AMinus : aexp -> aexp -> aexp
+  | AMult : aexp -> aexp -> aexp.
+
+Inductive bexp : Type :=
+  | BTrue : bexp
+  | BFalse : bexp
+  | BEq : aexp -> aexp -> bexp
+  | BLe : aexp -> aexp -> bexp
+  | BNot : bexp -> bexp
+  | BAnd : bexp -> bexp -> bexp.
+
+Fixpoint aeval (st : state) (a : aexp) : nat :=
+  match a with
+  | ANum n => n
+  | AId x => st x
+  | APlus a1 a2 => (aeval st a1) + (aeval st a2)
+  | AMinus a1 a2 => (aeval st a1) - (aeval st a2)
+  | AMult a1 a2 => (aeval st a1) * (aeval st a2)
+  end.
+
+Fixpoint beval (st : state) (b : bexp) : bool :=
+  match b with
+  | BTrue => true
+  | BFalse => false
+  | BEq a1 a2 => beq_nat (aeval st a1) (aeval st a2)
+  | BLe a1 a2 => leb (aeval st a1) (aeval st a2)
+  | BNot b1 => negb (beval st b1)
+  | BAnd b1 b2 => andb (beval st b1) (beval st b2)
+  end.
+
+Fixpoint optimize_0plus (a:aexp) : aexp :=
+  match a with
+  | ANum n =>
+      ANum n
+  | AId s =>
+      AId s
+  | APlus (ANum 0) e2 =>
+      optimize_0plus e2
+  | APlus e1 e2 =>
+      APlus (optimize_0plus e1) (optimize_0plus e2)
+  | AMinus e1 e2 =>
+      AMinus (optimize_0plus e1) (optimize_0plus e2)
+  | AMult e1 e2 =>
+      AMult (optimize_0plus e1) (optimize_0plus e2)
+  end.
+
+Theorem optimize_0plus_sound: forall st ea,
+  aeval st (optimize_0plus ea) = aeval st ea.
+Proof.
+intros st ea. induction ea as [
+  (* Anum *) n
+| (* AId *) s
+| (* APlus *) ea va eb vb
+| (* AMinus *) ea va eb vb
+| (* AMult *) ea va eb vb
+].
+{ (* ANum *)
+  simpl. reflexivity.
+}
+{ (* AId *)
+  simpl. reflexivity.
+}
+{ (* APlus *)
+  destruct ea as [ n | s | eaa eab | eaa eab | eaa eab ].
+  { (* APlus/ANum *) destruct n as [ | n ].
+    { simpl. rewrite vb. reflexivity. }
+    { simpl. rewrite vb. reflexivity. }
+  }
+  { (* APlus/Aid *) simpl. rewrite vb. reflexivity. }
+  { (* APlus/APlus *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+  { (* APlus/AMinus *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+  { (* APlus/AMult *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+}
+{ (* AMinus *)
+  destruct ea as [ n | s | eaa eab | eaa eab | eaa eab ].
+  { (* AMinus/ANum *)  simpl. rewrite vb. reflexivity. }
+  { (* AMult/Aid *) simpl. rewrite vb. reflexivity. }
+  { (* AMinus/APlus *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+  { (* AMinus/AMinus *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+  { (* AMinus/AMult *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+}
+{ (* AMult *)
+  destruct ea as [ n | s | eaa eab | eaa eab | eaa eab ].
+  { (* AMult/ANum *)  simpl. rewrite vb. reflexivity. }
+  { (* AMult/Aid *) simpl. rewrite vb. reflexivity. }
+  { (* AMult/APlus *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+  { (* AMult/AMinus *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+  { (* AMult/AMult *) simpl. simpl in va. rewrite va. rewrite vb. reflexivity. }
+}
+Qed.
+
+Fixpoint optimize_0plus_b (b : bexp) : bexp.
+Admitted.
+
+Theorem optimize_0plus_b_sound : forall st b,
+  beval st (optimize_0plus_b b) = beval st b.
+Proof.
+Admitted.
+
+Inductive aevalR (st:state) : aexp -> nat -> Prop :=
+  | E_ANum : forall (n: nat),
+      aevalR st (ANum n) n
+  | E_AId : forall (s:string), aevalR st (AId s) (st s)
+  | E_APlus : forall (e1 e2: aexp) (n1 n2: nat),
+      aevalR st e1 n1 ->
+      aevalR st e2 n2 ->
+      aevalR st (APlus e1 e2) (n1 + n2)
+  | E_AMinus: forall (e1 e2: aexp) (n1 n2: nat),
+      aevalR st e1 n1 ->
+      aevalR st e2 n2 ->
+      aevalR st (AMinus e1 e2) (n1 - n2)
+  | E_AMult : forall (e1 e2: aexp) (n1 n2: nat),
+      aevalR st e1 n1 ->
+      aevalR st e2 n2 ->
+      aevalR st (AMult e1 e2) (n1 * n2).
+
+Theorem aeval_iff_aevalR : forall st a n,
+  (aevalR st a n) <-> aeval st a = n.
+Proof.
+intros st a n. split.
+{
+  intro h.
+  induction h.
+  { simpl. reflexivity. }
+  { simpl. reflexivity. }
+  { simpl. rewrite IHh2. rewrite IHh1. reflexivity. }
+  { simpl. rewrite IHh2. rewrite IHh1. reflexivity. }
+  { simpl. rewrite IHh2. rewrite IHh1. reflexivity. }
+}
+{
+  intro h. generalize dependent n. induction a.
+  { intros n' h. simpl in h. subst n'. constructor. }
+  { intro n. simpl. intro heq. subst n. constructor. }
+  { intros n h. rewrite <- h. simpl. apply E_APlus. apply IHa1. reflexivity. apply IHa2. reflexivity. }
+  { intros n h. rewrite <- h. simpl. apply E_AMinus. apply IHa1. reflexivity. apply IHa2. reflexivity. }
+  { intros n h. rewrite <- h. simpl. apply E_AMult. apply IHa1. reflexivity. apply IHa2. reflexivity. }
+}
+Qed.
+
+Inductive bevalR : bexp -> bool -> Prop := .
+
+Lemma beval_iff_bevalR : forall st b bv,
+  bevalR b bv <-> beval st b = bv.
+Proof.
+Admitted.
+
+Inductive com : Type :=
+  | CSkip : com
+  | CAss : string -> aexp -> com
+  | CSeq : com -> com -> com
+  | CIf : bexp -> com -> com -> com
+  | CWhile : bexp -> com -> com.
+
+Inductive ceval : com -> state -> state -> Prop :=
+  | E_Skip : forall st,
+      ceval CSkip st st
+  | E_Ass : forall st a1 n x,
+      aeval st a1 = n ->
+      ceval (CAss x a1) st (t_update st x n)
+  | E_Seq : forall c1 c2 st st' st'',
+      ceval c1 st st' ->
+      ceval c2 st' st'' ->
+      ceval (CSeq c1 c2) st st''
+  | E_IfTrue : forall st st' b c1 c2,
+      beval st b = true ->
+      ceval c1 st st' ->
+      ceval (CIf b c1 c2) st st'
+  | E_IfFalse : forall st st' b c1 c2,
+      beval st b = false ->
+      ceval c2 st st' ->
+      ceval (CIf b c1 c2) st st'
+  | E_WhileFalse : forall b st c,
+      beval st b = false ->
+      ceval (CWhile b c) st st
+  | E_WhileTrue : forall st st' st'' b c,
+      beval st b = true ->
+      ceval c st st' ->
+      ceval (CWhile b c) st' st'' ->
+      ceval (CWhile b c) st st''
+.
+
+Definition pup_to_n : com. Admitted.
+
+Check t_update (t_empty 0).
+
+Theorem pup_to_2_ceval :
+  ceval pup_to_n (t_update (t_empty 0) "X" 2)
+(t_update
+(t_update
+(t_update
+(t_update
+(t_update
+(t_update (t_empty 0) "X" 2) "Y" 0) "Y" 2) "X" 1) "Y" 3) "X" 0).
+
+Theorem ceval_deterministic: forall c src dst1 dst2,
+     ceval c src dst1 ->
+     ceval c src dst2 ->
+     dst1 = dst2.
+intros c src dst1 dst2.
+generalize dependent dst2.
+generalize dependent dst1.
+generalize dependent src.
+induction c as [
+  (* Skip *)
+| (* Assignment *) id exp
+| (* Seq *) ca ia cb ib
+| (* If *) exp ca ia cb ib
+| (* While *) exp c i
+].
+{ (* Skip *)
+  intros src dst1 dst2 h1 h2.
+  inversion h1 as [ src' u src'eq eq | | | | | | ].
+  subst dst1 src'. clear u h1.
+  inversion h2 as [ src' u src'eq eq | | | | | | ].
+  subst dst2 src'. clear u h2.
+  reflexivity.
+}
+{ (* Assignment *)
+  intros src dst1 dst2 h1 h2.
+  inversion h1 as [ | src' exp' n1 id' heval1 id'eq src'eq hupdate1 | | | | | ].
+  subst src' exp' id'. clear h1 hupdate1.
+  inversion h2 as [ | src' exp' n2 id' heval2 id'eq src'eq hupdate2 | | | | | ].
+  subst src' exp' id'. clear h2 hupdate2.
+  rewrite <- heval1. rewrite <- heval2.
+  reflexivity.
+}
+{ (* Seq *)
+  intros src dst1 dst2 h1 h2.
+  inversion h1 as [ | | ca' cb' src' tmp1 dst1' hevala1 hevalb1 ca'eq src'eq dst1'eq | | | | ];clear h1.
+  rename H into cb'eq. subst dst1' src' cb' ca'.
+  inversion h2 as [ | | ca' cb' src' tmp2 dst2' hevala2 hevalb2 ca'eq src'eq dst2'eq | | | | ];clear h2.
+  rename H into cb'eq. subst dst2' src' cb' ca'.
+  rewrite (ib tmp1 dst1 dst2);clear ib.
+  { reflexivity. }
+  { apply hevalb1. }
+  { rewrite (ia src tmp1 tmp2);clear ia.
+    { apply hevalb2. }
+    { apply hevala1. }
+    { apply hevala2. }
+  }
+}
+{ (* If *)
+  intros src dst1 dst2 h1 h2.
+  inversion h1 as [ | |
+  | src' dst1' exp' ca' cb' bevalt1 heval1 exp'eq src'eq dst1'eq
+  | src' dst1' exp' ca' cb' bevalf1 heval1 exp'eq src'eq dst1'eq
+  | | ];clear h1.
+  { (* If 1 true *)
+    rename H into ca'eq. rename H0 into cb'eq. subst dst1' src' cb' ca' exp'.
+    inversion h2 as [ | |
+    | src' dst2' exp' ca' cb' bevalt2 heval2 exp'eq src'eq dst2'eq
+    | src' dst2' exp' ca' cb' bevalf2 heval2 exp'eq src'eq dst2'eq
+    | | ];clear h2.
+    { (* If 2 true *)
+      rename H into ca'eq. rename H0 into cb'eq. subst dst2' src' cb' ca' exp'. clear bevalt1 bevalt2 ib.
+      rewrite (ia src dst1 dst2);clear ia.
+      { reflexivity. }
+      { apply heval1. }
+      { apply heval2. }
+    }
+    { (* If 2 false => contradiction *)
+      rename H into ca'eq. rename H0 into cb'eq. subst dst2' src' cb' ca' exp'. clear heval1 heval2 ia ib.
+      rewrite bevalf2 in bevalt1; clear bevalf2 ca cb src exp. inversion bevalt1.
+    }
+  }
+  { (* If 1 false *)
+    rename H into ca'eq.
+    rename H0 into cb'eq.
+    subst dst1' src' cb' ca' exp'.
+    inversion h2 as [ | |
+    | src' dst2' exp' ca' cb' bevalt2 heval2 exp'eq src'eq dst2'eq
+    | src' dst2' exp' ca' cb' bevalf2 heval2 exp'eq src'eq dst2'eq
+    | | ];clear h2.
+    { (* If 2 true => contradiction *)
+      rename H into ca'eq. rename H0 into cb'eq. subst dst2' src' cb' ca' exp'. clear heval1 heval2 ia ib.
+      rewrite bevalf1 in bevalt2;clear bevalf1 ca cb src exp.
+      inversion bevalt2.
+    }
+    { (* If 2 false *)
+      rename H into ca'eq. rename H0 into cb'eq. subst dst2' src' cb' ca' exp'. clear bevalf1 bevalf2 ia.
+      rewrite (ib src dst1 dst2);clear ib.
+      { reflexivity. }
+      { apply heval1. }
+      { apply heval2. }
+    }
+  }
+}
+{ (* While *)
+  intros src dst1 dst2 h1 h2.
+  inversion h1 as [ | |  |  | 
+  | exp' src' c' bevalf1 exp'eq src'eq eq1
+  | src' tmp1 dst1' exp' c' bevalt1 hevaltmp1 hevaldst1 exp'eq src'eq
+  ];clear h1.
+  {
+    subst src' c' exp'.
+    inversion h2 as [ | |  |  | 
+    | exp' src' c' bevalf2 exp'eq src'eq eq2
+    | src' tmp2 dst2' exp' c' bevalt2 hevaltmp2 hevaldst2 exp'eq src'eq
+    ];clear h2.
+    {
+      subst src' c' exp'.
+      clear bevalf1 bevalf2 i c exp.
+      subst dst1 dst2. reflexivity.
+    }
+    {
+      subst src' c' exp' dst2'.
+      subst src. clear hevaldst2 hevaltmp2 i tmp2 c.
+      rewrite bevalf1 in bevalt2. clear bevalf1 exp. inversion bevalt2.
+    }
+  }
+  {
+    subst dst1' src' c' exp'.
+    inversion h2 as [ | |  |  | 
+    | exp' src' c' bevalf2 exp'eq src'eq eq2
+    | src' tmp2 dst2' exp' c' bevalt2 hevaltmp2 hevaldst2 exp'eq src'eq
+    ];clear h2.
+    {
+      subst src' c' exp'.
+      subst src. clear hevaldst1 hevaltmp1 tmp1 i c.
+      rewrite bevalf2 in bevalt1. clear bevalf2 exp. inversion bevalt1.
+    }
+    {
+      subst dst2' src' c' exp'.
+      clear bevalt1 bevalt2.
+      rewrite (i src dst1 dst2).
+      { reflexivity. }
+      { admit. }
+      { admit. }
+    }
+  }
+}
+Qed.
+
+End Imp.
 
 
 End V1.
