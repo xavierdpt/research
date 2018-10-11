@@ -58,34 +58,42 @@ Section Sigma.
   Definition sigma (low high:nat) : R :=
     sum_f_R0 (fun k:nat => f (low + k)) (high - low).
 
-  Lemma sigma_S_r : forall (low k:nat) , (low <= k)%nat -> sigma low k + f (S k) = sigma low (S k).
-  Proof.
-    intros low k h. unfold sigma. rewrite <- minus_Sn_m.
-    rewrite (@plus_S_minus k low). simpl. reflexivity.
-    assumption. assumption.
-  Qed.
-
- 
-
   Lemma specific1 : forall (k m:nat),
     sum_f_R0 (fun x:nat => f (S (S k) + x)) m =
     sum_f_R0 (fun x:nat => f (S k + S x))   m.
   Proof.
-    intros k m. apply sum_eq. intros i im. rewrite SnPSm_SSnPm. reflexivity.
+    intros k m. apply sum_eq. intros i im.
+    rewrite <- plus_n_Sm.
+    reflexivity.
   Qed.
 
   Lemma specific2 : forall (k m:nat),
     sum_f_R0 (fun x:nat => f (S (k + x))) m =
     sum_f_R0 (fun x:nat => f (k + S x))   m.
   Proof.
-    intros k m. apply sum_eq. intros i im. rewrite plus_n_Sm. reflexivity.
+    intros k m. apply sum_eq. intros i im.
+    rewrite plus_n_Sm. reflexivity.
   Qed.
 
-  Lemma sigma_S_l : forall k high : nat, (S k < high)%nat -> sigma (S k) high = f (S k) + sigma (S (S k)) high.
+  Lemma sigma_S_r : forall (low high:nat),
+    (low <= high)%nat ->
+    sigma low high + f (S high) = sigma low (S high).
   Proof.
-    intros k high kh.
+    intros low high h. unfold sigma.
+    rewrite <- minus_Sn_m.
+    simpl. rewrite <- plus_S_minus.
+    reflexivity.
+    assumption. assumption.
+  Qed.
+
+
+  Lemma sigma_S_l : forall low high : nat,
+    (S low < high)%nat ->
+    sigma (S low) high = f (S low) + sigma (S (S low)) high.
+  Proof.
+    intros low high kh.
     unfold sigma.
-    rewrite (Nat.sub_succ_r high (S k)).
+    rewrite (Nat.sub_succ_r high (S low)).
     rewrite <- Nat.add_0_r at 2.
     rewrite specific1.
     apply decomp_sum.
@@ -154,40 +162,38 @@ Section Sigma.
       assumption.
     }
     apply Compare.le_le_S_eq in lk. (* a <= S b -> S a <= S b \/ a = S b *)
+    destruct lk as [lk | lk].
     {
-      destruct lk as [lk | lk].
+      apply Peano.le_S_n in lk. (* S n <= S m -> n <= m *)
+      rewrite <- sigma_S_r. (* sum n (S m) = sum n m  + f(S m) *)
       {
-        apply Peano.le_S_n in lk. (* S n <= S m -> n <= m *)
-        rewrite <- sigma_S_r. (* sum n (S m) = sum n m  + f(S m) *)
+        rewrite Rplus_assoc.
+        rewrite <- sigma_S_l. (* f n + sum (S n) m = sum n m *)
         {
-          rewrite Rplus_assoc.
-          rewrite <- sigma_S_l. (* f n + sum (S n) m = sum n m *)
-          {
-            apply i. (* induction hypothesis *)
-            { assumption. }
-            apply lt_trans with (S k).
-            { apply lt_n_Sn. }
-            assumption.
-          }
+          apply i. (* induction hypothesis *)
+          { assumption. }
+          apply lt_trans with (S k).
+          { apply lt_n_Sn. }
           assumption.
         }
         assumption.
       }
-      rewrite <- lk. (* low = S k *)
-      rewrite snn.
-      rewrite plus_n_O at 2.
-      rewrite sigma_S_sumf.
-      simpl.
-      rewrite Nat.sub_succ_r. (* n - S m = pred (n - m) *)
-      apply decomp_sum.
-      apply lt_minus_O_lt. (* 0 < n -m -> n < m *)
-      apply le_lt_trans with (S k).
-      {
-        rewrite lk.
-        apply le_n. (* n <= n *)
-      }
       assumption.
     }
+    rewrite <- lk. (* low = S k *)
+    rewrite snn.
+    rewrite plus_n_O at 2.
+    rewrite sigma_S_sumf.
+    simpl.
+    rewrite Nat.sub_succ_r. (* n - S m = pred (n - m) *)
+    apply decomp_sum.
+    apply lt_minus_O_lt. (* 0 < n -m -> n < m *)
+    apply le_lt_trans with (S k).
+    {
+      rewrite lk.
+      apply le_n. (* n <= n *)
+    }
+    assumption.
   Qed.
 
   Theorem sigma_diff :
