@@ -93,9 +93,6 @@ Section Sigma.
     assumption.
   Qed.
 
-  Lemma soo : sigma 0 0 = f 0.
-  Proof. reflexivity. Qed.
-
   Lemma snn : forall n : nat, sigma n n = f n.
   Proof.
     intro n.
@@ -114,6 +111,14 @@ Section Sigma.
   Qed.
 
   Definition shift {T:Type} (f:nat->T) := fun n => f (S n).
+  Definition shift' {T:Type} (f:nat->T) (base:nat) := fun n => f (base + S n)%nat.
+
+  Lemma sigma_S_sumf : forall (low high : nat), sigma (S low) high = sum_f_R0 (shift' f low)  (high - S low).
+  Proof.
+    intros low high.
+    unfold sigma. unfold shift'. simpl.
+    rewrite specific2. reflexivity.
+  Qed.
 
   Lemma sigma_1_sumf : forall high :  nat, sigma 1 high = sum_f_R0 (shift f) (high-1).
   Proof. 
@@ -138,7 +143,7 @@ Section Sigma.
     {
       apply le_n_0_eq in lk. (* x <= 0 -> x = 0 *)
       rewrite <- lk. (* low = 0 *)
-      rewrite soo.
+      rewrite snn.
       rewrite sigma_0_sumf.
       rewrite sigma_1_sumf.
       rewrite decomp_sum_with_shift. (* sum f n = f 0 + sum f' n *)
@@ -170,20 +175,18 @@ Section Sigma.
       }
       rewrite <- lk. (* low = S k *)
       rewrite snn.
-      unfold sigma.
+      rewrite plus_n_O at 2.
+      rewrite sigma_S_sumf.
       simpl.
       rewrite Nat.sub_succ_r. (* n - S m = pred (n - m) *)
-      rewrite specific2. (* S ( n + m) -> n + S m within abstraction *)
+      apply decomp_sum.
+      apply lt_minus_O_lt. (* 0 < n -m -> n < m *)
+      apply le_lt_trans with (S k).
       {
-        apply decomp_sum.
-        apply lt_minus_O_lt. (* 0 < n -m -> n < m *)
-        apply le_lt_trans with (S k).
-        {
-          rewrite lk.
-          apply le_n. (* n <= n *)
-        }
-        assumption.
+        rewrite lk.
+        apply le_n. (* n <= n *)
       }
+      assumption.
     }
   Qed.
 
