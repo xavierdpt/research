@@ -1,13 +1,3 @@
-(************************************************************************)
-(*         *   The Coq Proof Assistant / The Coq Development Team       *)
-(*  v      *   INRIA, CNRS and contributors - Copyright 1999-2018       *)
-(* <O___,, *       (see CREDITS file for the list of authors)           *)
-(*   \VV/  **************************************************************)
-(*    //   *    This file is distributed under the terms of the         *)
-(*         *     GNU Lesser General Public License Version 2.1          *)
-(*         *     (see LICENSE file for the text of the license)         *)
-(************************************************************************)
-
 Require Import Rbase.
 Require Import Rfunctions.
 Require Import Rseries.
@@ -15,13 +5,8 @@ Require Import SeqProp.
 Require Import Max.
 Local Open Scope R_scope.
 
-(****************************************************)
-(*              R is complete :                     *)
-(*        Each sequence which satisfies             *)
-(*       the Cauchy's criterion converges           *)
-(*                                                  *)
-(*    Proof with adjacent sequences (Vn and Wn)     *)
-(****************************************************)
+Definition vn Un H := sequence_minorant Un (cauchy_min Un H).
+Definition wn Un H := sequence_majorant Un (cauchy_maj Un H).
 
 Theorem R_complete :
   forall Un:nat -> R, Cauchy_crit Un -> { l:R | Un_cv Un l } .
@@ -34,78 +19,100 @@ Proof.
   pose proof (min_cv Un H) as (x0,p0).
   fold Vn in p0.
   cut (x = x0).
-  intros H2.
-  exists x.
-  rewrite <- H2 in p0.
-  unfold Un_cv.
-  intros.
-  unfold Un_cv in p; unfold Un_cv in p0.
-  cut (0 < eps / 3).
-  intro H4.
-  elim (p (eps / 3) H4); intros.
-  elim (p0 (eps / 3) H4); intros.
-  exists (max x1 x2).
-  intros.
-  unfold R_dist.
-  apply Rle_lt_trans with (Rabs (Un n - Vn n) + Rabs (Vn n - x)).
-  replace (Un n - x) with (Un n - Vn n + (Vn n - x));
-  [ apply Rabs_triang | ring ].
-  apply Rle_lt_trans with (Rabs (Wn n - Vn n) + Rabs (Vn n - x)).
-  do 2 rewrite <- (Rplus_comm (Rabs (Vn n - x))).
-  apply Rplus_le_compat_l.
-  repeat rewrite Rabs_right.
-  unfold Rminus; do 2 rewrite <- (Rplus_comm (- Vn n));
-    apply Rplus_le_compat_l.
-  assert (H8 := Vn_Un_Wn_order Un (cauchy_maj Un H) (cauchy_min Un H)).
-  fold Vn Wn in H8.
-  elim (H8 n); intros.
-  assumption.
-  apply Rle_ge.
-  unfold Rminus; apply Rplus_le_reg_l with (Vn n).
-  rewrite Rplus_0_r.
-  replace (Vn n + (Wn n + - Vn n)) with (Wn n); [ idtac | ring ].
-  assert (H8 := Vn_Un_Wn_order Un (cauchy_maj Un H) (cauchy_min Un H)).
-  fold Vn Wn in H8.
-  elim (H8 n); intros.
-  apply Rle_trans with (Un n); assumption.
-  apply Rle_ge.
-  unfold Rminus; apply Rplus_le_reg_l with (Vn n).
-  rewrite Rplus_0_r.
-  replace (Vn n + (Un n + - Vn n)) with (Un n); [ idtac | ring ].
-  assert (H8 := Vn_Un_Wn_order Un (cauchy_maj Un H) (cauchy_min Un H)).
-  fold Vn Wn in H8.
-  elim (H8 n); intros.
-  assumption.
-  apply Rle_lt_trans with (Rabs (Wn n - x) + Rabs (x - Vn n) + Rabs (Vn n - x)).
-  do 2 rewrite <- (Rplus_comm (Rabs (Vn n - x))).
-  apply Rplus_le_compat_l.
-  replace (Wn n - Vn n) with (Wn n - x + (x - Vn n));
-  [ apply Rabs_triang | ring ].
-  apply Rlt_le_trans with (eps / 3 + eps / 3 + eps / 3).
-  repeat apply Rplus_lt_compat.
-  unfold R_dist in H1.
-  apply H1.
-  unfold ge; apply le_trans with (max x1 x2).
-  apply le_max_l.
-  assumption.
-  rewrite <- Rabs_Ropp.
-  replace (- (x - Vn n)) with (Vn n - x); [ idtac | ring ].
-  unfold R_dist in H3.
-  apply H3.
-  unfold ge; apply le_trans with (max x1 x2).
-  apply le_max_r.
-  assumption.
-  unfold R_dist in H3.
-  apply H3.
-  unfold ge; apply le_trans with (max x1 x2).
-  apply le_max_r.
-  assumption.
-  right.
-  pattern eps at 4; replace eps with (3 * (eps / 3)).
-  ring.
-  unfold Rdiv; rewrite <- Rmult_assoc; apply Rinv_r_simpl_m; discrR.
-  unfold Rdiv; apply Rmult_lt_0_compat;
-    [ assumption | apply Rinv_0_lt_compat; prove_sup0 ].
+  {
+    intros H2.
+    exists x.
+    rewrite <- H2 in p0.
+    unfold Un_cv.
+    intros.
+    unfold Un_cv in p; unfold Un_cv in p0.
+    cut (0 < eps / 3).
+    {
+      intro H4.
+      elim (p (eps / 3) H4); intros.
+      elim (p0 (eps / 3) H4); intros.
+      exists (max x1 x2).
+      intros.
+      unfold R_dist.
+      apply Rle_lt_trans with (Rabs (Un n - Vn n) + Rabs (Vn n - x)).
+      {
+        replace (Un n - x) with (Un n - Vn n + (Vn n - x));
+        [ apply Rabs_triang | ring ].
+      }
+      apply Rle_lt_trans with (Rabs (Wn n - Vn n) + Rabs (Vn n - x)).
+      {
+        do 2 rewrite <- (Rplus_comm (Rabs (Vn n - x))).
+        apply Rplus_le_compat_l.
+        repeat rewrite Rabs_right.
+        {
+          unfold Rminus; do 2 rewrite <- (Rplus_comm (- Vn n));
+            apply Rplus_le_compat_l.
+          assert (H8 := Vn_Un_Wn_order Un (cauchy_maj Un H) (cauchy_min Un H)).
+          fold Vn Wn in H8.
+          elim (H8 n); intros.
+          assumption.
+        }
+        {
+          apply Rle_ge.
+          unfold Rminus; apply Rplus_le_reg_l with (Vn n).
+          rewrite Rplus_0_r.
+          replace (Vn n + (Wn n + - Vn n)) with (Wn n); [ idtac | ring ].
+          assert (H8 := Vn_Un_Wn_order Un (cauchy_maj Un H) (cauchy_min Un H)).
+          fold Vn Wn in H8.
+          elim (H8 n); intros.
+          apply Rle_trans with (Un n); assumption.
+        }
+        {
+          apply Rle_ge.
+          unfold Rminus; apply Rplus_le_reg_l with (Vn n).
+          rewrite Rplus_0_r.
+          replace (Vn n + (Un n + - Vn n)) with (Un n); [ idtac | ring ].
+          assert (H8 := Vn_Un_Wn_order Un (cauchy_maj Un H) (cauchy_min Un H)).
+          fold Vn Wn in H8.
+          elim (H8 n); intros.
+          assumption.
+        }
+      }
+      apply Rle_lt_trans with (Rabs (Wn n - x) + Rabs (x - Vn n) + Rabs (Vn n - x)).
+      {
+        do 2 rewrite <- (Rplus_comm (Rabs (Vn n - x))).
+        apply Rplus_le_compat_l.
+        replace (Wn n - Vn n) with (Wn n - x + (x - Vn n));
+        [ apply Rabs_triang | ring ].
+      }
+      apply Rlt_le_trans with (eps / 3 + eps / 3 + eps / 3).
+      {
+        repeat apply Rplus_lt_compat.
+        {
+          unfold R_dist in H1.
+          apply H1.
+          unfold ge; apply le_trans with (max x1 x2).
+          apply le_max_l.
+          assumption.
+        }
+        {
+          rewrite <- Rabs_Ropp.
+          replace (- (x - Vn n)) with (Vn n - x); [ idtac | ring ].
+          unfold R_dist in H3.
+          apply H3.
+          unfold ge; apply le_trans with (max x1 x2).
+          apply le_max_r.
+          assumption.
+        }
+        unfold R_dist in H3.
+        apply H3.
+        unfold ge; apply le_trans with (max x1 x2).
+        apply le_max_r.
+        assumption.
+      }
+      right.
+      pattern eps at 4; replace eps with (3 * (eps / 3)).
+      ring.
+      unfold Rdiv; rewrite <- Rmult_assoc; apply Rinv_r_simpl_m; discrR.
+    }
+    unfold Rdiv; apply Rmult_lt_0_compat;
+      [ assumption | apply Rinv_0_lt_compat; prove_sup0 ].
+  }
   apply cond_eq.
   intros.
   cut (0 < eps / 5).
