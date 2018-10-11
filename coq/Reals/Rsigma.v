@@ -96,6 +96,38 @@ Section Sigma.
   Lemma soo : sigma 0 0 = f 0.
   Proof. reflexivity. Qed.
 
+  Lemma snn : forall n : nat, sigma n n = f n.
+  Proof.
+    intro n.
+    unfold sigma.
+    rewrite <- minus_n_n.
+    simpl.
+    rewrite <- plus_n_O.
+    reflexivity.
+  Qed.
+
+  Lemma sigma_0_sumf : forall high :  nat, sigma 0 high = sum_f_R0 f high.
+  Proof. 
+    intro high.
+    unfold sigma. simpl. rewrite <- minus_n_O.
+    reflexivity.
+  Qed.
+
+  Definition shift {T:Type} (f:nat->T) := fun n => f (S n).
+
+  Lemma sigma_1_sumf : forall high :  nat, sigma 1 high = sum_f_R0 (shift f) (high-1).
+  Proof. 
+    intro high.
+    unfold sigma. simpl. unfold shift.
+    reflexivity.
+  Qed.
+
+  Lemma decomp_sum_with_shift : forall (An : nat -> R) (N : nat),
+       (0 < N)%nat -> sum_f_R0 An N = An 0%nat + sum_f_R0 (shift An) (Nat.pred N).
+  Proof.
+    apply decomp_sum.
+  Qed.
+
   Theorem sigma_split :
     forall low high k:nat,
       (low <= k)%nat ->
@@ -107,9 +139,9 @@ Section Sigma.
       apply le_n_0_eq in lk. (* x <= 0 -> x = 0 *)
       rewrite <- lk. (* low = 0 *)
       rewrite soo.
-      unfold sigma. simpl.
-      rewrite <- minus_n_O. (* x - 0 = x *)
-      rewrite decomp_sum. (* sum f n = f 0 + sum f' n *)
+      rewrite sigma_0_sumf.
+      rewrite sigma_1_sumf.
+      rewrite decomp_sum_with_shift. (* sum f n = f 0 + sum f' n *)
       {
         rewrite Nat.sub_1_r. (* n - 1 = pred n *)
         reflexivity.
@@ -137,8 +169,8 @@ Section Sigma.
         assumption.
       }
       rewrite <- lk. (* low = S k *)
+      rewrite snn.
       unfold sigma.
-      rewrite <- minus_n_n. (* n - n = 0 *)
       simpl.
       rewrite Nat.sub_succ_r. (* n - S m = pred (n - m) *)
       rewrite specific2. (* S ( n + m) -> n + S m within abstraction *)
