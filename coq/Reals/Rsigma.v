@@ -17,12 +17,34 @@ Local Open Scope R_scope.
 
 Set Implicit Arguments.
 
+Local Open Scope nat_scope.
+Lemma plus_S_minus : forall n m : nat, m<=n -> S n = m + S(n - m).
+Proof.
+  induction n as [ | n i].
+  { simpl. intros m le. apply le_n_0_eq in le. subst m. simpl. reflexivity. }
+  destruct m.
+  { simpl. reflexivity. }
+  intros. simpl. rewrite (i m).
+  { reflexivity. }
+  apply Peano.le_S_n. assumption.
+Qed.
+Local Close Scope nat_scope.
+
+
+
 Section Sigma.
 
   Variable f : nat -> R.
 
   Definition sigma (low high:nat) : R :=
     sum_f_R0 (fun k:nat => f (low + k)) (high - low).
+
+  Lemma sigma_S_r : forall (low k:nat) , (low <= k)%nat -> sigma low k + f (S k) = sigma low (S k).
+  Proof.
+    intros low k h. unfold sigma. rewrite <- minus_Sn_m.
+    rewrite (@plus_S_minus k low). simpl. reflexivity.
+    assumption. assumption.
+  Qed.
 
   Theorem sigma_split :
     forall low high k:nat,
@@ -83,20 +105,8 @@ Section Sigma.
           { apply pred_of_minus. }
           omega.
         }
-        unfold sigma.
-        Search ( ( S _ - _)%nat ).
-        rewrite <- minus_Sn_m.
-        replace (S k - low)%nat with (S (k - low)).
-        {
-          pattern (S k) at 1.
-          replace (S k) with (low + S (k - low))%nat. 
-          {
-            symmetry.
-            apply (tech5 (fun i:nat => f (low + i))).
-          }
-          omega.
-        }
-        omega.
+        rewrite titi. reflexivity.
+        assumption.
       }
       rewrite <- lk. unfold sigma. rewrite <- minus_n_n. simpl.
       replace (high - S low)%nat with (pred (high - low)).
