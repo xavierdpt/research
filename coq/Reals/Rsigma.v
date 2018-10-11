@@ -240,9 +240,6 @@ Section Sigma.
   Qed.
 
   Theorem sigma_eq_arg : forall low:nat, sigma low low = f low.
-  Proof.
-    intro; unfold sigma; rewrite <- minus_n_n.
-    simpl; replace (low + 0)%nat with low; [ reflexivity | ring ].
-  Qed.
+  Proof. apply snn. Qed.
 
 End Sigma.
