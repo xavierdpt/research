@@ -29,52 +29,94 @@ Section Sigma.
       (low <= k)%nat ->
       (k < high)%nat -> sigma low high = sigma low k + sigma (S k) high.
   Proof.
-    intros; induction  k as [| k Hreck].
-    cut (low = 0%nat).
-    intro; rewrite H1; unfold sigma; rewrite <- minus_n_n;
-      rewrite <- minus_n_O; simpl; replace (high - 1)%nat with (pred high).
-    apply (decomp_sum (fun k:nat => f k)).
-    assumption.
-    apply pred_of_minus.
-    inversion H; reflexivity.
-    cut ((low <= k)%nat \/ low = S k).
-    intro; elim H1; intro.
-    replace (sigma low (S k)) with (sigma low k + f (S k)).
-    rewrite Rplus_assoc;
-      replace (f (S k) + sigma (S (S k)) high) with (sigma (S k) high).
-    apply Hreck.
-    assumption.
-    apply lt_trans with (S k); [ apply lt_n_Sn | assumption ].
-    unfold sigma; replace (high - S (S k))%nat with (pred (high - S k)).
-    pattern (S k) at 3; replace (S k) with (S k + 0)%nat;
-      [ idtac | ring ].
-    replace (sum_f_R0 (fun k0:nat => f (S (S k) + k0)) (pred (high - S k))) with
-    (sum_f_R0 (fun k0:nat => f (S k + S k0)) (pred (high - S k))).
-    apply (decomp_sum (fun i:nat => f (S k + i))).
-    apply lt_minus_O_lt; assumption.
-    apply sum_eq; intros; replace (S k + S i)%nat with (S (S k) + i)%nat.
-    reflexivity.
-    ring.
-    replace (high - S (S k))%nat with (high - S k - 1)%nat.
-    apply pred_of_minus.
-    omega.
-    unfold sigma; replace (S k - low)%nat with (S (k - low)).
-    pattern (S k) at 1; replace (S k) with (low + S (k - low))%nat.
-    symmetry ; apply (tech5 (fun i:nat => f (low + i))).
-    omega.
-    omega.
-    rewrite <- H2; unfold sigma; rewrite <- minus_n_n; simpl;
+    intros low high k lk kh.
+    induction k as [| k i].
+    {
+      apply le_n_0_eq in lk.
+      rewrite <- lk.
+      unfold sigma. simpl.
+      rewrite <- minus_n_O.
+      rewrite decomp_sum.
+      {
+        rewrite Nat.sub_1_r.
+        reflexivity.
+      }
+      assumption.
+    }
+    apply Compare.le_le_S_eq in lk.
+    {
+      destruct lk as [lk | lk].
+      {
+        apply Peano.le_S_n in lk.
+        replace (sigma low (S k)) with (sigma low k + f (S k)).
+        {
+          rewrite Rplus_assoc.
+          replace (f (S k) + sigma (S (S k)) high) with (sigma (S k) high).
+          {
+            apply i.
+            { assumption. }
+            apply lt_trans with (S k).
+            { apply lt_n_Sn. }
+            assumption.
+          }
+          unfold sigma.
+          replace (high - S (S k))%nat with (pred (high - S k)).
+          {
+            pattern (S k) at 3.
+            replace (S k) with (S k + 0)%nat.
+            {
+              replace (sum_f_R0 (fun k0:nat => f (S (S k) + k0)) (pred (high - S k))) with
+              (sum_f_R0 (fun k0:nat => f (S k + S k0)) (pred (high - S k))).
+              {
+                apply (decomp_sum (fun i:nat => f (S k + i))).
+                apply lt_minus_O_lt.
+                assumption.
+              }
+              apply sum_eq. intros.
+              replace (S k + S i0)%nat with (S (S k) + i0)%nat.
+              { reflexivity. }
+              ring.
+            }
+            ring.
+          }
+          replace (high - S (S k))%nat with (high - S k - 1)%nat.
+          { apply pred_of_minus. }
+          omega.
+        }
+        unfold sigma.
+        Search ( ( S _ - _)%nat ).
+        rewrite <- minus_Sn_m.
+        replace (S k - low)%nat with (S (k - low)).
+        {
+          pattern (S k) at 1.
+          replace (S k) with (low + S (k - low))%nat. 
+          {
+            symmetry.
+            apply (tech5 (fun i:nat => f (low + i))).
+          }
+          omega.
+        }
+        omega.
+      }
+      rewrite <- lk. unfold sigma. rewrite <- minus_n_n. simpl.
       replace (high - S low)%nat with (pred (high - low)).
-    replace (sum_f_R0 (fun k0:nat => f (S (low + k0))) (pred (high - low))) with
-    (sum_f_R0 (fun k0:nat => f (low + S k0)) (pred (high - low))).
-    apply (decomp_sum (fun k0:nat => f (low + k0))).
-    apply lt_minus_O_lt.
-    apply le_lt_trans with (S k); [ rewrite H2; apply le_n | assumption ].
-    apply sum_eq; intros; replace (S (low + i)) with (low + S i)%nat.
-    reflexivity.
-    ring.
-    omega.
-    inversion H; [ right; reflexivity | left; assumption ].
+      {
+        replace (sum_f_R0 (fun k0:nat => f (S (low + k0))) (pred (high - low))) with
+        (sum_f_R0 (fun k0:nat => f (low + S k0)) (pred (high - low))).
+        {
+          apply (decomp_sum (fun k0:nat => f (low + k0))).
+          apply lt_minus_O_lt.
+          apply le_lt_trans with (S k).
+          { rewrite lk. apply le_n. }
+          assumption.
+        }
+        apply sum_eq. intros.
+        replace (S (low + i0)) with (low + S i0)%nat.
+        { reflexivity. }
+        ring.
+      }
+      omega.
+    }
   Qed.
 
   Theorem sigma_diff :
