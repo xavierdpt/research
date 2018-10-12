@@ -448,30 +448,47 @@ Proof.
   assumption.
 Qed.
 
+Lemma cond_eq_gt : forall x y:R, y < x -> (forall eps:R, 0 < eps -> Rabs (x - y) < eps) -> False.
+Proof.
+  intros x y Hlt H.
+  specialize (H (x-y)).
+
+  rewrite <- Rplus_minus with y x in Hlt.
+  rewrite <- Rplus_0_r in Hlt at 1.
+  apply Rplus_lt_reg_l with y _ _ in Hlt.
+ 
+  specialize (H Hlt).
+  rewrite Rabs_right in H.
+  {
+    apply Rlt_irrefl in H.
+    apply H.
+  }
+  left.
+  unfold Rgt.
+  apply Hlt.
+Qed.
+
 Lemma cond_eq :
   forall x y:R, (forall eps:R, 0 < eps -> Rabs (x - y) < eps) -> x = y.
 Proof.
-  intros.
+  intros x y H.
   destruct (total_order_T x y) as [[Hlt|Heq]|Hgt].
-  cut (0 < y - x).
-  intro.
-  assert (H1 := H (y - x) H0).
-  rewrite <- Rabs_Ropp in H1.
-  cut (- (x - y) = y - x); [ intro; rewrite H2 in H1 | ring ].
-  rewrite Rabs_right in H1.
-  elim (Rlt_irrefl _ H1).
-  left; assumption.
-  apply Rplus_lt_reg_l with x.
-  rewrite Rplus_0_r; replace (x + (y - x)) with y; [ assumption | ring ].
-  assumption.
-  cut (0 < x - y).
-  intro.
-  assert (H1 := H (x - y) H0).
-  rewrite Rabs_right in H1.
-  elim (Rlt_irrefl _ H1).
-  left; assumption.
-  apply Rplus_lt_reg_l with y.
-  rewrite Rplus_0_r; replace (y + (x - y)) with x; [ assumption | ring ].
+  {
+    apply cond_eq_gt in Hlt.
+    contradiction.
+    rewrite <- Rabs_Ropp.
+    rewrite Ropp_minus_distr.
+    exact H.
+  }
+  {
+    apply Heq.
+  }
+  {
+    unfold Rgt in Hgt.
+    apply cond_eq_gt in Hgt.
+    contradiction.
+    exact H.
+  }
 Qed.
 
 Lemma not_Rlt : forall r1 r2:R, ~ r1 < r2 -> r1 >= r2.
