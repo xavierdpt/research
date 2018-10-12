@@ -46,6 +46,7 @@ Proof.
 Qed.
 
 Local Open Scope nat_scope.
+
 Lemma technic3 : forall N1 N2 N3, max (max N1 N2) N3 >= N2.
 Proof.
   intros.
@@ -67,6 +68,38 @@ apply le_plus_l.
 Qed.
 
 Local Close Scope nat_scope.
+
+Lemma technic5 : forall x, x / 3 + x / 3 + x / 3 = x.
+Proof.
+  intro x.
+  pattern x at 4; replace x with (3 * (x / 3)).
+  ring.
+  unfold Rdiv.
+  rewrite <- Rmult_assoc.
+  apply Rinv_r_simpl_m.
+  discrR.
+Qed.
+
+Lemma technic6 : forall x, x > 0 -> 0 < x / 3.
+Proof.
+  intros x h.
+  unfold Rdiv.
+  apply Rmult_lt_0_compat.
+  apply h.
+  apply Rinv_0_lt_compat.
+  prove_sup0.
+Qed.
+
+Lemma technic7 : forall x, 3 * x = x + x + x.
+Proof.
+  intro x.
+  ring.
+Qed.
+
+Lemma insert_in_minus : forall a b c, a - c = a - b + (b - c).
+Proof.
+  intros. ring.
+Qed.
 
 Theorem R_complete :
   forall U:nat -> R, Cauchy_crit U -> { l:R | Un_cv U l } .
@@ -105,124 +138,162 @@ Proof.
     exists l.
     unfold Un_cv.
     intros eps H0.
-    unfold Un_cv in hsup, hinf.
+
     cut (0 < eps / 3).
     {
+
       intro H4.
-      elim (hsup (eps / 3) H4). intros x H1.
-      elim (hinf (eps / 3) H4). intros x0 H2.
+
+      unfold Un_cv in hinf.
+      unfold Rgt in hinf at 1.
+      specialize (hinf (eps / 3)).
+      specialize (hinf H4).
+      destruct hinf as [x0 H2].
+
+      unfold Un_cv in hsup.
+      unfold Rgt in hsup at 1.
+      specialize (hsup (eps / 3)).
+      specialize (hsup H4).
+      destruct hsup as [x H1].
+
       exists (max x x0).
       intros n H3.
       unfold R_dist.
 
       apply Rle_lt_trans with (Rabs (U n - Uinf n) + Rabs (Uinf n - l)).
       {
-        replace (U n - l) with (U n - Uinf n + (Uinf n - l));
-        [ apply Rabs_triang | ring ].
+        rewrite (insert_in_minus _ (Uinf n) _).
+        apply Rabs_triang.
       }
       apply Rle_lt_trans with (Rabs (Usup n - Uinf n) + Rabs (Uinf n - l)).
       {
-        do 2 rewrite <- (Rplus_comm (Rabs (Uinf n - l))).
+        rewrite <- (Rplus_comm (Rabs (Uinf n - l))).
+        rewrite <- (Rplus_comm (Rabs (Uinf n - l))).
         apply Rplus_le_compat_l.
-        repeat rewrite Rabs_right.
+        rewrite Rabs_right. (* r >= 0 -> Rabs r = r *)
+        rewrite Rabs_right.
         {
-          unfold Rminus; do 2 rewrite <- (Rplus_comm (- Uinf n));
-            apply Rplus_le_compat_l.
-          assert (H8 := Vn_Un_Wn_order U (cauchy_maj U H) (cauchy_min U H)).
-          fold Uinf Usup in H8.
-          elim (H8 n); intros.
-          assumption.
+          unfold Rminus.
+          rewrite <- (Rplus_comm (- Uinf n)).
+          rewrite <- (Rplus_comm (- Uinf n)).
+          apply Rplus_le_compat_l.
+
+          (* Vn_Un_Wn_order :
+              V : has_ub Un /\ W : has_lb Un
+             sequence_lb Un V n <= U n <= sequence_ub Un W n
+          *)
+          destruct (Vn_Un_Wn_order U (cauchy_maj U H) (cauchy_min U H) n) as [H5 H8].
+          fold Uinf in H5.
+          fold Usup in H8.
+
+          apply H8.
         }
         {
           apply Rle_ge.
-          unfold Rminus; apply Rplus_le_reg_l with (Uinf n).
+          apply Rplus_le_reg_l with (Uinf n).
           rewrite Rplus_0_r.
-          replace (Uinf n + (Usup n + - Uinf n)) with (Usup n); [ idtac | ring ].
-          assert (H8 := Vn_Un_Wn_order U (cauchy_maj U H) (cauchy_min U H)).
-          fold Uinf Usup in H8.
-          elim (H8 n); intros.
-          apply Rle_trans with (U n); assumption.
+          rewrite Rplus_minus.
+
+          (* Vn_Un_Wn_order *)
+          destruct (Vn_Un_Wn_order U (cauchy_maj U H) (cauchy_min U H) n) as [H5 H6].
+          fold Uinf in H5.
+          fold Usup in H6.
+
+          apply Rle_trans with (U n).
+          apply H5.
+          apply H6.
         }
         {
           apply Rle_ge.
-          unfold Rminus; apply Rplus_le_reg_l with (Uinf n).
+          apply Rplus_le_reg_l with (Uinf n).
           rewrite Rplus_0_r.
-          replace (Uinf n + (U n + - Uinf n)) with (U n); [ idtac | ring ].
-          assert (H8 := Vn_Un_Wn_order U (cauchy_maj U H) (cauchy_min U H)).
-          fold Uinf Usup in H8.
-          elim (H8 n); intros.
-          assumption.
+          rewrite Rplus_minus.
+
+          (* Vn_Un_Wn_order *)
+          destruct (Vn_Un_Wn_order U (cauchy_maj U H) (cauchy_min U H) n) as [H5 H6].
+          fold Uinf in H5.
+          fold Usup in H6.
+
+          apply H5.
         }
       }
       apply Rle_lt_trans with (Rabs (Usup n - l) + Rabs (l - Uinf n) + Rabs (Uinf n - l)).
       {
-        do 2 rewrite <- (Rplus_comm (Rabs (Uinf n - l))).
+        rewrite <- (Rplus_comm (Rabs (Uinf n - l))).
+        rewrite <- (Rplus_comm (Rabs (Uinf n - l))).
         apply Rplus_le_compat_l.
-        replace (Usup n - Uinf n) with (Usup n - l + (l - Uinf n));
-        [ apply Rabs_triang | ring ].
+        rewrite (insert_in_minus (Usup n) l (Uinf n) ).
+        apply Rabs_triang.
       }
       apply Rlt_le_trans with (eps / 3 + eps / 3 + eps / 3).
       {
-        repeat apply Rplus_lt_compat.
+        apply Rplus_lt_compat.
+        apply Rplus_lt_compat.
         {
           unfold R_dist in H1.
           apply H1.
-          unfold ge; apply le_trans with (max x x0).
+          unfold ge. apply le_trans with (max x x0).
           apply le_max_l.
-          assumption.
+          apply H3.
         }
         {
           rewrite <- Rabs_Ropp.
-          replace (- (l - Uinf n)) with (Uinf n - l); [ idtac | ring ].
-          unfold R_dist in H3.
+          rewrite Ropp_minus_distr.
+          unfold R_dist in H2.
           apply H2.
-          unfold ge; apply le_trans with (max x x0).
+          unfold ge.
+          apply le_trans with (max x x0).
           apply le_max_r.
-          assumption.
+          apply H3.
         }
-        unfold R_dist in H3.
+        unfold R_dist in H2.
         apply H2.
-        unfold ge; apply le_trans with (max x x0).
+        unfold ge.
+        apply le_trans with (max x x0).
         apply le_max_r.
-        assumption.
+        apply H3.
       }
       right.
-      pattern eps at 4; replace eps with (3 * (eps / 3)).
-      ring.
-      unfold Rdiv; rewrite <- Rmult_assoc; apply Rinv_r_simpl_m; discrR.
+      apply technic5.
     }
-    unfold Rdiv; apply Rmult_lt_0_compat;
-      [ assumption | apply Rinv_0_lt_compat; prove_sup0 ].
+    apply technic6.
+    apply H0.
   }
-  apply cond_eq.
-  intros.
+
+  apply cond_eq. (* 0 < e -> | x - y | < e ) -> x = y *)
+  intros eps H0.
   cut (0 < eps / 5).
   {
-    intro.
-    unfold Un_cv in hsup; unfold Un_cv in hinf.
-    unfold R_dist in hsup; unfold R_dist in hinf.
-    elim (hsup (eps / 5) H1); intros N1 H4.
-    elim (hinf (eps / 5) H1); intros N2 H5.
+    intro H1.
+    unfold Un_cv in hsup, hinf.
+    unfold R_dist in hsup, hinf.
+
+    specialize (hsup (eps / 5)).
+    specialize (hinf (eps / 5)).
+
+    specialize (hsup H1).
+    specialize (hinf H1).
+
+    destruct hsup as [N1 H4].
+    destruct hinf as [N2 H5].
+
     unfold Cauchy_crit in H.
     unfold R_dist in H.
-    elim (H (eps / 5) H1); intros N3 H6.
+
+    destruct (H (eps / 5) H1) as [N3 H6].
     set (N := max (max N1 N2) N3).
     apply Rle_lt_trans with (Rabs (lsup - Usup N) + Rabs (Usup N - linf)).
     {
-      replace (lsup - linf) with (lsup - Usup N + (Usup N - linf)); [ apply Rabs_triang | ring ].
+      rewrite (insert_in_minus lsup (Usup N) linf).
+      apply Rabs_triang.
     }
     apply Rle_lt_trans with
     (Rabs (lsup - Usup N) + Rabs (Usup N - Uinf N) + Rabs (Uinf N - linf)).
     {
       rewrite Rplus_assoc.
       apply Rplus_le_compat_l.
-      replace (
-        Usup N - linf
-      ) with (
-        Usup N - Uinf N + (Uinf N - linf)
-      ).
+      rewrite (insert_in_minus (Usup N) (Uinf N) linf).
       apply Rabs_triang.
-      ring.
     }
     rewrite <- technic1.
     {
@@ -230,20 +301,30 @@ Proof.
       apply Rplus_lt_compat.
       {
         rewrite <- Rabs_Ropp.
-        replace (- (lsup - Usup N)) with (Usup N - lsup).
+        rewrite Ropp_minus_distr.
         apply H4.
-        unfold ge, N.
+        unfold ge.
+        unfold N.
         apply le_trans with (max N1 N2).
         apply le_max_l.
         apply le_max_l.
-        ring.
       }
       {
         unfold Usup, Uinf.
         unfold sequence_majorant, sequence_minorant.
+
+        (* approx_maj :
+          h : has_ub Un 
+          0 < eps
+          ->  exists k, Rabs (lub Un h - Un k) < eps
+        *)
+        (* maj_ss : has_ub Un -> has_ub (i => Un (k + i)) *)
+          (* cauchy_maj : Cauchy_crit Un -> has_ub Un *)
+
         assert
           (H7 :=
             approx_maj (fun k:nat => U (N + k)%nat) (maj_ss U N (cauchy_maj U H))).
+
         assert
           (H8 :=
             approx_min (fun k:nat => U (N + k)%nat) (min_ss U N (cauchy_min U H))).
@@ -258,21 +339,15 @@ Proof.
             intros H9 H10.
             rewrite <- H9 in H8 |- *.
             rewrite <- H10 in H7 |- *.
-            elim (H7 (eps / 5) H1). intros k2 H11.
-            elim (H8 (eps / 5) H1). intros k1 H12.
+            destruct (H7 (eps / 5) H1) as [k2 H11].
+            destruct (H8 (eps / 5) H1) as [k1 H12].
+
             apply Rle_lt_trans with
               (Rabs (Usup N - U (N + k2)%nat) + Rabs (U (N + k2)%nat - Uinf N)).
             (* r1 <= r2 -> r2 < r3 -> r1 < r3 *)
             {
-              replace (
-                Usup N - Uinf N
-              ) with (
-                Usup N - U (N + k2)%nat + (U (N + k2)%nat - Uinf N)
-              ).
-              {
-                apply Rabs_triang. (* Rabs (a + b) <= Rabs a + Rabs b *)
-              }
-              ring.
+              rewrite (insert_in_minus (Usup N) (U (N + k2)%nat) (Uinf N)).
+              apply Rabs_triang. (* Rabs (a + b) <= Rabs a + Rabs b *)
             }
             apply Rle_lt_trans with
               (Rabs (Usup N - U (N + k2)%nat) + Rabs (U (N + k2)%nat - U (N + k1)%nat) +
@@ -280,21 +355,10 @@ Proof.
             {
               rewrite Rplus_assoc. (*  r1 + r2 + r3 = r1 + (r2 + r3) *)
               apply Rplus_le_compat_l. (* r1 <= r2 -> r + r1 <= r + r2 *)
-              replace (
-                U (N + k2)%nat - Uinf N
-              ) with (
-                U (N + k2)%nat - U (N + k1)%nat + (U (N + k1)%nat - Uinf N)
-              ).
-              {
-                apply Rabs_triang. (* Rabs (a + b) <= Rabs a + Rabs b *)
-              }
-              ring.
+              rewrite (insert_in_minus (U (N + k2)%nat) (U (N + k1)%nat) (Uinf N)).
+              apply Rabs_triang. (* Rabs (a + b) <= Rabs a + Rabs b *)
             }
-            replace (
-              3 * (eps / 5)
-            ) with (
-              eps / 5 + eps / 5 + eps / 5
-            ).
+            rewrite technic7.
             apply Rplus_lt_compat. (* r1 < r2 -> r3 < r4 -> r1 + r3 < r2 + r4 *)
             apply Rplus_lt_compat. (* r1 < r2 -> r3 < r4 -> r1 + r3 < r2 + r4 *)
             {
@@ -310,7 +374,6 @@ Proof.
             (- (U (N + k1)%nat - Uinf N)) with
             (Uinf N - U (N + k1)%nat).
             { apply H12. }
-            { ring. }
             { ring. }
           }
           unfold Uinf. unfold sequence_lb.
