@@ -74,148 +74,199 @@ Section sequence.
 (*********)
   Lemma Un_cv_crit_lub : Un_growing -> forall l, is_lub EUn l -> Un_cv l.
   Proof.
+
     intros Hug l H eps Heps.
 
     cut (exists N, Un N > l - eps).
-    intros (N, H3).
-    exists N.
-    intros n H4.
-    unfold R_dist.
-    rewrite Rabs_left1, Ropp_minus_distr.
-    apply Rplus_lt_reg_l with (Un n - eps).
-    apply Rlt_le_trans with (Un N).
-    now replace (Un n - eps + (l - Un n)) with (l - eps) by ring.
-    replace (Un n - eps + eps) with (Un n) by ring.
-    apply Rge_le.
-    now apply growing_prop.
-    apply Rle_minus.
-    apply (proj1 H).
-    now exists n.
-
+    {
+      intros (N, H3).
+      exists N.
+      intros n H4.
+      unfold R_dist.
+      rewrite Rabs_left1. 
+      rewrite Ropp_minus_distr.
+      {
+        apply Rplus_lt_reg_l with (Un n - eps).
+        apply Rlt_le_trans with (Un N).
+        {
+         replace (Un n - eps + (l - Un n)) with (l - eps) .
+         apply H3.
+         ring.
+        }
+        rewrite Rplus_comm.
+        rewrite Rplus_minus.
+        apply Rge_le.
+        apply growing_prop.
+        { apply Hug. }
+        { apply H4. }
+      }
+      apply Rle_minus.
+      apply (proj1 H).
+      now exists n.
+    }
     assert (Hi2pn: forall n, 0 < (/ 2)^n).
-    clear. intros n.
-    apply pow_lt.
-    apply Rinv_0_lt_compat.
-    now apply (IZR_lt 0 2).
-
+    {
+      clear. intros n.
+      apply pow_lt.
+      apply Rinv_0_lt_compat.
+      now apply (IZR_lt 0 2).
+    }
     pose (test := fun n => match Rle_lt_dec (Un n) (l - eps) with left _ => false | right _ => true end).
     pose (sum := let fix aux n := match n with S n' => aux n' +
       if test n' then (/ 2)^n else 0 | O => 0 end in aux).
 
     assert (Hsum': forall m n, sum m <= sum (m + n)%nat <= sum m + (/2)^m - (/2)^(m + n)).
-    clearbody test.
-    clear -Hi2pn.
-    intros m.
-    induction n.
-    rewrite<- plus_n_O.
-    ring_simplify (sum m + (/ 2) ^ m - (/ 2) ^ m).
-    split ; apply Rle_refl.
-    rewrite <- plus_n_Sm.
-    simpl.
-    split.
-    apply Rle_trans with (sum (m + n)%nat + 0).
-    rewrite Rplus_0_r.
-    apply IHn.
-    apply Rplus_le_compat_l.
-    case (test (m + n)%nat).
-    apply Rlt_le.
-    exact (Hi2pn (S (m + n))).
-    apply Rle_refl.
-    apply Rle_trans with (sum (m + n)%nat + / 2 * (/ 2) ^ (m + n)).
-    apply Rplus_le_compat_l.
-    case (test (m + n)%nat).
-    apply Rle_refl.
-    apply Rlt_le.
-    exact (Hi2pn (S (m + n))).
-    apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
-    rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
-    apply Rle_trans with (1 := proj2 IHn).
-    apply Req_le.
-    field.
+    {
+      clearbody test.
+      clear -Hi2pn.
+      intros m.
+      induction n.
+      rewrite<- plus_n_O.
+      ring_simplify (sum m + (/ 2) ^ m - (/ 2) ^ m).
+      split ; apply Rle_refl.
+      rewrite <- plus_n_Sm.
+      simpl.
+      split.
+      apply Rle_trans with (sum (m + n)%nat + 0).
+      rewrite Rplus_0_r.
+      apply IHn.
+      apply Rplus_le_compat_l.
+      case (test (m + n)%nat).
+      apply Rlt_le.
+      exact (Hi2pn (S (m + n))).
+      apply Rle_refl.
+      apply Rle_trans with (sum (m + n)%nat + / 2 * (/ 2) ^ (m + n)).
+      apply Rplus_le_compat_l.
+      case (test (m + n)%nat).
+      apply Rle_refl.
+      apply Rlt_le.
+      exact (Hi2pn (S (m + n))).
+      apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
+      rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+      apply Rle_trans with (1 := proj2 IHn).
+      apply Req_le.
+      field.
+    }
 
     assert (Hsum: forall n, 0 <= sum n <= 1 - (/2)^n).
-    intros N.
-    generalize (Hsum' O N).
-    simpl.
-    now rewrite Rplus_0_l.
+    {
+      intros N.
+      generalize (Hsum' O N).
+      simpl.
+      now rewrite Rplus_0_l.
+    }
 
     destruct (completeness (fun x : R => exists n : nat, x = sum n)) as (m, (Hm1, Hm2)).
-    exists 1.
-    intros x (n, H1).
-    rewrite H1.
-    apply Rle_trans with (1 := proj2 (Hsum n)).
-    apply Rlt_le.
-    apply Rplus_lt_reg_l with ((/2)^n - 1).
-    now ring_simplify.
-    exists 0. now exists O.
+    {
+      exists 1.
+      intros x (n, H1).
+      rewrite H1.
+      apply Rle_trans with (1 := proj2 (Hsum n)).
+      apply Rlt_le.
+      apply Rplus_lt_reg_l with ((/2)^n - 1).
+      now ring_simplify.
+    }
+    {
+      exists 0. now exists O.
+    }
 
     destruct (Rle_or_lt m 0) as [[Hm|Hm]|Hm].
-    elim Rlt_not_le with (1 := Hm).
-    apply Hm1.
-    now exists O.
-
+    {
+      elim Rlt_not_le with (1 := Hm).
+      apply Hm1.
+      now exists O.
+    }
+    {
     assert (Hs0: forall n, sum n = 0).
-    intros n.
-    specialize (Hm1 (sum n) (ex_intro _ _ (eq_refl _))).
-    apply Rle_antisym with (2 := proj1 (Hsum n)).
-    now rewrite <- Hm.
+    {
+      intros n.
+      specialize (Hm1 (sum n) (ex_intro _ _ (eq_refl _))).
+      apply Rle_antisym with (2 := proj1 (Hsum n)).
+      now rewrite <- Hm.
+    }
 
     assert (Hub: forall n, Un n <= l - eps).
-    intros n.
-    generalize (eq_refl (sum (S n))).
+    {
+      intros n.
+      generalize (eq_refl (sum (S n))).
     simpl sum at 1.
     rewrite 2!Hs0, Rplus_0_l.
     unfold test.
-    destruct Rle_lt_dec. easy.
+    destruct Rle_lt_dec.
+    { easy. }
     intros H'.
     elim Rgt_not_eq with (2 := H').
     exact (Hi2pn (S n)).
+    }
 
     clear -Heps H Hub.
     destruct H as (_, H).
     refine (False_ind _ (Rle_not_lt _ _ (H (l - eps) _) _)).
+    {
     intros x (n, H1).
     now rewrite H1.
+    }
     apply Rplus_lt_reg_l with (eps - l).
     now ring_simplify.
+    }
 
     assert (Rabs (/2) < 1).
+    {
     rewrite Rabs_pos_eq.
+    {
     rewrite <- Rinv_1.
     apply Rinv_lt_contravar.
+    {
     rewrite Rmult_1_l.
     now apply (IZR_lt 0 2).
+    }
     now apply (IZR_lt 1 2).
+    }
     apply Rlt_le.
     apply Rinv_0_lt_compat.
     now apply (IZR_lt 0 2).
+    }
     destruct (pow_lt_1_zero (/2) H0 m Hm) as [N H4].
     exists N.
     apply Rnot_le_lt.
     intros H5.
     apply Rlt_not_le with (1 := H4 _ (le_refl _)).
-    rewrite Rabs_pos_eq. 2: now apply Rlt_le.
+    rewrite Rabs_pos_eq.
+{
     apply Hm2.
     intros x (n, H6).
     rewrite H6. clear x H6.
 
+
+
     assert (Hs: sum N = 0).
+    {
     clear H4.
     induction N.
+    {
     easy.
+    }
+    {
     simpl.
     assert (H6: Un N <= l - eps).
+    {
     apply Rle_trans with (2 := H5).
     apply Rge_le.
     apply growing_prop ; try easy.
     apply le_n_Sn.
+    }
     rewrite (IHN H6), Rplus_0_l.
     unfold test.
     destruct Rle_lt_dec as [Hle|Hlt].
+    {
     apply eq_refl.
+    }
     now elim Rlt_not_le with (1 := Hlt).
+    }
+    }
 
     destruct (le_or_lt N n) as [Hn|Hn].
+    {
     rewrite le_plus_minus with (1 := Hn).
     apply Rle_trans with (1 := proj2 (Hsum' N (n - N)%nat)).
     rewrite Hs, Rplus_0_l.
@@ -223,12 +274,17 @@ Section sequence.
     apply Rlt_le.
     apply Rplus_lt_reg_l with ((/2)^k - (/2)^N).
     now ring_simplify.
+    }
     apply Rle_trans with (sum N).
+    {
     rewrite le_plus_minus with (1 := Hn).
     rewrite plus_Snm_nSm.
     exact (proj1 (Hsum' _ _)).
+    }
     rewrite Hs.
     now apply Rlt_le.
+}
+now apply Rlt_le.
   Qed.
 
 (*********)
