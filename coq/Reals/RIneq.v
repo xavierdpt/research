@@ -20,7 +20,7 @@ Qed.
 Hint Immediate Rle_refl: rorders.
 
 Lemma Rge_refl : forall r, r >= r.
-Proof.
+Proof.  
  apply Rle_refl.
 Qed.
 Hint Immediate Rge_refl: rorders.
@@ -42,133 +42,173 @@ Proof. exact Rlt_irrefl. Qed.
 Lemma Rlt_not_eq : forall r1 r2, r1 < r2 -> r1 <> r2.
 Proof.
   intros x y h.
-  red. intro eq.
-  apply (Rlt_irrefl x).
-  subst y. exact h.
+  red. intro eq. subst y. 
+  apply Rlt_irrefl in h.
+  exact h.
 Qed.
 
 Lemma Rgt_not_eq : forall r1 r2, r1 > r2 -> r1 <> r2.
 Proof.
-  intros; apply not_eq_sym; apply Rlt_not_eq; auto with real.
+  intros x y h.
+  intro eq. subst y.
+  apply Rlt_irrefl in h.
+  exact h.
 Qed.
 
-(**********)
 Lemma Rlt_dichotomy_converse : forall r1 r2, r1 < r2 \/ r1 > r2 -> r1 <> r2.
 Proof.
-  intuition.
-  - apply Rlt_not_eq in H1. eauto.
-  - apply Rgt_not_eq in H1. eauto.
+  intros x y [lt | gt].
+  apply Rlt_not_eq. exact lt.
+  apply Rgt_not_eq. exact gt.
 Qed.
 Hint Resolve Rlt_dichotomy_converse: real.
 
-(** Reasoning by case on equality and order *)
-
-(**********)
 Lemma Req_dec : forall r1 r2, r1 = r2 \/ r1 <> r2.
 Proof.
-  intros; generalize (total_order_T r1 r2) Rlt_dichotomy_converse;
-    unfold not; intuition eauto 3.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  right. apply Rlt_dichotomy_converse. left. exact lt.
+  left. exact eq.
+  right. apply Rlt_dichotomy_converse. right. exact gt.
 Qed.
 Hint Resolve Req_dec: real.
 
 (**********)
 Lemma Rtotal_order : forall r1 r2, r1 < r2 \/ r1 = r2 \/ r1 > r2.
 Proof.
-  intros; generalize (total_order_T r1 r2); tauto.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  left. exact lt.
+  right. left. exact eq.
+  right. right. exact gt.
 Qed.
 
-(**********)
 Lemma Rdichotomy : forall r1 r2, r1 <> r2 -> r1 < r2 \/ r1 > r2.
 Proof.
-  intros; generalize (total_order_T r1 r2); tauto.
+  intros x y hneq.
+  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
+  left. exact lt.
+  contradiction.
+  right. exact gt.
 Qed.
-
-(*********************************************************)
-(** ** Relating [<], [>], [<=] and [>=]  	         *)
-(*********************************************************)
-
-(*********************************************************)
-(** ** Order                                             *)
-(*********************************************************)
-
-(** *** Relating strict and large orders *)
 
 Lemma Rlt_le : forall r1 r2, r1 < r2 -> r1 <= r2.
 Proof.
-  intros; red; tauto.
+  intros x y h.
+  left. exact h.
 Qed.
 Hint Resolve Rlt_le: real.
 
 Lemma Rgt_ge : forall r1 r2, r1 > r2 -> r1 >= r2.
 Proof.
-  intros; red; tauto.
+  intros x y h.
+  left. exact h.
 Qed.
 
-(**********)
 Lemma Rle_ge : forall r1 r2, r1 <= r2 -> r2 >= r1.
 Proof.
-  destruct 1; red; auto with real.
+  intros x y h.
+  destruct h as [lt | eq].
+  left. exact lt.
+  right. symmetry. exact eq.
 Qed.
 Hint Immediate Rle_ge: real.
 Hint Resolve Rle_ge: rorders.
 
 Lemma Rge_le : forall r1 r2, r1 >= r2 -> r2 <= r1.
 Proof.
-  destruct 1; red; auto with real.
+  intros x y h.
+  destruct h as [gt | eq].
+  left. exact gt.
+  right. symmetry. exact eq.
 Qed.
 Hint Resolve Rge_le: real.
 Hint Immediate Rge_le: rorders.
 
-(**********)
 Lemma Rlt_gt : forall r1 r2, r1 < r2 -> r2 > r1.
 Proof.
-  trivial.
+  intros x y h. exact h.
 Qed.
 Hint Resolve Rlt_gt: rorders.
 
 Lemma Rgt_lt : forall r1 r2, r1 > r2 -> r2 < r1.
 Proof.
-  trivial.
+  intros x y h. exact h.
 Qed.
 Hint Immediate Rgt_lt: rorders.
 
-(**********)
-
 Lemma Rnot_le_lt : forall r1 r2, ~ r1 <= r2 -> r2 < r1.
 Proof.
-  intros r1 r2; generalize (Rtotal_order r1 r2); unfold Rle; tauto.
+  intros x y hn.
+  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
+  exfalso. apply hn. left. exact lt.
+  exfalso. apply hn. right. exact eq.
+  exact gt.
 Qed.
 Hint Immediate Rnot_le_lt: real.
 
 Lemma Rnot_ge_gt : forall r1 r2, ~ r1 >= r2 -> r2 > r1.
-Proof. intros; red; apply Rnot_le_lt. auto with real. Qed.
+Proof.
+  intros x y hn.
+  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
+  exact lt.
+  exfalso. apply hn. right. exact eq.
+  exfalso. apply hn. left. exact gt.
+Qed.
 
 Lemma Rnot_le_gt : forall r1 r2, ~ r1 <= r2 -> r1 > r2.
-Proof. intros; red; apply Rnot_le_lt. auto with real. Qed.
+Proof.
+  intros x y hn.
+  apply Rnot_le_lt. exact hn.
+Qed.
 
 Lemma Rnot_ge_lt : forall r1 r2, ~ r1 >= r2 -> r1 < r2.
-Proof. intros; apply Rnot_le_lt. auto with real. Qed.
+Proof.
+  intros x y hn.
+  apply Rnot_ge_gt.
+  exact hn.
+Qed.
 
 Lemma Rnot_lt_le : forall r1 r2, ~ r1 < r2 -> r2 <= r1.
 Proof.
-  intros r1 r2 H; destruct (Rtotal_order r1 r2) as [ | [ H0 | H0 ] ].
-    contradiction. subst; auto with rorders. auto with real.
+  intros x y hn.
+  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
+  contradiction.
+  right. symmetry. exact eq.
+  left. exact gt.
 Qed.
 
 Lemma Rnot_gt_le : forall r1 r2, ~ r1 > r2 -> r1 <= r2.
-Proof. auto using Rnot_lt_le with real. Qed.
+Proof.
+  intros x y hn.
+  apply Rnot_lt_le.
+  exact hn.
+Qed.
 
 Lemma Rnot_gt_ge : forall r1 r2, ~ r1 > r2 -> r2 >= r1.
-Proof. intros; eauto using Rnot_lt_le with rorders. Qed.
+Proof.
+  intros x y hn.
+  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
+  left. exact lt.
+  right. symmetry. exact eq.
+  contradiction.
+Qed.
 
 Lemma Rnot_lt_ge : forall r1 r2, ~ r1 < r2 -> r1 >= r2.
-Proof. eauto using Rnot_gt_ge with rorders. Qed.
+Proof.
+  intros x y hn.
+  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
+  contradiction.
+  right. exact eq.
+  left. exact gt.
+Qed.
 
-(**********)
 Lemma Rlt_not_le : forall r1 r2, r2 < r1 -> ~ r1 <= r2.
 Proof.
-  generalize Rlt_asym Rlt_dichotomy_converse; unfold Rle.
-  unfold not; intuition eauto 3.
+  intros x y hlt.
+  intros [hlt' | heq].
+  apply Rlt_asym in hlt'. contradiction.
+  subst y. apply Rlt_irrefl in hlt. exact hlt.
 Qed.
 Hint Immediate Rlt_not_le: real.
 
@@ -176,7 +216,15 @@ Lemma Rgt_not_le : forall r1 r2, r1 > r2 -> ~ r1 <= r2.
 Proof. exact Rlt_not_le. Qed.
 
 Lemma Rlt_not_ge : forall r1 r2, r1 < r2 -> ~ r1 >= r2.
-Proof. red; intros; eapply Rlt_not_le; eauto with real. Qed.
+Proof.
+  intros x y hlt hge.
+  apply Rge_le in hge.
+  apply Rlt_not_le with x y.
+  destruct hge as [hlt' | eq].
+  exact hlt'.
+  subst y. apply Rlt_irrefl in hlt. contradiction.
+  left. exact hlt.
+Qed.
 Hint Immediate Rlt_not_ge: real.
 
 Lemma Rgt_not_ge : forall r1 r2, r2 > r1 -> ~ r1 >= r2.
@@ -184,71 +232,105 @@ Proof. exact Rlt_not_ge. Qed.
 
 Lemma Rle_not_lt : forall r1 r2, r2 <= r1 -> ~ r1 < r2.
 Proof.
-  intros r1 r2. generalize (Rlt_asym r1 r2) (Rlt_dichotomy_converse r1 r2).
-  unfold Rle; intuition.
+  intros x y hle hlt.
+  destruct hle as [hlt' | eq].
+  apply Rlt_asym in hlt. contradiction.
+  subst y. apply Rlt_irrefl in hlt. exact hlt.
 Qed.
 
 Lemma Rge_not_lt : forall r1 r2, r1 >= r2 -> ~ r1 < r2.
-Proof. intros; apply Rle_not_lt; auto with real. Qed.
+Proof.
+  intros x y hge hlt.
+  apply Rlt_not_ge with x y.
+  exact hlt. exact hge.
+Qed.
 
 Lemma Rle_not_gt : forall r1 r2, r1 <= r2 -> ~ r1 > r2.
-Proof. do 2 intro; apply Rle_not_lt. Qed.
+Proof.
+  intros x y hle hgt.
+  apply Rge_not_lt with y x.
+  apply Rle_ge. exact hle.
+  exact hgt.
+Qed.
 
 Lemma Rge_not_gt : forall r1 r2, r2 >= r1 -> ~ r1 > r2.
-Proof. do 2 intro; apply Rge_not_lt. Qed.
+Proof.
+  intros x y hge hlt.
+  apply Rle_not_gt with x y.
+  apply Rge_le. exact hge.
+  exact hlt.
+Qed.
 
-(**********)
 Lemma Req_le : forall r1 r2, r1 = r2 -> r1 <= r2.
 Proof.
-  unfold Rle; tauto.
+  intros x y eq. subst y. right. reflexivity.
 Qed.
 Hint Immediate Req_le: real.
 
 Lemma Req_ge : forall r1 r2, r1 = r2 -> r1 >= r2.
 Proof.
-  unfold Rge; tauto.
+  intros x y eq. subst y. right. reflexivity.
 Qed.
 Hint Immediate Req_ge: real.
 
 Lemma Req_le_sym : forall r1 r2, r2 = r1 -> r1 <= r2.
 Proof.
-  unfold Rle; auto.
+  intros x y eq. right. symmetry. exact eq.
 Qed.
 Hint Immediate Req_le_sym: real.
 
 Lemma Req_ge_sym : forall r1 r2, r2 = r1 -> r1 >= r2.
 Proof.
-  unfold Rge; auto.
+  intros x y eq. right. symmetry. exact eq.
 Qed.
 Hint Immediate Req_ge_sym: real.
 
-(** *** Asymmetry *)
-
-(** Remark: [Rlt_asym] is an axiom *)
-
 Lemma Rgt_asym : forall r1 r2:R, r1 > r2 -> ~ r2 > r1.
-Proof. do 2 intro; apply Rlt_asym. Qed.
-
-(** *** Antisymmetry *)
+Proof.
+  intros x y hgt hlt.
+  apply Rlt_asym in hlt. contradiction.
+Qed.
 
 Lemma Rle_antisym : forall r1 r2, r1 <= r2 -> r2 <= r1 -> r1 = r2.
 Proof.
-  intros r1 r2; generalize (Rlt_asym r1 r2); unfold Rle; intuition.
+  intros x y hxy hyx.
+  destruct hxy as [ltxy | eqxy].
+  destruct hyx as [ltyx | eqyx].
+  apply Rlt_asym in ltxy. contradiction.
+  symmetry. exact eqyx.
+  exact eqxy.
 Qed.
 Hint Resolve Rle_antisym: real.
 
 Lemma Rge_antisym : forall r1 r2, r1 >= r2 -> r2 >= r1 -> r1 = r2.
-Proof. auto with real. Qed.
+Proof.
+  intros x y hxy hyx.
+  apply Rge_le in hxy.
+  apply Rge_le in hyx.
+  apply Rle_antisym.
+  exact hyx. exact hxy.
+Qed.
 
-(**********)
 Lemma Rle_le_eq : forall r1 r2, r1 <= r2 /\ r2 <= r1 <-> r1 = r2.
 Proof.
-  intuition.
+  intros x y.
+  split.
+  intros [hxy hyx].
+  apply Rle_antisym. exact hxy. exact hyx.
+  intro eq. subst y. split.
+  right. reflexivity.
+  right. reflexivity.
 Qed.
 
 Lemma Rge_ge_eq : forall r1 r2, r1 >= r2 /\ r2 >= r1 <-> r1 = r2.
 Proof.
-  intuition.
+  intros x y.
+  split.
+  intros [hxy hyx].
+  apply Rge_antisym. exact hxy. exact hyx.
+  intro eq. subst y. split.
+  right. reflexivity.
+  right. reflexivity.
 Qed.
 
 (** *** Compatibility with equality *)
@@ -256,148 +338,239 @@ Qed.
 Lemma Rlt_eq_compat :
   forall r1 r2 r3 r4, r1 = r2 -> r2 < r4 -> r4 = r3 -> r1 < r3.
 Proof.
-  intros x x' y y'; intros; replace x with x'; replace y with y'; assumption.
+  intros x x' y y'.
+  intros xx'eq hlt y'yeq.
+  subst x' y'. exact hlt.
 Qed.
 
 Lemma Rgt_eq_compat :
   forall r1 r2 r3 r4, r1 = r2 -> r2 > r4 -> r4 = r3 -> r1 > r3.
-Proof. intros; red; apply Rlt_eq_compat with (r2:=r4) (r4:=r2); auto. Qed.
-
-(** *** Transitivity *)
-
-(** Remark: [Rlt_trans] is an axiom *)
+Proof.
+  intros x x' y y' eqx hlt eqy.
+  subst x' y'. exact hlt.
+Qed.
 
 Lemma Rle_trans : forall r1 r2 r3, r1 <= r2 -> r2 <= r3 -> r1 <= r3.
 Proof.
-  generalize eq_trans Rlt_trans Rlt_eq_compat.
-  unfold Rle.
-  intuition eauto 2.
+  intros x y z.
+  intros hxy hyz.
+  destruct hxy as [ltxy | eqxy].
+  destruct hyz as [ltyz | eqyz].
+  left. apply Rlt_trans with y. exact ltxy. exact ltyz.
+  subst z. left. exact ltxy.
+  subst y. exact hyz.
 Qed.
 
 Lemma Rge_trans : forall r1 r2 r3, r1 >= r2 -> r2 >= r3 -> r1 >= r3.
-Proof. eauto using Rle_trans with rorders. Qed.
+Proof.
+  intros x y z.
+  intros hxy hyz.
+  apply Rle_ge.
+  apply Rge_le in hxy.
+  apply Rge_le in hyz.
+  apply Rle_trans with y. exact hyz. exact hxy.
+Qed.
 
 Lemma Rgt_trans : forall r1 r2 r3, r1 > r2 -> r2 > r3 -> r1 > r3.
-Proof. eauto using Rlt_trans with rorders. Qed.
+Proof.
+  intros x y z hxy hyz.
+  apply Rlt_trans with y. exact hyz. exact hxy.
+Qed.
 
-(**********)
 Lemma Rle_lt_trans : forall r1 r2 r3, r1 <= r2 -> r2 < r3 -> r1 < r3.
 Proof.
-  generalize Rlt_trans Rlt_eq_compat.
-  unfold Rle.
-  intuition eauto 2.
+  intros x y z hxy hyz.
+  destruct hxy as [hxy | hxy ].
+  apply Rlt_trans with y. exact hxy. exact hyz.
+  subst y. exact hyz.
 Qed.
 
 Lemma Rlt_le_trans : forall r1 r2 r3, r1 < r2 -> r2 <= r3 -> r1 < r3.
 Proof.
-  generalize Rlt_trans Rlt_eq_compat; unfold Rle; intuition eauto 2.
+  intros x y z hxy hyz.
+  destruct hyz as [ hyz | hyz ].
+  apply Rlt_trans with y. exact hxy. exact hyz.
+  subst y. exact hxy.
 Qed.
 
 Lemma Rge_gt_trans : forall r1 r2 r3, r1 >= r2 -> r2 > r3 -> r1 > r3.
-Proof. eauto using Rlt_le_trans with rorders. Qed.
+Proof.
+  intros x y z hge hgt.
+  apply Rge_le in hge.
+  apply Rlt_le_trans with y. exact hgt. exact hge.
+Qed.
 
 Lemma Rgt_ge_trans : forall r1 r2 r3, r1 > r2 -> r2 >= r3 -> r1 > r3.
-Proof. eauto using Rle_lt_trans with rorders. Qed.
-
-(** *** (Classical) decidability *)
+Proof.
+  intros x y z hxy hyz.
+  apply Rle_lt_trans with y.
+  apply Rge_le. exact hyz.
+  exact hxy.
+Qed.
 
 Lemma Rlt_dec : forall r1 r2, {r1 < r2} + {~ r1 < r2}.
 Proof.
-  intros; generalize (total_order_T r1 r2) (Rlt_dichotomy_converse r1 r2);
-    intuition.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  left. exact lt.
+  subst y. right. apply Rlt_irrefl.
+  right. intro c. apply Rlt_asym in c. contradiction.
 Qed.
 
 Lemma Rle_dec : forall r1 r2, {r1 <= r2} + {~ r1 <= r2}.
 Proof.
-  intros r1 r2.
-  generalize (total_order_T r1 r2) (Rlt_dichotomy_converse r1 r2).
-  intuition eauto 4 with real.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  left. left. exact lt.
+  left. right. exact eq.
+  right. intro c. destruct c as [ c | c ].
+  apply Rlt_asym in c. contradiction.
+  subst y. apply Rlt_irrefl in gt. exact gt.
 Qed.
 
 Lemma Rgt_dec : forall r1 r2, {r1 > r2} + {~ r1 > r2}.
-Proof. do 2 intro; apply Rlt_dec. Qed.
+Proof.
+intros x y. apply Rlt_dec.
+Qed.
 
 Lemma Rge_dec : forall r1 r2, {r1 >= r2} + {~ r1 >= r2}.
-Proof. intros; edestruct Rle_dec; [left|right]; eauto with rorders. Qed.
+Proof.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+
+  right. intro c. destruct c as [ c | c ].
+  apply Rlt_asym in c. contradiction.
+  subst y. apply Rlt_irrefl in lt. exact lt.
+
+  left. right. exact eq.
+
+  left. left. exact gt.
+
+Qed.
 
 Lemma Rlt_le_dec : forall r1 r2, {r1 < r2} + {r2 <= r1}.
 Proof.
-  intros; generalize (total_order_T r1 r2); intuition.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  left. exact lt.
+  right. right. symmetry. exact eq.
+  right. left. exact gt. 
 Qed.
 
 Lemma Rgt_ge_dec : forall r1 r2, {r1 > r2} + {r2 >= r1}.
-Proof. intros; edestruct Rlt_le_dec; [left|right]; eauto with rorders. Qed.
+Proof.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  right. left. exact lt.
+  right. right. symmetry. exact eq.
+  left. exact gt.
+Qed.
 
 Lemma Rle_lt_dec : forall r1 r2, {r1 <= r2} + {r2 < r1}.
 Proof.
-  intros; generalize (total_order_T r1 r2); intuition.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  left. left. exact lt.
+  left. right. exact eq.
+  right. exact gt.
 Qed.
 
 Lemma Rge_gt_dec : forall r1 r2, {r1 >= r2} + {r2 > r1}.
-Proof. intros; edestruct Rle_lt_dec; [left|right]; eauto with rorders. Qed.
+Proof.
+  intros x y.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
+  right. exact lt.
+  left. right. exact eq.
+  left. left. exact gt.
+Qed.
 
 Lemma Rlt_or_le : forall r1 r2, r1 < r2 \/ r2 <= r1.
 Proof.
-  intros n m; elim (Rle_lt_dec m n); auto with real.
+  intros x y.
+  destruct (Rlt_le_dec x y) as [ l | r ].
+  left. exact l.
+  right. exact r.
 Qed.
 
 Lemma Rgt_or_ge : forall r1 r2, r1 > r2 \/ r2 >= r1.
-Proof. intros; edestruct Rlt_or_le; [left|right]; eauto with rorders. Qed.
+Proof.
+
+  intros x y.
+  destruct (Rgt_ge_dec x y) as [ l | r ].
+  left. exact l.
+  right. exact r.
+Qed.
 
 Lemma Rle_or_lt : forall r1 r2, r1 <= r2 \/ r2 < r1.
 Proof.
-  intros n m; elim (Rlt_le_dec m n); auto with real.
+  intros x y.
+  destruct (Rle_lt_dec x y) as [ l | r ].
+  left. exact l.
+  right. exact r.
 Qed.
 
 Lemma Rge_or_gt : forall r1 r2, r1 >= r2 \/ r2 > r1.
-Proof. intros; edestruct Rle_or_lt; [left|right]; eauto with rorders. Qed.
+Proof.
+  intros x y.
+  destruct (Rge_gt_dec x y) as [ l | r ].
+  left. exact l.
+  right. exact r.
+Qed.
 
 Lemma Rle_lt_or_eq_dec : forall r1 r2, r1 <= r2 -> {r1 < r2} + {r1 = r2}.
 Proof.
-  intros r1 r2 H; generalize (total_order_T r1 r2); intuition.
+  intros x y h.
+  destruct (total_order_T x y) as [ [ lt | eq ] | gt ]. 
+  left. exact lt.
+  right. exact eq.
+  apply Rle_not_lt in h. contradiction.
 Qed.
 
-(**********)
 Lemma inser_trans_R :
   forall r1 r2 r3 r4, r1 <= r2 < r3 -> {r1 <= r2 < r4} + {r4 <= r2 < r3}.
 Proof.
-  intros n m p q; intros; generalize (Rlt_le_dec m q); intuition.
+  intros w x y z.
+  intros [hwx hxy].
+  destruct (total_order_T x z) as [ [ lt | eq ] | gt ].
+  left. split. exact hwx. exact lt.
+  subst z. right. split. right. reflexivity. exact hxy.
+  right. split. left. exact gt. exact hxy.
 Qed.
-
-(*********************************************************)
-(** ** Addition                                          *)
-(*********************************************************)
-
-(** Remark: [Rplus_0_l] is an axiom *)
 
 Lemma Rplus_0_r : forall r, r + 0 = r.
 Proof.
-  intro; ring.
+  intro x.
+  rewrite Rplus_comm.
+  rewrite Rplus_0_l.
+  reflexivity.
 Qed.
 Hint Resolve Rplus_0_r: real.
 
 Lemma Rplus_ne : forall r, r + 0 = r /\ 0 + r = r.
 Proof.
-  split; ring.
+  intro x. split.
+  apply Rplus_0_r.
+  apply Rplus_0_l.
 Qed.
 Hint Resolve Rplus_ne: real.
 
-(**********)
-
-(** Remark: [Rplus_opp_r] is an axiom *)
-
 Lemma Rplus_opp_l : forall r, - r + r = 0.
 Proof.
-  intro; ring.
+  intro x.
+  rewrite Rplus_comm.
+  apply Rplus_opp_r.
 Qed.
 Hint Resolve Rplus_opp_l: real.
 
-(**********)
 Lemma Rplus_opp_r_uniq : forall r1 r2, r1 + r2 = 0 -> r2 = - r1.
 Proof.
-  intros x y H;
-    replace y with (- x + x + y) by ring.
-  rewrite Rplus_assoc; rewrite H; ring.
+  intros x y eq.
+  rewrite <- Rplus_0_r.
+  rewrite <- eq.
+  rewrite <- Rplus_assoc.
+  rewrite (Rplus_opp_l x).
+  rewrite Rplus_0_l.
+  reflexivity.
 Qed.
 
 Definition f_equal_R := (f_equal (A:=R)).
@@ -406,40 +579,50 @@ Hint Resolve f_equal_R : real.
 
 Lemma Rplus_eq_compat_l : forall r r1 r2, r1 = r2 -> r + r1 = r + r2.
 Proof.
-  intros r r1 r2.
-  apply f_equal.
+  intros x y z eq. subst . reflexivity.
 Qed.
 
 Lemma Rplus_eq_compat_r : forall r r1 r2, r1 = r2 -> r1 + r = r2 + r.
 Proof.
-  intros r r1 r2.
-  apply (f_equal (fun v => v + r)).
+  intros x y z eq. subst y. reflexivity.
 Qed.
 
-
-(**********)
 Lemma Rplus_eq_reg_l : forall r r1 r2, r + r1 = r + r2 -> r1 = r2.
 Proof.
-  intros; transitivity (- r + r + r1).
-  ring.
-  transitivity (- r + r + r2).
-  repeat rewrite Rplus_assoc; rewrite <- H; reflexivity.
-  ring.
+  intros x y z eq.
+  rewrite <- Rplus_0_l with y.
+  rewrite <- Rplus_opp_l with x.
+  rewrite Rplus_assoc.
+  rewrite eq.
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  reflexivity.
 Qed.
 Hint Resolve Rplus_eq_reg_l: real.
 
 Lemma Rplus_eq_reg_r : forall r r1 r2, r1 + r = r2 + r -> r1 = r2.
 Proof.
-  intros r r1 r2 H.
-  apply Rplus_eq_reg_l with r.
-  now rewrite 2!(Rplus_comm r).
+  intros x y z eq.
+  apply Rplus_eq_reg_l with x.
+  rewrite Rplus_comm.
+  rewrite eq.
+  rewrite Rplus_comm.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma Rplus_0_r_uniq : forall r r1, r + r1 = r -> r1 = 0.
 Proof.
-  intros r b; pattern r at 2; replace r with (r + 0); eauto with real.
+  intros x y eq.
+  rewrite <- Rplus_opp_l with x.
+  pattern x at 2; rewrite <- eq.
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  reflexivity.
 Qed.
+
+(* Stopped here *)
 
 (***********)
 Lemma Rplus_eq_0_l :
