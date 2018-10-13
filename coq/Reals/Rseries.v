@@ -1,13 +1,3 @@
-(************************************************************************)
-(*         *   The Coq Proof Assistant / The Coq Development Team       *)
-(*  v      *   INRIA, CNRS and contributors - Copyright 1999-2018       *)
-(* <O___,, *       (see CREDITS file for the list of authors)           *)
-(*   \VV/  **************************************************************)
-(*    //   *    This file is distributed under the terms of the         *)
-(*         *     GNU Lesser General Public License Version 2.1          *)
-(*         *     (see LICENSE file for the text of the license)         *)
-(************************************************************************)
-
 Require Import Rbase.
 Require Import Rfunctions.
 Require Import Compare.
@@ -15,34 +5,23 @@ Local Open Scope R_scope.
 
 Implicit Type r : R.
 
-(* classical is needed for [Un_cv_crit] *)
-(*********************************************************)
-(** *        Definition of sequence and properties       *)
-(*                                                       *)
-(*********************************************************)
-
 Section sequence.
 
-(*********)
   Variable Un : nat -> R.
 
-(*********)
   Fixpoint Rmax_N (N:nat) : R :=
     match N with
       | O => Un 0
       | S n => Rmax (Un (S n)) (Rmax_N n)
     end.
 
-(*********)
   Definition EUn r : Prop :=  exists i : nat, r = Un i.
 
-(*********)
   Definition Un_cv (l:R) : Prop :=
     forall eps:R,
       eps > 0 ->
       exists N : nat, (forall n:nat, (n >= N)%nat -> R_dist (Un n) l < eps).
 
-(*********)
   Definition Cauchy_crit : Prop :=
     forall eps:R,
       eps > 0 ->
@@ -50,31 +29,34 @@ Section sequence.
         (forall n m:nat,
           (n >= N)%nat -> (m >= N)%nat -> R_dist (Un n) (Un m) < eps).
 
-(*********)
   Definition Un_growing : Prop := forall n:nat, Un n <= Un (S n).
 
-(*********)
   Lemma EUn_noempty :  exists r : R, EUn r.
   Proof.
-    unfold EUn; split with (Un 0); split with 0%nat; trivial.
+    exists (Un 0).
+    unfold EUn.
+    exists 0%nat.
+    reflexivity.
   Qed.
 
-(*********)
   Lemma Un_in_EUn : forall n:nat, EUn (Un n).
   Proof.
-    intro; unfold EUn; split with n; trivial.
+    intro n.
+    unfold EUn.
+    exists n.
+    reflexivity.
   Qed.
 
-(*********)
   Lemma Un_bound_imp :
     forall x:R, (forall n:nat, Un n <= x) -> is_upper_bound EUn x.
   Proof.
-    intros; unfold is_upper_bound; intros; unfold EUn in H0; elim H0;
-      clear H0; intros; generalize (H x1); intro; rewrite <- H0 in H1;
-        trivial.
+    intros x H.
+    unfold is_upper_bound.
+    intros xn [n eq].
+    subst xn.
+    apply H.
   Qed.
 
-(*********)
   Lemma growing_prop :
     forall n m:nat, Un_growing -> (n >= m)%nat -> Un n >= Un m.
   Proof.
