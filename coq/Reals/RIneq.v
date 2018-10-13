@@ -1,18 +1,3 @@
-(************************************************************************)
-(*         *   The Coq Proof Assistant / The Coq Development Team       *)
-(*  v      *   INRIA, CNRS and contributors - Copyright 1999-2018       *)
-(* <O___,, *       (see CREDITS file for the list of authors)           *)
-(*   \VV/  **************************************************************)
-(*    //   *    This file is distributed under the terms of the         *)
-(*         *     GNU Lesser General Public License Version 2.1          *)
-(*         *     (see LICENSE file for the text of the license)         *)
-(************************************************************************)
-(************************************************************************)
-
-(*********************************************************)
-(** * Basic lemmas for the classical real numbers        *)
-(*********************************************************)
-
 Require Export Raxioms.
 Require Import Rpow_def.
 Require Import Zpower.
@@ -25,27 +10,29 @@ Local Open Scope R_scope.
 
 Implicit Type r : R.
 
-(*********************************************************)
-(** ** Relation between orders and equality              *)
-(*********************************************************)
-
-(** Reflexivity of the large order *)
-
 Lemma Rle_refl : forall r, r <= r.
 Proof.
-  intro; right; reflexivity.
+  intros r.
+  unfold Rle.
+  right.
+  reflexivity.
 Qed.
 Hint Immediate Rle_refl: rorders.
 
-Lemma Rge_refl : forall r, r <= r.
-Proof. exact Rle_refl. Qed.
+Lemma Rge_refl : forall r, r >= r.
+Proof.
+ apply Rle_refl.
+Qed.
 Hint Immediate Rge_refl: rorders.
 
 (** Irreflexivity of the strict order *)
 
 Lemma Rlt_irrefl : forall r, ~ r < r.
 Proof.
-  intros r H; eapply Rlt_asym; eauto.
+  intros r h.
+  apply (Rlt_asym r r).
+  exact h.
+  exact h.
 Qed.
 Hint Resolve Rlt_irrefl: real.
 
@@ -54,8 +41,10 @@ Proof. exact Rlt_irrefl. Qed.
 
 Lemma Rlt_not_eq : forall r1 r2, r1 < r2 -> r1 <> r2.
 Proof.
-  red; intros r1 r2 H H0; apply (Rlt_irrefl r1).
-  pattern r1 at 2; rewrite H0; trivial.
+  intros x y h.
+  red. intro eq.
+  apply (Rlt_irrefl x).
+  subst y. exact h.
 Qed.
 
 Lemma Rgt_not_eq : forall r1 r2, r1 > r2 -> r1 <> r2.
