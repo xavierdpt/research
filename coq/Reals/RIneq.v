@@ -622,128 +622,157 @@ Proof.
   reflexivity.
 Qed.
 
-(* Stopped here *)
-
-(***********)
 Lemma Rplus_eq_0_l :
   forall r1 r2, 0 <= r1 -> 0 <= r2 -> r1 + r2 = 0 -> r1 = 0.
 Proof.
-  intros a b H [H0| H0] H1; auto with real.
-    absurd (0 < a + b).
-      rewrite H1; auto with real.
-      apply Rle_lt_trans with (a + 0).
-        rewrite Rplus_0_r; assumption.
-        auto using Rplus_lt_compat_l with real.
-    rewrite <- H0, Rplus_0_r in H1; assumption.
+  intros x y hx hy eq.
+  destruct hx as [ltx | eqx].
+  destruct hy as [lty | eqy].
+  {
+    apply Rplus_lt_compat_l with x 0 y in lty .
+    rewrite eq in lty. clear eq.
+    rewrite Rplus_0_r in lty.
+    apply Rlt_asym in lty.
+    contradiction.
+  }
+  subst y. rewrite Rplus_0_r in eq. exact eq.
+  subst x. reflexivity.
 Qed.
 
 Lemma Rplus_eq_R0 :
   forall r1 r2, 0 <= r1 -> 0 <= r2 -> r1 + r2 = 0 -> r1 = 0 /\ r2 = 0.
 Proof.
-  intros a b; split.
-  apply Rplus_eq_0_l with b; auto with real.
-  apply Rplus_eq_0_l with a; auto with real.
-  rewrite Rplus_comm; auto with real.
+  intros x y hx hy eq.
+  split.
+  apply Rplus_eq_0_l with y. exact hx. exact hy. exact eq.
+  apply Rplus_eq_0_l with x. exact hy. exact hx. rewrite Rplus_comm. exact eq.
 Qed.
 
-(*********************************************************)
-(** ** Multiplication                                    *)
-(*********************************************************)
-
-(**********)
 Lemma Rinv_r : forall r, r <> 0 -> r * / r = 1.
 Proof.
-  intros; field; trivial.
+  intros x h.
+  rewrite Rmult_comm.
+  rewrite Rinv_l.
+  reflexivity.
+  exact h.
 Qed.
 Hint Resolve Rinv_r: real.
 
 Lemma Rinv_l_sym : forall r, r <> 0 -> 1 = / r * r.
 Proof.
-  intros; field; trivial.
+  intros x h.
+  symmetry.
+  apply Rinv_l.
+  exact h.
 Qed.
 Hint Resolve Rinv_l_sym: real.
 
 Lemma Rinv_r_sym : forall r, r <> 0 -> 1 = r * / r.
 Proof.
-  intros; field; trivial.
+  intros x h.
+  symmetry.
+  apply Rinv_r.
+  exact h.
 Qed.
 Hint Resolve Rinv_r_sym: real.
 
-(**********)
 Lemma Rmult_0_r : forall r, r * 0 = 0.
 Proof.
-  intro; ring.
+  intro x.
+  apply Rplus_0_r_uniq with (x*0).
+  rewrite <- Rmult_plus_distr_l.
+  rewrite Rplus_0_r.
+  reflexivity.
 Qed.
 Hint Resolve Rmult_0_r: real.
 
-(**********)
 Lemma Rmult_0_l : forall r, 0 * r = 0.
 Proof.
-  intro; ring.
+  intro x.
+  rewrite Rmult_comm.
+  apply Rmult_0_r.
 Qed.
 Hint Resolve Rmult_0_l: real.
 
-(**********)
 Lemma Rmult_ne : forall r, r * 1 = r /\ 1 * r = r.
 Proof.
-  intro; split; ring.
+  intro x.
+  split.
+  rewrite Rmult_comm.
+  Search ( 1 * _).
+  rewrite Rmult_1_l.
+  reflexivity.
+  rewrite Rmult_1_l.
+  reflexivity.
 Qed.
 Hint Resolve Rmult_ne: real.
 
-(**********)
 Lemma Rmult_1_r : forall r, r * 1 = r.
 Proof.
-  intro; ring.
+  intros x.
+  rewrite Rmult_comm.
+  rewrite Rmult_1_l.
+  reflexivity.
 Qed.
 Hint Resolve Rmult_1_r: real.
 
-(**********)
 Lemma Rmult_eq_compat_l : forall r r1 r2, r1 = r2 -> r * r1 = r * r2.
 Proof.
-  auto with real.
+  intros x y z eq.
+  subst y. reflexivity.
 Qed.
-
 
 Lemma Rmult_eq_compat_r : forall r r1 r2, r1 = r2 -> r1 * r = r2 * r.
 Proof.
-  intros.
-  rewrite <- 2!(Rmult_comm r).
-  now apply Rmult_eq_compat_l.
+  intros x y z eq.
+  subst y. reflexivity.
 Qed.
 
-(**********)
 Lemma Rmult_eq_reg_l : forall r r1 r2, r * r1 = r * r2 -> r <> 0 -> r1 = r2.
 Proof.
-  intros; transitivity (/ r * r * r1).
-  field; trivial.
-  transitivity (/ r * r * r2).
-  repeat rewrite Rmult_assoc; rewrite H; trivial.
-  field; trivial.
+  intros x y z eq neq.
+  rewrite <- Rmult_1_l with y.
+  rewrite <- Rmult_1_l with z.
+  rewrite <- Rinv_l with x.
+  rewrite Rmult_assoc.
+  rewrite Rmult_assoc.
+  apply Rmult_eq_compat_l.
+  exact eq.
+  exact neq.
 Qed.
 
 Lemma Rmult_eq_reg_r : forall r r1 r2, r1 * r = r2 * r -> r <> 0 -> r1 = r2.
 Proof.
-  intros.
-  apply Rmult_eq_reg_l with (2 := H0).
-  now rewrite 2!(Rmult_comm r).
+  intros x y z eq neq.
+  apply Rmult_eq_reg_l with x.
+  rewrite Rmult_comm with x y.
+  rewrite Rmult_comm with x z.
+  exact eq.
+  exact neq.
 Qed.
 
-(**********)
 Lemma Rmult_integral : forall r1 r2, r1 * r2 = 0 -> r1 = 0 \/ r2 = 0.
 Proof.
-  intros; case (Req_dec r1 0); [ intro Hz | intro Hnotz ].
-  auto.
-  right; apply Rmult_eq_reg_l with r1; trivial.
-  rewrite H; auto with real.
+  intros x y h.
+  destruct (Req_dec x 0).
+  left. exact H.
+  right.
+  apply Rmult_eq_reg_l with x.
+  rewrite h.
+  rewrite Rmult_0_r.
+  reflexivity.
+  exact H.
 Qed.
 
-(**********)
 Lemma Rmult_eq_0_compat : forall r1 r2, r1 = 0 \/ r2 = 0 -> r1 * r2 = 0.
 Proof.
-  intros r1 r2 [H| H]; rewrite H; auto with real.
+  intros x y [ eq | eq ].
+  subst x. apply Rmult_0_l.
+  subst y.  apply Rmult_0_r.
 Qed.
-
 Hint Resolve Rmult_eq_0_compat: real.
+
+(* stopped here *)
 
 (**********)
 Lemma Rmult_eq_0_compat_r : forall r1 r2, r1 = 0 -> r1 * r2 = 0.
