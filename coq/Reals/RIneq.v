@@ -772,144 +772,199 @@ Proof.
 Qed.
 Hint Resolve Rmult_eq_0_compat: real.
 
-(* stopped here *)
-
-(**********)
 Lemma Rmult_eq_0_compat_r : forall r1 r2, r1 = 0 -> r1 * r2 = 0.
 Proof.
-  auto with real.
+  intros x y eq.
+  subst x.
+  rewrite Rmult_0_l.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma Rmult_eq_0_compat_l : forall r1 r2, r2 = 0 -> r1 * r2 = 0.
 Proof.
-  auto with real.
+  intros x y eq. subst y.
+  rewrite Rmult_0_r.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma Rmult_neq_0_reg : forall r1 r2, r1 * r2 <> 0 -> r1 <> 0 /\ r2 <> 0.
 Proof.
-  intros r1 r2 H; split; red; intro; apply H; auto with real.
+  intros x y h.
+  split.
+  intro eq. subst x. apply h. rewrite Rmult_0_l. reflexivity.
+  intro eq. subst y. apply h. rewrite Rmult_0_r. reflexivity.
 Qed.
 
-(**********)
 Lemma Rmult_integral_contrapositive :
   forall r1 r2, r1 <> 0 /\ r2 <> 0 -> r1 * r2 <> 0.
 Proof.
-  red; intros r1 r2 [H1 H2] H.
-  case (Rmult_integral r1 r2); auto with real.
+  intro x.
+  intro y.
+  intros [hx hy].
+  intro eq.
+  apply hy.
+  rewrite <- Rmult_1_l with y.
+  rewrite Rinv_l_sym with x.
+  rewrite Rmult_assoc.
+  rewrite eq.
+  rewrite Rmult_0_r.
+  reflexivity.
+  exact hx.
 Qed.
 Hint Resolve Rmult_integral_contrapositive: real.
 
 Lemma Rmult_integral_contrapositive_currified :
   forall r1 r2, r1 <> 0 -> r2 <> 0 -> r1 * r2 <> 0.
-Proof. auto using Rmult_integral_contrapositive. Qed.
+Proof.
+  intros x y hx hy.
+  apply Rmult_integral_contrapositive.
+  split. exact hx. exact hy.
+Qed.
 
-(**********)
 Lemma Rmult_plus_distr_r :
   forall r1 r2 r3, (r1 + r2) * r3 = r1 * r3 + r2 * r3.
 Proof.
-  intros; ring.
+  intros x y z.
+  rewrite Rmult_comm with (x+y) z.
+  rewrite Rmult_plus_distr_l.
+  rewrite Rmult_comm with z x.
+  rewrite Rmult_comm with z y.
+  reflexivity.
 Qed.
 
-(*********************************************************)
-(** ** Square function                                   *)
-(*********************************************************)
-
-(***********)
 Definition Rsqr r : R := r * r.
 
 Notation "r ²" := (Rsqr r) (at level 1, format "r ²") : R_scope.
 
 (***********)
 Lemma Rsqr_0 : Rsqr 0 = 0.
-  unfold Rsqr; auto with real.
+Proof.
+  unfold Rsqr.
+  apply Rmult_0_r.
 Qed.
 
-(***********)
 Lemma Rsqr_0_uniq : forall r, Rsqr r = 0 -> r = 0.
-  unfold Rsqr; intros; elim (Rmult_integral r r H); trivial.
+  intros x h.
+  unfold Rsqr in h.
+  destruct (Req_dec x 0) as [ eq | neq ].
+  exact eq.
+  apply Rmult_eq_reg_l with x.
+  rewrite h. rewrite Rmult_0_r. reflexivity.
+  exact neq.
 Qed.
 
-(*********************************************************)
-(** ** Opposite                                          *)
-(*********************************************************)
-
-(**********)
 Lemma Ropp_eq_compat : forall r1 r2, r1 = r2 -> - r1 = - r2.
 Proof.
-  auto with real.
+  intros x y eq.
+  subst y. reflexivity.
 Qed.
 Hint Resolve Ropp_eq_compat: real.
 
-(**********)
 Lemma Ropp_0 : -0 = 0.
 Proof.
+  apply Rplus_eq_reg_l with 0.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_r.
   ring.
 Qed.
 Hint Resolve Ropp_0: real.
 
-(**********)
 Lemma Ropp_eq_0_compat : forall r, r = 0 -> - r = 0.
 Proof.
-  intros; rewrite H; auto with real.
+  intros x h.
+  subst x.
+  apply Ropp_0.
 Qed.
 Hint Resolve Ropp_eq_0_compat: real.
 
-(**********)
 Lemma Ropp_involutive : forall r, - - r = r.
 Proof.
-  intro; ring.
+  intro x.
+  apply Rplus_eq_reg_l with ( - x).
+  rewrite Rplus_opp_r.
+  rewrite Rplus_comm.
+  rewrite Rplus_opp_r.
+  reflexivity.
 Qed.
 Hint Resolve Ropp_involutive: real.
 
-(*********)
 Lemma Ropp_neq_0_compat : forall r, r <> 0 -> - r <> 0.
 Proof.
-  red; intros r H H0.
-  apply H.
-  transitivity (- - r); auto with real.
+  intros x h.
+  intro eq. apply h.
+  rewrite <- Ropp_involutive with x.
+  apply Ropp_eq_0_compat.
+  exact eq.
 Qed.
 Hint Resolve Ropp_neq_0_compat: real.
 
-(**********)
 Lemma Ropp_plus_distr : forall r1 r2, - (r1 + r2) = - r1 + - r2.
 Proof.
-  intros; ring.
+  intros x y.
+  apply Rplus_eq_reg_l with (x+y).
+  rewrite Rplus_opp_r.
+  rewrite Rplus_assoc.
+  rewrite <- Rplus_assoc with y (-x) (-y).
+  rewrite Rplus_comm with y (-x).
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_r.
+  rewrite Rplus_opp_r.
+  reflexivity.
 Qed.
 Hint Resolve Ropp_plus_distr: real.
 
-(*********************************************************)
-(** ** Opposite and multiplication                       *)
-(*********************************************************)
+(* stopped here *)
 
 Lemma Ropp_mult_distr_l : forall r1 r2, - (r1 * r2) = - r1 * r2.
 Proof.
-  intros; ring.
+  intros x y.
+  apply Rplus_eq_reg_l with (x*y).
+  rewrite Rplus_opp_r.
+  rewrite <- Rmult_plus_distr_r.
+  rewrite Rplus_opp_r.
+  rewrite Rmult_0_l.
+  reflexivity.
 Qed.
 
 Lemma Ropp_mult_distr_l_reverse : forall r1 r2, - r1 * r2 = - (r1 * r2).
 Proof.
-  intros; ring.
+  symmetry.
+  apply Ropp_mult_distr_l.
 Qed.
 Hint Resolve Ropp_mult_distr_l_reverse: real.
 
-(**********)
+(* stopped here *)
+
 Lemma Rmult_opp_opp : forall r1 r2, - r1 * - r2 = r1 * r2.
 Proof.
-  intros; ring.
+  intros x y.
+  rewrite Ropp_mult_distr_l_reverse.
+  rewrite Rmult_comm.
+  rewrite Ropp_mult_distr_l_reverse.
+  rewrite Ropp_involutive.
+  rewrite Rmult_comm.
+  reflexivity.
 Qed.
 Hint Resolve Rmult_opp_opp: real.
 
 Lemma Ropp_mult_distr_r : forall r1 r2, - (r1 * r2) = r1 * - r2.
 Proof.
-  intros; ring.
+  intros x y.
+  rewrite Rmult_comm with x (-y).
+  rewrite <- Ropp_mult_distr_l.
+  rewrite Rmult_comm.
+  reflexivity.
 Qed.
 
 Lemma Ropp_mult_distr_r_reverse : forall r1 r2, r1 * - r2 = - (r1 * r2).
 Proof.
-  intros; ring.
+  intros x y.
+  symmetry.
+  apply Ropp_mult_distr_r.
 Qed.
+
+(* stopped here *)
 
 (*********************************************************)
 (** ** Subtraction                                      *)
