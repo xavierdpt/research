@@ -1384,340 +1384,529 @@ Proof.
   apply Rplus_lt_le_compat. exact hxb. exact hyd.
 Qed.
 
-(* stopped here *)
-
-(** *** Cancellation *)
-
 Lemma Rplus_lt_reg_l : forall r r1 r2, r + r1 < r + r2 -> r1 < r2.
 Proof.
-  intros; cut (- r + r + r1 < - r + r + r2).
-  rewrite Rplus_opp_l.
-  elim (Rplus_ne r1); elim (Rplus_ne r2); intros; rewrite <- H3; rewrite <- H1;
-    auto with zarith real.
-  rewrite Rplus_assoc; rewrite Rplus_assoc;
-    apply (Rplus_lt_compat_l (- r) (r + r1) (r + r2) H).
+  intros x y z h.
+  rewrite <- Rplus_0_l with y.
+  rewrite <- Rplus_0_l with z.
+  rewrite <- Rplus_opp_l with x.
+  rewrite Rplus_assoc.
+  rewrite Rplus_assoc.
+  apply Rplus_le_lt_compat.
+  right. reflexivity.
+  exact h.
 Qed.
 
 Lemma Rplus_lt_reg_r : forall r r1 r2, r1 + r < r2 + r -> r1 < r2.
 Proof.
-  intros.
-  apply (Rplus_lt_reg_l r).
-  now rewrite 2!(Rplus_comm r).
+  intros x y z h.
+  apply Rplus_lt_reg_l with x.
+  rewrite Rplus_comm with x y.
+  rewrite Rplus_comm with x z.
+  exact h.
 Qed.
 
 Lemma Rplus_le_reg_l : forall r r1 r2, r + r1 <= r + r2 -> r1 <= r2.
 Proof.
-  unfold Rle; intros; elim H; intro.
-  left; apply (Rplus_lt_reg_l r r1 r2 H0).
-  right; apply (Rplus_eq_reg_l r r1 r2 H0).
+  intros x y z h.
+  rewrite <- Rplus_0_l with y.
+  rewrite <- Rplus_0_l with z.
+  rewrite <- Rplus_opp_l with x.
+  rewrite Rplus_assoc.
+  rewrite Rplus_assoc.
+  apply Rplus_le_compat.
+  right. reflexivity.
+  exact h.
 Qed.
 
 Lemma Rplus_le_reg_r : forall r r1 r2, r1 + r <= r2 + r -> r1 <= r2.
 Proof.
-  intros.
-  apply (Rplus_le_reg_l r).
-  now rewrite 2!(Rplus_comm r).
+  intros x y z h.
+  apply Rplus_le_reg_l with x.
+  rewrite Rplus_comm with x y.
+  rewrite Rplus_comm with x z.
+  exact h.
 Qed.
 
 Lemma Rplus_gt_reg_l : forall r r1 r2, r + r1 > r + r2 -> r1 > r2.
 Proof.
-  unfold Rgt; intros; apply (Rplus_lt_reg_l r r2 r1 H).
+  intros x y z h.
+  apply Rplus_lt_reg_l with x.
+  exact h.
 Qed.
 
 Lemma Rplus_ge_reg_l : forall r r1 r2, r + r1 >= r + r2 -> r1 >= r2.
 Proof.
-  intros; apply Rle_ge; apply Rplus_le_reg_l with r; auto with real.
+  intros x y z h.
+  destruct h as [ h | h ].
+  left. apply Rplus_gt_reg_l with x. exact h.
+  right. apply Rplus_eq_reg_l with x. exact h.
 Qed.
 
-(**********)
 Lemma Rplus_le_reg_pos_r :
   forall r1 r2 r3, 0 <= r2 -> r1 + r2 <= r3 -> r1 <= r3.
 Proof.
-  intros x y z; intros; apply Rle_trans with (x + y);
-    [ pattern x at 1; rewrite <- (Rplus_0_r x); apply Rplus_le_compat_l;
-      assumption
-      | assumption ].
+  intros x y z hy hxyz.
+  apply Rle_trans with (x+y).
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_le_compat. right. reflexivity. exact hy. exact hxyz.
 Qed.
 
 Lemma Rplus_lt_reg_pos_r : forall r1 r2 r3, 0 <= r2 -> r1 + r2 < r3 -> r1 < r3.
 Proof.
-  intros x y z; intros; apply Rle_lt_trans with (x + y);
-    [ pattern x at 1; rewrite <- (Rplus_0_r x); apply Rplus_le_compat_l;
-      assumption
-      | assumption ].
+  intros x y z hx hxyz.
+  destruct hx as [ hx | hx ].
+  apply Rlt_trans with (x+y).
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_lt_compat_l. exact hx. exact hxyz.
+  subst y. rewrite Rplus_0_r in hxyz. exact hxyz.
 Qed.
 
 Lemma Rplus_ge_reg_neg_r :
   forall r1 r2 r3, 0 >= r2 -> r1 + r2 >= r3 -> r1 >= r3.
 Proof.
-  intros x y z; intros; apply Rge_trans with (x + y);
-    [ pattern x at 1; rewrite <- (Rplus_0_r x); apply Rplus_ge_compat_l;
-      assumption
-      | assumption ].
+  intros x y z hy hxyz.
+  apply Rge_trans with (x+y).
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_ge_compat_l. exact hy. exact hxyz.
 Qed.
 
 Lemma Rplus_gt_reg_neg_r : forall r1 r2 r3, 0 >= r2 -> r1 + r2 > r3 -> r1 > r3.
 Proof.
-  intros x y z; intros; apply Rge_gt_trans with (x + y);
-    [ pattern x at 1; rewrite <- (Rplus_0_r x); apply Rplus_ge_compat_l;
-      assumption
-      | assumption ].
+  intros x y z hy hxyz.
+  destruct hy as [ hy | hy ].
+  apply Rgt_trans with (x+y).
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_gt_compat_l. exact hy. exact hxyz.
+  subst y. rewrite Rplus_0_r in hxyz. exact hxyz.
 Qed.
-
-(*********************************************************)
-(** ** Order and opposite                                *)
-(*********************************************************)
-
-(** *** Contravariant compatibility *)
 
 Lemma Ropp_gt_lt_contravar : forall r1 r2, r1 > r2 -> - r1 < - r2.
 Proof.
-  unfold Rgt; intros.
-  apply (Rplus_lt_reg_l (r2 + r1)).
-  replace (r2 + r1 + - r1) with r2 by ring.
-  replace (r2 + r1 + - r2) with r1 by ring.
-  exact H.
+  intros x y h.
+  apply Rplus_lt_reg_l with x.
+  rewrite Rplus_opp_r.
+  apply Rplus_lt_reg_r with y.
+  rewrite Rplus_0_l.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  exact h.
 Qed.
 Hint Resolve Ropp_gt_lt_contravar.
 
 Lemma Ropp_lt_gt_contravar : forall r1 r2, r1 < r2 -> - r1 > - r2.
 Proof.
-  unfold Rgt; auto with real.
+  intros x y h.
+  apply Ropp_gt_lt_contravar. exact h.
 Qed.
 Hint Resolve Ropp_lt_gt_contravar: real.
 
-(**********)
 Lemma Ropp_lt_contravar : forall r1 r2, r2 < r1 -> - r1 < - r2.
 Proof.
-  auto with real.
+  intros x y h.
+  apply Ropp_lt_gt_contravar.
+  exact h.
 Qed.
 Hint Resolve Ropp_lt_contravar: real.
 
 Lemma Ropp_gt_contravar : forall r1 r2, r2 > r1 -> - r1 > - r2.
-Proof. auto with real. Qed.
+Proof.
+  intros x y h.
+  apply Ropp_lt_gt_contravar.
+  exact h.
+Qed.
 
-(**********)
 Lemma Ropp_le_ge_contravar : forall r1 r2, r1 <= r2 -> - r1 >= - r2.
 Proof.
-  unfold Rge; intros r1 r2 [H| H]; auto with real.
+  intros x y h.
+  apply Rplus_ge_reg_l with x.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_comm.
+  apply Rplus_ge_reg_l with y.
+  rewrite Rplus_0_r.
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_l.
+  apply Rle_ge.
+  exact h.
 Qed.
 Hint Resolve Ropp_le_ge_contravar: real.
 
 Lemma Ropp_ge_le_contravar : forall r1 r2, r1 >= r2 -> - r1 <= - r2.
 Proof.
-  unfold Rle; intros r1 r2 [H| H]; auto with real.
+  intros x y h.
+  apply Rge_le.
+  apply Ropp_le_ge_contravar.
+  apply Rge_le.
+  exact h.
 Qed.
 Hint Resolve Ropp_ge_le_contravar: real.
 
-(**********)
 Lemma Ropp_le_contravar : forall r1 r2, r2 <= r1 -> - r1 <= - r2.
 Proof.
-  intros r1 r2 H; elim H; auto with real.
+  intros x y h.
+  apply Ropp_ge_le_contravar.
+  apply Rle_ge.
+  exact h.
 Qed.
 Hint Resolve Ropp_le_contravar: real.
 
 Lemma Ropp_ge_contravar : forall r1 r2, r2 >= r1 -> - r1 >= - r2.
-Proof. auto using Ropp_le_contravar with real. Qed.
+Proof.
+  intros x y h.
+  apply Ropp_le_ge_contravar.
+  apply Rge_le.
+  exact h.
+Qed.
 
-(**********)
 Lemma Ropp_0_lt_gt_contravar : forall r, 0 < r -> 0 > - r.
 Proof.
-  intros; replace 0 with (-0); auto with real.
+  intros x h.
+  rewrite <- Ropp_0.
+  apply Ropp_gt_contravar.
+  exact h.
 Qed.
 Hint Resolve Ropp_0_lt_gt_contravar: real.
 
 Lemma Ropp_0_gt_lt_contravar : forall r, 0 > r -> 0 < - r.
 Proof.
-  intros; replace 0 with (-0); auto with real.
+  intros x h.
+  rewrite <- Ropp_0.
+  apply Ropp_gt_contravar.
+  exact h.
 Qed.
 Hint Resolve Ropp_0_gt_lt_contravar: real.
 
-(**********)
 Lemma Ropp_lt_gt_0_contravar : forall r, r > 0 -> - r < 0.
 Proof.
-  intros; rewrite <- Ropp_0; auto with real.
+  intros x h.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
+  exact h.
 Qed.
 Hint Resolve Ropp_lt_gt_0_contravar: real.
 
 Lemma Ropp_gt_lt_0_contravar : forall r, r < 0 -> - r > 0.
 Proof.
-  intros; rewrite <- Ropp_0; auto with real.
+  intros x h.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
+  exact h.
 Qed.
 Hint Resolve Ropp_gt_lt_0_contravar: real.
 
-(**********)
 Lemma Ropp_0_le_ge_contravar : forall r, 0 <= r -> 0 >= - r.
 Proof.
-  intros; replace 0 with (-0); auto with real.
+  intros x h.
+  rewrite <- Ropp_0.
+  apply Ropp_ge_contravar.
+  apply Rle_ge.
+  exact h.
 Qed.
 Hint Resolve Ropp_0_le_ge_contravar: real.
 
 Lemma Ropp_0_ge_le_contravar : forall r, 0 >= r -> 0 <= - r.
 Proof.
-  intros; replace 0 with (-0); auto with real.
+  intros x h.
+  rewrite <- Ropp_0.
+  apply Ropp_le_contravar.
+  apply Rge_le.
+  exact h.
 Qed.
 Hint Resolve Ropp_0_ge_le_contravar: real.
 
-(** *** Cancellation *)
-
 Lemma Ropp_lt_cancel : forall r1 r2, - r2 < - r1 -> r1 < r2.
 Proof.
-  intros x y H'.
-  rewrite <- (Ropp_involutive x); rewrite <- (Ropp_involutive y);
-    auto with real.
+  intros x y h.
+  rewrite <- Ropp_involutive with x.
+  rewrite <- Ropp_involutive with y.
+  apply Ropp_lt_contravar.
+  exact h.
 Qed.
 Hint Immediate Ropp_lt_cancel: real.
 
 Lemma Ropp_gt_cancel : forall r1 r2, - r2 > - r1 -> r1 > r2.
-Proof. auto using Ropp_lt_cancel with rorders. Qed.
+Proof.
+  intros x y h.
+  rewrite <- Ropp_involutive with x.
+  rewrite <- Ropp_involutive with y.
+  apply Ropp_lt_contravar.
+  exact h.
+Qed.
 
 Lemma Ropp_le_cancel : forall r1 r2, - r2 <= - r1 -> r1 <= r2.
 Proof.
-  intros x y H.
-  elim H; auto with real.
-  intro H1; rewrite <- (Ropp_involutive x); rewrite <- (Ropp_involutive y);
-    rewrite H1; auto with real.
+  intros x y h.
+  rewrite <- Ropp_involutive with x.
+  rewrite <- Ropp_involutive with y.
+  apply Ropp_le_contravar.
+  exact h.
 Qed.
 Hint Immediate Ropp_le_cancel: real.
 
 Lemma Ropp_ge_cancel : forall r1 r2, - r2 >= - r1 -> r1 >= r2.
-Proof. auto using Ropp_le_cancel with rorders. Qed.
-
-(*********************************************************)
-(** ** Order and multiplication                          *)
-(*********************************************************)
-
-(** Remark: [Rmult_lt_compat_l] is an axiom *)
-
-(** *** Covariant compatibility *)
+Proof.
+  intros x y h.
+  rewrite <- Ropp_involutive with x.
+  rewrite <- Ropp_involutive with y.
+  apply Ropp_ge_contravar.
+  exact h.
+Qed.
 
 Lemma Rmult_lt_compat_r : forall r r1 r2, 0 < r -> r1 < r2 -> r1 * r < r2 * r.
 Proof.
-  intros; rewrite (Rmult_comm r1 r); rewrite (Rmult_comm r2 r); auto with real.
+  intros x y z hx hyz.
+  Check Rmult_lt_compat_l.
+  rewrite Rmult_comm with y x.
+  rewrite Rmult_comm with z x.
+  apply Rmult_lt_compat_l.
+  exact hx.
+  exact hyz.
 Qed.
 Hint Resolve Rmult_lt_compat_r.
 
 Lemma Rmult_gt_compat_r : forall r r1 r2, r > 0 -> r1 > r2 -> r1 * r > r2 * r.
-Proof. eauto using Rmult_lt_compat_r with rorders. Qed.
+Proof.
+  intros x y z hx hyz.
+  apply Rmult_lt_compat_r.
+  exact hx.
+  exact hyz.
+Qed.
 
 Lemma Rmult_gt_compat_l : forall r r1 r2, r > 0 -> r1 > r2 -> r * r1 > r * r2.
-Proof. eauto using Rmult_lt_compat_l with rorders. Qed.
+Proof.
+  intros x y z hx hyz.
+  apply Rmult_lt_compat_l.
+  exact hx.
+  exact hyz.
+Qed.
 
-(**********)
 Lemma Rmult_le_compat_l :
   forall r r1 r2, 0 <= r -> r1 <= r2 -> r * r1 <= r * r2.
 Proof.
-  intros r r1 r2 H H0; destruct H; destruct H0; unfold Rle;
-    auto with real.
-  right; rewrite <- H; do 2 rewrite Rmult_0_l; reflexivity.
+  intros x y z hx hyz.
+  destruct hx as [ hx | hx ].
+  destruct hyz as [ hyz | hyz ].
+  left.
+  apply Rmult_lt_compat_l. exact hx. exact hyz.
+  subst z. right. reflexivity.
+  subst x. rewrite Rmult_0_l.  rewrite Rmult_0_l. right. reflexivity.
 Qed.
 Hint Resolve Rmult_le_compat_l: real.
 
 Lemma Rmult_le_compat_r :
   forall r r1 r2, 0 <= r -> r1 <= r2 -> r1 * r <= r2 * r.
 Proof.
-  intros r r1 r2 H; rewrite (Rmult_comm r1 r); rewrite (Rmult_comm r2 r);
-    auto with real.
+  intros x y z hx hyz.
+  rewrite Rmult_comm with y x.
+  rewrite Rmult_comm with z x.
+  apply Rmult_le_compat_l.
+  exact hx.
+  exact hyz.
 Qed.
 Hint Resolve Rmult_le_compat_r: real.
 
 Lemma Rmult_ge_compat_l :
   forall r r1 r2, r >= 0 -> r1 >= r2 -> r * r1 >= r * r2.
-Proof. eauto using Rmult_le_compat_l with rorders. Qed.
+Proof.
+  intros x y z hx hyz.
+  apply Rle_ge.
+  apply Rmult_le_compat_l.
+  apply Rge_le.
+  exact hx.
+  apply Rge_le.
+  exact hyz.
+Qed.
 
 Lemma Rmult_ge_compat_r :
   forall r r1 r2, r >= 0 -> r1 >= r2 -> r1 * r >= r2 * r.
-Proof. eauto using Rmult_le_compat_r with rorders. Qed.
+Proof.
+  intros x y z hx hyz.
+  rewrite Rmult_comm with y x.
+  rewrite Rmult_comm with z x.
+  apply Rmult_ge_compat_l.
+  exact hx.
+  exact hyz.
+Qed.
 
-(**********)
 Lemma Rmult_le_compat :
   forall r1 r2 r3 r4,
     0 <= r1 -> 0 <= r3 -> r1 <= r2 -> r3 <= r4 -> r1 * r3 <= r2 * r4.
 Proof.
-  intros x y z t H' H'0 H'1 H'2.
-  apply Rle_trans with (r2 := x * t); auto with real.
-  repeat rewrite (fun x => Rmult_comm x t).
-  apply Rmult_le_compat_l; auto.
-  apply Rle_trans with z; auto.
+  intros w x y z.
+  intros hw hy hwx hyz.
+  apply Rle_trans with (w*z).
+  apply Rmult_le_compat_l. exact hw. exact hyz.
+  apply Rmult_le_compat_r.
+  apply Rle_trans with y. exact hy. exact hyz.
+  exact hwx.
 Qed.
 Hint Resolve Rmult_le_compat: real.
 
 Lemma Rmult_ge_compat :
   forall r1 r2 r3 r4,
     r2 >= 0 -> r4 >= 0 -> r1 >= r2 -> r3 >= r4 -> r1 * r3 >= r2 * r4.
-Proof. auto with real rorders. Qed.
+Proof.
+  intros w x y z.
+  intros hx hz hwx hyz.
+  apply Rle_ge.
+  apply Rmult_le_compat;apply Rge_le.
+  exact hx.
+  exact hz.
+  exact hwx.
+  exact hyz.
+Qed.
 
 Lemma Rmult_gt_0_lt_compat :
   forall r1 r2 r3 r4,
     r3 > 0 -> r2 > 0 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
 Proof.
-  intros; apply Rlt_trans with (r2 * r3); auto with real.
+  intros w x y z.
+  intros hy hx hwx hyz.
+  apply Rlt_trans with (y*x).
+  rewrite Rmult_comm with w y.
+  apply Rmult_lt_compat_l.
+  exact hy. exact hwx.
+  rewrite Rmult_comm with y x.
+  apply Rmult_lt_compat_l.
+  exact hx. exact hyz.
 Qed.
 
-(*********)
 Lemma Rmult_le_0_lt_compat :
   forall r1 r2 r3 r4,
     0 <= r1 -> 0 <= r3 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
 Proof.
-  intros; apply Rle_lt_trans with (r2 * r3);
-    [ apply Rmult_le_compat_r; [ assumption | left; assumption ]
-      | apply Rmult_lt_compat_l;
-        [ apply Rle_lt_trans with r1; assumption | assumption ] ].
+  intros w x y z.
+  intros hw hy hwx hyz.
+  destruct hw as [ hw | hw ].
+  {
+    destruct hy as [ hy | hy ].
+    {
+      apply Rlt_trans with (w*z).
+      apply Rmult_lt_compat_l.
+      exact hw.
+      exact hyz.
+      apply Rmult_lt_compat_r.
+      apply Rlt_trans with y.
+      exact hy. exact hyz.
+      exact hwx.
+    }
+    {
+      subst y.
+      rewrite Rmult_0_r.
+      apply Rlt_trans with (w*z).
+      rewrite <- Rmult_0_r with w.
+      apply Rmult_lt_compat_l.
+      exact hw.
+      exact hyz.
+      apply Rmult_lt_compat_r.
+      exact hyz.
+      exact hwx.
+    }
+  }
+  {
+    subst w.
+    destruct hy as [ hy | hy ].
+    {
+      rewrite Rmult_0_l.
+      rewrite <- Rmult_0_r with x.
+      apply Rmult_lt_compat_l.
+      exact hwx.
+      apply Rlt_trans with y.
+      exact hy.
+      exact hyz.
+    }
+    {
+      subst y.
+      rewrite Rmult_0_r.
+      rewrite <- Rmult_0_r with x.
+      apply Rmult_lt_compat_l.
+      exact hwx.
+      exact hyz.
+  }
+}
 Qed.
 
-(*********)
 Lemma Rmult_lt_0_compat : forall r1 r2, 0 < r1 -> 0 < r2 -> 0 < r1 * r2.
-Proof. intros; replace 0 with (0 * r2); auto with real. Qed.
+Proof.
+  intros x y hx hy.
+  rewrite <- Rmult_0_r with x.
+  apply Rmult_lt_compat_l.
+  exact hx.
+  exact hy.
+Qed.
 
 Lemma Rmult_gt_0_compat : forall r1 r2, r1 > 0 -> r2 > 0 -> r1 * r2 > 0.
-Proof Rmult_lt_0_compat.
-
-(** *** Contravariant compatibility *)
+Proof.
+exact Rmult_lt_0_compat.
+Qed.
 
 Lemma Rmult_le_compat_neg_l :
   forall r r1 r2, r <= 0 -> r1 <= r2 -> r * r2 <= r * r1.
 Proof.
-  intros; replace r with (- - r); auto with real.
-  do 2 rewrite (Ropp_mult_distr_l_reverse (- r)).
-  apply Ropp_le_contravar; auto with real.
+  intros x y z hx hyz.
+  apply Ropp_le_cancel.
+  rewrite Ropp_mult_distr_l.
+  rewrite Ropp_mult_distr_l.
+  apply Rmult_le_compat_l.
+  rewrite <- Ropp_0.
+  apply Ropp_le_contravar.
+  exact hx.
+  exact hyz.
 Qed.
 Hint Resolve Rmult_le_compat_neg_l: real.
 
 Lemma Rmult_le_ge_compat_neg_l :
   forall r r1 r2, r <= 0 -> r1 <= r2 -> r * r1 >= r * r2.
 Proof.
-  intros; apply Rle_ge; auto with real.
+  intros x y z hx hyz.
+  apply Rle_ge.
+  apply Rmult_le_compat_neg_l.
+  exact hx.
+  exact hyz.
 Qed.
 Hint Resolve Rmult_le_ge_compat_neg_l: real.
 
 Lemma Rmult_lt_gt_compat_neg_l :
   forall r r1 r2, r < 0 -> r1 < r2 -> r * r1 > r * r2.
 Proof.
-  intros; replace r with (- - r); auto with real.
-  rewrite (Ropp_mult_distr_l_reverse (- r));
-    rewrite (Ropp_mult_distr_l_reverse (- r)).
-  apply Ropp_lt_gt_contravar; auto with real.
+  intros x y z hx hyz.
+  apply Ropp_lt_cancel.
+  rewrite Ropp_mult_distr_l.
+  rewrite Ropp_mult_distr_l.
+  apply Rmult_lt_compat_l.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
+  exact hx.
+  exact hyz.
 Qed.
-
-(** *** Cancellation *)
 
 Lemma Rmult_lt_reg_l : forall r r1 r2, 0 < r -> r * r1 < r * r2 -> r1 < r2.
 Proof.
-  intros z x y H H0.
-  case (Rtotal_order x y); intros Eq0; auto; elim Eq0; clear Eq0; intros Eq0.
-  rewrite Eq0 in H0; exfalso; apply (Rlt_irrefl (z * y)); auto.
-  generalize (Rmult_lt_compat_l z y x H Eq0); intro; exfalso;
-    generalize (Rlt_trans (z * x) (z * y) (z * x) H0 H1);
-      intro; apply (Rlt_irrefl (z * x)); auto.
+  intros x y z hx h.
+  destruct (Rtotal_order y z) as [ lt | [ eq | gt ] ].
+  {
+    exact lt.
+  }
+  {
+    subst y.
+    apply Rlt_irrefl in h.
+    contradiction.
+  }
+  {
+    exfalso.
+    apply Rlt_irrefl with (x * y).
+    apply Rlt_trans with (x*z).
+    exact h.
+    apply Rmult_lt_compat_l.
+    exact hx.
+    apply Rgt_lt.
+    exact gt.
+  }
 Qed.
 
-Lemma Rmult_lt_reg_r : forall r r1 r2 : R, 0 < r -> r1 * r < r2 * r -> r1 < r2.
-Proof.
-  intros.
-  apply Rmult_lt_reg_l with r.
-  exact H.
-  now rewrite 2!(Rmult_comm r).
-Qed.
+(* stopped here *)
 
 Lemma Rmult_gt_reg_l : forall r r1 r2, 0 < r -> r * r1 < r * r2 -> r1 < r2.
 Proof. eauto using Rmult_lt_reg_l with rorders. Qed.
