@@ -2158,25 +2158,52 @@ Proof.
   apply hp.
 Qed.
 
-(* stopped here *)
-
 Lemma Rinv_1_lt_contravar : forall r1 r2, 1 <= r1 -> r1 < r2 -> / r2 < / r1.
-Proof.
-  intros x y H' H'0.
-  cut (0 < x); [ intros Lt0 | apply Rlt_le_trans with (r2 := 1) ];
-    auto with real.
-  apply Rmult_lt_reg_l with (r := x); auto with real.
-  rewrite (Rmult_comm x (/ x)); rewrite Rinv_l; auto with real.
-  apply Rmult_lt_reg_l with (r := y); auto with real.
-  apply Rlt_trans with (r2 := x); auto.
-  cut (y * (x * / y) = x).
-  intro H1; rewrite H1; rewrite (Rmult_1_r y); auto.
-  rewrite (Rmult_comm x); rewrite <- Rmult_assoc; rewrite (Rmult_comm y (/ y));
-    rewrite Rinv_l; auto with real.
-  apply Rlt_dichotomy_converse; right.
-  red; apply Rlt_trans with (r2 := x); auto with real.
+Proof. (* using asserts would make the proof quite nicer here *)
+  intros x y.
+  intros hx hxy.
+  destruct hx as [lt | eq].
+  {
+    apply Rmult_lt_reg_l with x.
+    apply Rlt_trans with 1.
+    apply Rlt_0_1. exact lt.
+    rewrite Rinv_r.
+    apply Rmult_lt_reg_l with y.
+    apply Rlt_trans with 1.
+    apply Rlt_0_1.
+    apply Rlt_trans with x.
+    exact lt.
+    exact hxy.
+    rewrite Rmult_comm with x (/ y).
+    rewrite <- Rmult_assoc.
+    rewrite Rinv_r.
+    rewrite Rmult_1_l.
+    rewrite Rmult_1_r.
+    exact hxy.
+    apply Rgt_not_eq.
+    apply Rgt_trans with x.
+    exact hxy.
+    apply Rgt_trans with 1.
+    exact lt.
+    apply Rlt_0_1.
+    apply Rgt_not_eq.
+    apply Rgt_trans with 1.
+    exact lt.
+    apply Rlt_0_1.
+  }
+  {
+    subst x.
+    apply Rinv_lt_contravar.
+    rewrite Rmult_1_l.
+    apply Rlt_trans with 1.
+    apply Rlt_0_1.
+    exact hxy.
+    exact hxy.
+  }
 Qed.
 Hint Resolve Rinv_1_lt_contravar: real.
+
+(* stopped here *)
 
 (*********************************************************)
 (** ** Miscellaneous                                     *)
