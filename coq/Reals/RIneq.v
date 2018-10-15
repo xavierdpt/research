@@ -25,8 +25,6 @@ Proof.
 Qed.
 Hint Immediate Rge_refl: rorders.
 
-(** Irreflexivity of the strict order *)
-
 Lemma Rlt_irrefl : forall r, ~ r < r.
 Proof.
   intros r h.
@@ -1883,7 +1881,7 @@ Proof.
 Qed.
 
 Lemma Rmult_lt_reg_l : forall r r1 r2, 0 < r -> r * r1 < r * r2 -> r1 < r2.
-Proof.
+Proof. (* this one is not obvious *)
   intros x y z hx h.
   destruct (Rtotal_order y z) as [ lt | [ eq | gt ] ].
   {
@@ -1906,157 +1904,201 @@ Proof.
   }
 Qed.
 
-(* stopped here *)
-
 Lemma Rmult_gt_reg_l : forall r r1 r2, 0 < r -> r * r1 < r * r2 -> r1 < r2.
-Proof. eauto using Rmult_lt_reg_l with rorders. Qed.
+Proof.
+  exact Rmult_lt_reg_l.
+Qed.
 
 Lemma Rmult_le_reg_l : forall r r1 r2, 0 < r -> r * r1 <= r * r2 -> r1 <= r2.
 Proof.
-  intros z x y H H0; case H0; auto with real.
-  intros H1; apply Rlt_le.
-  apply Rmult_lt_reg_l with (r := z); auto.
-  intros H1; replace x with (/ z * (z * x)); auto with real.
-  replace y with (/ z * (z * y)).
-  rewrite H1; auto with real.
-  rewrite <- Rmult_assoc; rewrite Rinv_l; auto with real.
-  rewrite <- Rmult_assoc; rewrite Rinv_l; auto with real.
+  intros x y z hx hy.
+  destruct hy as [ hy | hy ].
+  left. apply Rmult_lt_reg_l with x. exact hx. exact hy.
+  right. apply Rmult_eq_reg_l with x. exact hy.
+  apply Rgt_not_eq. exact hx.
 Qed.
 
 Lemma Rmult_le_reg_r : forall r r1 r2, 0 < r -> r1 * r <= r2 * r -> r1 <= r2.
 Proof.
-  intros.
-  apply Rmult_le_reg_l with r.
-  exact H.
-  now rewrite 2!(Rmult_comm r).
+  intros x y z hx h.
+  apply Rmult_le_reg_l with x.
+  exact hx.
+  rewrite Rmult_comm with x y.
+  rewrite Rmult_comm with x z.
+  exact h.
 Qed.
-
-(*********************************************************)
-(** ** Order and substraction                            *)
-(*********************************************************)
 
 Lemma Rlt_minus : forall r1 r2, r1 < r2 -> r1 - r2 < 0.
 Proof.
-  intros; apply (Rplus_lt_reg_l r2).
-  replace (r2 + (r1 - r2)) with r1 by ring.
-  now rewrite Rplus_0_r.
+  intros x y h.
+  apply Rplus_lt_reg_r with y.
+  rewrite Rplus_0_l.
+  unfold Rminus.
+  rewrite  Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  exact h.
 Qed.
 Hint Resolve Rlt_minus: real.
 
 Lemma Rgt_minus : forall r1 r2, r1 > r2 -> r1 - r2 > 0.
 Proof.
-  intros; apply (Rplus_lt_reg_l r2).
-  replace (r2 + (r1 - r2)) with r1 by ring.
-  now rewrite Rplus_0_r.
+  intros x y h.
+  apply Rplus_lt_reg_r with (- (x-y)).
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_l.
+  rewrite Ropp_minus_distr.
+  apply Rlt_minus.
+  exact h.
 Qed.
 
 Lemma Rlt_Rminus : forall a b:R, a < b -> 0 < b - a.
 Proof.
-  intros a b; apply Rgt_minus.
+  intros x y h.
+  apply Rgt_minus.
+  exact h.
 Qed.
 
-(**********)
 Lemma Rle_minus : forall r1 r2, r1 <= r2 -> r1 - r2 <= 0.
 Proof.
-  destruct 1; unfold Rle; auto with real.
+  intros x y h.
+  destruct h as [h|h].
+  left. apply Rlt_minus. exact h.
+  subst y. right.
+  rewrite Rminus_diag_eq. reflexivity. reflexivity.
 Qed.
 
 Lemma Rge_minus : forall r1 r2, r1 >= r2 -> r1 - r2 >= 0.
 Proof.
-  destruct 1.
-    auto using Rgt_minus, Rgt_ge.
-    right; auto using Rminus_diag_eq with rorders.
+  intros x y h.
+  apply Rle_ge.
+  apply Rplus_le_reg_l with (-(x-y)).
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  rewrite Ropp_minus_distr.
+  apply Rle_minus.
+  apply Rge_le.
+  exact h.
 Qed.
 
-(**********)
 Lemma Rminus_lt : forall r1 r2, r1 - r2 < 0 -> r1 < r2.
 Proof.
-  intros; replace r1 with (r1 - r2 + r2).
-  pattern r2 at 3; replace r2 with (0 + r2); auto with real.
-  ring.
+  intros x y h.
+  apply Rplus_lt_reg_r with (-y).
+  rewrite Rplus_opp_r.
+  exact h.
 Qed.
 
 Lemma Rminus_gt : forall r1 r2, r1 - r2 > 0 -> r1 > r2.
 Proof.
-  intros; replace r2 with (0 + r2); auto with real.
-  replace r1 with (r1 - r2 + r2).
-  apply Rplus_gt_compat_r; assumption.
-  ring.
+  intros x y h.
+  apply Rminus_lt.
+  apply Ropp_lt_cancel.
+  rewrite Ropp_minus_distr.
+  Search (-0).
+  rewrite Ropp_0.
+  exact h.
 Qed.
 
 Lemma Rminus_gt_0_lt : forall a b, 0 < b - a -> a < b.
-Proof. intro; intro; apply Rminus_gt. Qed.
+Proof.
+  intros x y h.
+  apply Rminus_gt.
+  exact h.
+Qed.
 
-(**********)
 Lemma Rminus_le : forall r1 r2, r1 - r2 <= 0 -> r1 <= r2.
 Proof.
-  intros; replace r1 with (r1 - r2 + r2).
-  pattern r2 at 3; replace r2 with (0 + r2); auto with real.
-  ring.
+  intros x y h.
+  apply Rplus_le_reg_r with (- y).
+  rewrite Rplus_opp_r.
+  exact h.
 Qed.
 
 Lemma Rminus_ge : forall r1 r2, r1 - r2 >= 0 -> r1 >= r2.
 Proof.
-  intros; replace r2 with (0 + r2); auto with real.
-  replace r1 with (r1 - r2 + r2).
-  apply Rplus_ge_compat_r; assumption.
-  ring.
+  intros x y h.
+  apply Rle_ge.
+  apply Rplus_le_reg_r with (-y).
+  rewrite Rplus_opp_r.
+  apply Rge_le.
+  exact h.
 Qed.
 
-(**********)
 Lemma tech_Rplus : forall r (s:R), 0 <= r -> 0 < s -> r + s <> 0.
 Proof.
-  intros; apply not_eq_sym; apply Rlt_not_eq.
-  rewrite Rplus_comm; replace 0 with (0 + 0); auto with real.
+  intros x y hx hy.
+  destruct hx as [hx | hx].
+  apply Rgt_not_eq.
+  apply Rlt_trans with x. exact hx.
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_lt_compat_l. exact hy.
+  subst x. rewrite Rplus_0_l. apply Rgt_not_eq. exact hy.
 Qed.
 Hint Immediate tech_Rplus: real.
 
-(*********************************************************)
-(** ** Order and square function                         *)
-(*********************************************************)
-
 Lemma Rle_0_sqr : forall r, 0 <= Rsqr r.
 Proof.
-  intro; case (Rlt_le_dec r 0); unfold Rsqr; intro.
-  replace (r * r) with (- r * - r); auto with real.
-  replace 0 with (- r * 0); auto with real.
-  replace 0 with (0 * r); auto with real.
+  intros x.
+  destruct (Rtotal_order x 0) as [lt | [ eq | gt]].
+  unfold Rsqr. left.
+  {
+    rewrite <- Ropp_involutive with (x*x).
+    Search( - (_*_)).
+    rewrite Ropp_mult_distr_l.
+    rewrite Ropp_mult_distr_r.
+    assert (lt':0 < -x).
+      rewrite <- Ropp_0.
+      apply Ropp_lt_contravar.
+      exact lt.
+    apply Rmult_lt_0_compat.
+    exact lt'.
+    exact lt'.
+  }
+  subst x. right. unfold Rsqr. rewrite Rmult_0_l. reflexivity.
+  left. unfold Rsqr. apply Rmult_lt_0_compat. exact gt. exact gt.
 Qed.
 
-(***********)
 Lemma Rlt_0_sqr : forall r, r <> 0 -> 0 < Rsqr r.
 Proof.
-  intros; case (Rdichotomy r 0); trivial; unfold Rsqr; intro.
-  replace (r * r) with (- r * - r); auto with real.
-  replace 0 with (- r * 0); auto with real.
-  replace 0 with (0 * r); auto with real.
+  intros x neq.
+  destruct (Rle_0_sqr x) as [h' | h'].
+  exact h'.
+  unfold Rsqr in h'.
+  exfalso.
+  apply neq.
+  apply Rmult_eq_reg_l with x.
+  rewrite <- h'. rewrite Rmult_0_r. reflexivity.
+  exact neq.
 Qed.
 Hint Resolve Rle_0_sqr Rlt_0_sqr: real.
 
-(***********)
 Lemma Rplus_sqr_eq_0_l : forall r1 r2, Rsqr r1 + Rsqr r2 = 0 -> r1 = 0.
 Proof.
-  intros a b; intros; apply Rsqr_0_uniq; apply Rplus_eq_0_l with (Rsqr b);
-    auto with real.
+  intros x y h.  
+  apply Rsqr_0_uniq.
+  apply Rplus_eq_0_l with (y²).
+  apply Rle_0_sqr.
+  apply Rle_0_sqr.
+  exact h.
 Qed.
 
 Lemma Rplus_sqr_eq_0 :
   forall r1 r2, Rsqr r1 + Rsqr r2 = 0 -> r1 = 0 /\ r2 = 0.
 Proof.
-  intros a b; split.
-  apply Rplus_sqr_eq_0_l with b; auto with real.
-  apply Rplus_sqr_eq_0_l with a; auto with real.
-  rewrite Rplus_comm; auto with real.
+  intros x y h.
+  split.
+  Search (Rsqr _).
+  apply Rplus_sqr_eq_0_l with y. exact h.
+  apply Rplus_sqr_eq_0_l with x. rewrite Rplus_comm. exact h.
 Qed.
-
-(*********************************************************)
-(** ** Zero is less than one                             *)
-(*********************************************************)
 
 Lemma Rlt_0_1 : 0 < 1.
 Proof.
-  replace 1 with (Rsqr 1); auto with real.
-  unfold Rsqr; auto with real.
+  rewrite <- Rmult_1_l.
+  fold (Rsqr 1).
+  apply Rlt_0_sqr.
+  apply R1_neq_R0.
 Qed.
 Hint Resolve Rlt_0_1: real.
 
@@ -2065,6 +2107,8 @@ Proof.
   left.
   exact Rlt_0_1.
 Qed.
+
+(* stopped here *)
 
 (*********************************************************)
 (** ** Order and inverse                                 *)
