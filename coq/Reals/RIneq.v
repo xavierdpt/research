@@ -2119,28 +2119,46 @@ Proof.
 Qed.
 Hint Resolve Rinv_0_lt_compat: real.
 
-(* stopped here *)
-
-(*********)
 Lemma Rinv_lt_0_compat : forall r, r < 0 -> / r < 0.
 Proof.
-  intros; apply Rnot_le_lt; red; intros.
-  absurd (1 <= 0); auto with real.
-  replace 1 with (r * / r); auto with real.
-  replace 0 with (r * 0); auto with real.
+  intros x h.
+  apply Ropp_lt_cancel.
+  rewrite Ropp_0.
+  rewrite Ropp_inv_permute.
+  apply Rinv_0_lt_compat.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
+  exact h.
+  apply Rlt_not_eq.
+  exact h.
 Qed.
 Hint Resolve Rinv_lt_0_compat: real.
 
-(*********)
 Lemma Rinv_lt_contravar : forall r1 r2, 0 < r1 * r2 -> r1 < r2 -> / r2 < / r1.
 Proof.
-  intros; apply Rmult_lt_reg_l with (r1 * r2); auto with real.
-  case (Rmult_neq_0_reg r1 r2); intros; auto with real.
-  replace (r1 * r2 * / r2) with r1.
-  replace (r1 * r2 * / r1) with r2; trivial.
-  symmetry ; auto with real.
-  symmetry ; auto with real.
+  intros x y hp hxy.
+  apply Rmult_lt_reg_l with (x*y).
+  exact hp.
+  rewrite Rmult_assoc.
+  rewrite Rinv_r.
+  rewrite Rmult_1_r.
+  rewrite Rmult_assoc.
+  rewrite Rmult_comm with y (/ x).
+  rewrite <- Rmult_assoc.
+  rewrite Rinv_r.
+  rewrite Rmult_1_l.
+  exact hxy.
+  apply Rlt_not_eq in hp.
+  apply not_eq_sym in hp.
+  apply Rmult_neq_0_reg in hp.
+  apply hp.
+  apply Rlt_not_eq in hp.
+  apply not_eq_sym in hp.
+  apply Rmult_neq_0_reg in hp.
+  apply hp.
 Qed.
+
+(* stopped here *)
 
 Lemma Rinv_1_lt_contravar : forall r1 r2, 1 <= r1 -> r1 < r2 -> / r2 < / r1.
 Proof.
