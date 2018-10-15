@@ -2108,20 +2108,18 @@ Proof.
   exact Rlt_0_1.
 Qed.
 
-(* stopped here *)
-
-(*********************************************************)
-(** ** Order and inverse                                 *)
-(*********************************************************)
-
 Lemma Rinv_0_lt_compat : forall r, 0 < r -> 0 < / r.
 Proof.
-  intros; apply Rnot_le_lt; red; intros.
-  absurd (1 <= 0); auto with real.
-  replace 1 with (r * / r); auto with real.
-  replace 0 with (r * 0); auto with real.
+  intros x h.
+  apply Rmult_lt_reg_l with x.
+  exact h. rewrite Rmult_0_r. rewrite Rinv_r.
+  apply Rlt_0_1.
+  apply Rgt_not_eq.
+  exact h.
 Qed.
 Hint Resolve Rinv_0_lt_compat: real.
+
+(* stopped here *)
 
 (*********)
 Lemma Rinv_lt_0_compat : forall r, r < 0 -> / r < 0.
