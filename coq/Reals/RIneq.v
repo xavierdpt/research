@@ -2203,399 +2203,528 @@ Proof. (* using asserts would make the proof quite nicer here *)
 Qed.
 Hint Resolve Rinv_1_lt_contravar: real.
 
-(* stopped here *)
-
-(*********************************************************)
-(** ** Miscellaneous                                     *)
-(*********************************************************)
-
-(**********)
 Lemma Rle_lt_0_plus_1 : forall r, 0 <= r -> 0 < r + 1.
 Proof.
-  intros.
-  apply Rlt_le_trans with 1; auto with real.
-  pattern 1 at 1; replace 1 with (0 + 1); auto with real.
+  intros x h.
+  destruct h as [ h | h ].
+  apply Rlt_trans with x. exact h.
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_lt_compat_l.
+  apply Rlt_0_1.
+  subst x. rewrite Rplus_0_l. apply Rlt_0_1.
 Qed.
 Hint Resolve Rle_lt_0_plus_1: real.
 
-(**********)
 Lemma Rlt_plus_1 : forall r, r < r + 1.
 Proof.
-  intros.
-  pattern r at 1; replace r with (r + 0); auto with real.
+  intro x.
+  pattern x at 1;rewrite <- Rplus_0_r with x.
+  apply Rplus_lt_compat_l.
+  apply Rlt_0_1.
 Qed.
 Hint Resolve Rlt_plus_1: real.
 
-(**********)
 Lemma tech_Rgt_minus : forall r1 r2, 0 < r2 -> r1 > r1 - r2.
 Proof.
-  red; unfold Rminus; intros.
-  pattern r1 at 2; replace r1 with (r1 + 0); auto with real.
+  intros x y h.
+  apply Rlt_gt in h.
+  apply Rplus_lt_reg_r with y.
+  apply Rgt_lt.
+  unfold Rminus.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  apply Rplus_gt_compat_l.
+  exact h.
 Qed.
 
-(*********************************************************)
-(** ** Injection from [N] to [R]                         *)
-(*********************************************************)
-
-(**********)
 Lemma S_INR : forall n:nat, INR (S n) = INR n + 1.
 Proof.
-  intro; case n; auto with real.
+  Arguments INR n : simpl nomatch.
+  intro n.
+  destruct n.
+  simpl. rewrite Rplus_0_l. reflexivity.
+  simpl. reflexivity.
 Qed.
 
-(**********)
 Lemma S_O_plus_INR : forall n:nat, INR (1 + n) = INR 1 + INR n.
 Proof.
-  intro; simpl; case n; intros; auto with real.
+  intro n.
+  simpl.
+  rewrite S_INR.
+  rewrite Rplus_comm.
+  reflexivity.
 Qed.
 
-(**********)
+
 Lemma plus_INR : forall n m:nat, INR (n + m) = INR n + INR m.
 Proof.
-  intros n m; induction  n as [| n Hrecn].
-  simpl; auto with real.
-  replace (S n + m)%nat with (S (n + m)); auto with arith.
-  repeat rewrite S_INR.
-  rewrite Hrecn; ring.
+  intro n.
+  induction n as [ | n i ].
+  simpl. intro m. rewrite Rplus_0_l. reflexivity.
+  intro m.
+  rewrite plus_comm.
+  rewrite <- plus_n_Sm.
+  rewrite S_INR.
+  specialize (i m).
+  rewrite S_INR.
+  rewrite plus_comm.
+  rewrite i.
+  rewrite Rplus_assoc.
+  rewrite Rplus_comm with (INR m) 1.
+  rewrite <- Rplus_assoc.
+  reflexivity.
 Qed.
 Hint Resolve plus_INR: real.
 
-(**********)
 Lemma minus_INR : forall n m:nat, (m <= n)%nat -> INR (n - m) = INR n - INR m.
 Proof.
-  intros n m le; pattern m, n; apply le_elim_rel; auto with real.
-  intros; rewrite <- minus_n_O; auto with real.
-  intros; repeat rewrite S_INR; simpl.
-  rewrite H0; ring.
+  intros n m h.
+  unfold Rminus.
+  apply Rplus_eq_reg_r with (INR m).
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  rewrite <- plus_INR.
+  rewrite Nat.sub_add.
+  reflexivity.
+  exact h.
 Qed.
 Hint Resolve minus_INR: real.
 
-(*********)
 Lemma mult_INR : forall n m:nat, INR (n * m) = INR n * INR m.
 Proof.
-  intros n m; induction  n as [| n Hrecn].
-  simpl; auto with real.
-  intros; repeat rewrite S_INR; simpl.
-  rewrite plus_INR; rewrite Hrecn; ring.
+  intros n.
+  induction n as [ | n i ].
+  intro m. simpl. rewrite Rmult_0_l. reflexivity.
+  intro m.
+  rewrite Nat.mul_succ_l.
+  rewrite plus_INR.
+  rewrite S_INR.
+  rewrite Rmult_plus_distr_r.
+  rewrite Rmult_1_l.
+  specialize (i m).
+  rewrite i.
+  reflexivity.
 Qed.
 Hint Resolve mult_INR: real.
 
 Lemma pow_INR (m n: nat) :  INR (m ^ n) = pow (INR m) n.
-Proof. now induction n as [|n IHn];[ | simpl; rewrite mult_INR, IHn]. Qed.
+Proof.
+  generalize dependent m.
+  induction n as [ | n i ].
+  intro m. simpl. reflexivity.
+  intro m. simpl.
+  rewrite mult_INR.
+  rewrite (i m).
+  reflexivity.
+Qed.
 
-(*********)
 Lemma lt_0_INR : forall n:nat, (0 < n)%nat -> 0 < INR n.
 Proof.
-  simple induction 1; intros; auto with real.
-  rewrite S_INR; auto with real.
+  intro n.
+  induction n as [ | n i ].
+  { intro h. inversion h. }
+  intro h. inversion h as [ zeq | n' le n'eq]; clear h.
+  { simpl. apply Rlt_0_1. }
+  {
+    subst n'.
+    apply Rlt_trans with (INR n).
+    {
+      apply i.
+      inversion le as [ w1  | n' le' eq ];clear le.
+      { constructor. }
+      { constructor. exact le'. }
+   }
+   { rewrite S_INR. apply Rlt_plus_1. }
+  }
 Qed.
 Hint Resolve lt_0_INR: real.
 
 Lemma lt_INR : forall n m:nat, (n < m)%nat -> INR n < INR m.
 Proof.
-  simple induction 1; intros; auto with real.
-  rewrite S_INR; auto with real.
-  rewrite S_INR; apply Rlt_trans with (INR m0); auto with real.
+  intro n.
+  induction n as [ | n i ].
+  { intros m h. simpl. apply lt_0_INR. exact h. }
+  {
+    intros m h.
+    destruct m as [ | m ].
+    { inversion h. }
+    {
+      rewrite S_INR.
+      rewrite S_INR.
+      apply Rplus_lt_compat_r.
+      apply i.
+      apply lt_S_n.
+      exact h.
+     }
+  }
 Qed.
 Hint Resolve lt_INR: real.
 
 Lemma lt_1_INR : forall n:nat, (1 < n)%nat -> 1 < INR n.
 Proof.
-  apply lt_INR.
+  intros n h.
+  apply lt_INR in h.
+  simpl in h.
+  exact h.
 Qed.
 Hint Resolve lt_1_INR: real.
 
-(**********)
 Lemma pos_INR_nat_of_P : forall p:positive, 0 < INR (Pos.to_nat p).
 Proof.
-  intro; apply lt_0_INR.
-  simpl; auto with real.
+  intro p.
+  apply lt_0_INR.
   apply Pos2Nat.is_pos.
 Qed.
 Hint Resolve pos_INR_nat_of_P: real.
 
-(**********)
+
 Lemma pos_INR : forall n:nat, 0 <= INR n.
 Proof.
-  intro n; case n.
-  simpl; auto with real.
-  auto with arith real.
+  intro n.
+  induction n as [ | n i ].
+  simpl. right. reflexivity.
+  apply Rle_trans with (INR n).
+  exact i.
+  rewrite S_INR.
+  pattern (INR n) at 1;rewrite <- Rplus_0_r with (INR n).
+  apply Rplus_le_compat_l.
+  left. apply Rlt_0_1.
 Qed.
 Hint Resolve pos_INR: real.
 
 Lemma INR_lt : forall n m:nat, INR n < INR m -> (n < m)%nat.
 Proof.
-  intros n m. revert n.
-  induction m ; intros n H.
-  - elim (Rlt_irrefl 0).
-    apply Rle_lt_trans with (2 := H).
-    apply pos_INR.
-  - destruct n as [|n].
-    apply Nat.lt_0_succ.
-    apply lt_n_S, IHm.
-    rewrite 2!S_INR in H.
-    apply Rplus_lt_reg_r with (1 := H).
+  induction n as [ | n i ].
+  { simpl. intros m h. destruct m.
+    { simpl in h. apply Rlt_irrefl in h. elim h. }
+    { apply Nat.lt_0_succ. }
+  }
+  { intros m h. destruct m.
+    {
+      exfalso.
+      apply Rlt_irrefl with (INR 0).
+      apply Rlt_trans with (INR (S n)).
+      { apply lt_INR. apply Nat.lt_0_succ. }
+      { exact h. }
+    }
+    {
+      apply lt_n_S.
+      apply i.
+      apply Rplus_lt_reg_r with 1.
+      rewrite <- S_INR.
+      rewrite <- S_INR.
+      exact h.
+    }
+  }
 Qed.
 Hint Resolve INR_lt: real.
 
-(*********)
 Lemma le_INR : forall n m:nat, (n <= m)%nat -> INR n <= INR m.
 Proof.
-  simple induction 1; intros; auto with real.
-  rewrite S_INR.
-  apply Rle_trans with (INR m0); auto with real.
+  intros n m h.
+  Search ( _ <= _ -> _ \/ _)%nat.
+  apply le_lt_or_eq in h.
+  destruct h as [ h | h].
+  left. apply lt_INR. exact h.
+  subst m. right. reflexivity.
 Qed.
 Hint Resolve le_INR: real.
 
-(**********)
 Lemma INR_not_0 : forall n:nat, INR n <> 0 -> n <> 0%nat.
 Proof.
-  red; intros n H H1.
-  apply H.
-  rewrite H1; trivial.
+  intros n h eq.
+  apply h.
+  rewrite eq.
+  simpl. reflexivity.
 Qed.
 Hint Immediate INR_not_0: real.
 
-(**********)
 Lemma not_0_INR : forall n:nat, n <> 0%nat -> INR n <> 0.
 Proof.
-  intro n; case n.
-  intro; absurd (0%nat = 0%nat); trivial.
-  intros; rewrite S_INR.
-  apply Rgt_not_eq; red; auto with real.
+  intros n h eq.
+  apply h. clear h.
+  destruct n.
+  { reflexivity. }
+  {
+    exfalso.
+    apply Rlt_irrefl with 0.
+    pattern 0 at 2;rewrite <- eq. clear eq.
+    apply lt_0_INR.
+    apply Nat.lt_0_succ.
+  }
 Qed.
 Hint Resolve not_0_INR: real.
 
 Lemma not_INR : forall n m:nat, n <> m -> INR n <> INR m.
 Proof.
-  intros n m H; case (le_or_lt n m); intros H1.
-  case (le_lt_or_eq _ _ H1); intros H2.
-  apply Rlt_dichotomy_converse; auto with real.
-  exfalso; auto.
-  apply not_eq_sym; apply Rlt_dichotomy_converse; auto with real.
+  intros n m h.
+  generalize dependent n.
+  induction m as [ | m i ].
+  { intros n h. apply not_0_INR. exact h. }
+  {
+    intros n h.
+    intro eq.
+    destruct n.
+    {
+      clear i h.
+      simpl in eq.
+      apply Rlt_irrefl with 0.
+      pattern 0 at 2;rewrite eq. clear eq.
+      apply lt_0_INR.
+      apply Nat.lt_0_succ.
+    }
+    {
+      apply i with n;clear i.
+      {
+        clear eq.
+        intro eq.
+        apply h. clear h.
+        subst m. reflexivity.
+      }
+      {
+        clear h.
+        apply Rplus_eq_reg_r with 1.
+        rewrite <- S_INR.
+        rewrite <- S_INR.
+        exact eq.
+      }
+    }
+  }
 Qed.
 Hint Resolve not_INR: real.
 
 Lemma INR_eq : forall n m:nat, INR n = INR m -> n = m.
 Proof.
-  intros n m HR.
-  destruct (dec_eq_nat n m) as [H|H].
-  exact H.
-  now apply not_INR in H.
+  intros n.
+  induction n as [ | n i ].
+  {
+    intro m. destruct m.
+    { reflexivity. }
+    {
+      simpl. intro h.
+      exfalso. (* this pattern could deserve it's own lemma *)
+      apply Rlt_irrefl with 0.
+      pattern 0 at 2;rewrite h.
+      apply lt_0_INR.
+      apply Nat.lt_0_succ.
+    }
+  }
+  {
+    intro m. destruct m.
+    {
+      simpl. intro h. exfalso.
+      apply Rlt_irrefl with 0.
+      pattern 0 at 2;rewrite <- h.
+      apply lt_0_INR.
+      apply Nat.lt_0_succ.
+    }
+    {
+      intro h.
+      Search ( S _ = S _).
+      apply eq_S.
+      apply i.
+      apply Rplus_eq_reg_r with 1.
+      rewrite <- S_INR.
+      rewrite <- S_INR.
+      exact h.
+    }
+  }
 Qed.
 Hint Resolve INR_eq: real.
 
 Lemma INR_le : forall n m:nat, INR n <= INR m -> (n <= m)%nat.
 Proof.
-  intros; elim H; intro.
-  generalize (INR_lt n m H0); intro; auto with arith.
-  generalize (INR_eq n m H0); intro; rewrite H1; auto.
+  intros n m h.
+  destruct h as [ h | h].
+  {
+    apply Nat.lt_le_incl.
+    apply INR_lt.
+    exact h.
+  }
+  {
+    apply Nat.eq_le_incl.
+    apply INR_eq.
+    exact h.
+  }
 Qed.
 Hint Resolve INR_le: real.
 
 Lemma not_1_INR : forall n:nat, n <> 1%nat -> INR n <> 1.
 Proof.
-  intros n.
-  apply not_INR.
+  intros n h eq.
+  apply h.
+  apply INR_eq.
+  simpl.
+  exact eq.
 Qed.
 Hint Resolve not_1_INR: real.
 
-(*********************************************************)
-(** ** Injection from [Z] to [R]                         *)
-(*********************************************************)
-
-
-(**********)
 Lemma IZN : forall n:Z, (0 <= n)%Z ->  exists m : nat, n = Z.of_nat m.
 Proof.
-  intros z; idtac; apply Z_of_nat_complete; assumption.
+  intros z h.
+
+  destruct z as [  | p | p ].
+  {
+    exists 0%nat. simpl. reflexivity.
+  }
+  {
+    unfold Z.le in h.
+    simpl in h. clear h.
+    induction p as [ p i | p i | ] .
+    {
+      destruct i as [ m eq ].
+      rewrite Pos2Z.pos_xI.
+      exists (2*m+1)%nat.
+      rewrite Nat2Z.inj_add.
+      rewrite Nat2Z.inj_mul.
+      rewrite <- eq.
+      simpl.
+      reflexivity.
+    }
+    {
+      rewrite Pos2Z.pos_xO.
+      destruct i as [ m eq ].
+      exists (2*m)%nat.
+      rewrite Nat2Z.inj_mul.
+      rewrite <- eq.
+      simpl.
+      reflexivity.
+    }
+    {
+      exists 1%nat.
+      simpl.
+      reflexivity.
+    }
+  }
+  {
+    unfold Z.le in h.
+    simpl in h.
+    contradiction.
+  }
 Qed.
 
 Lemma INR_IPR : forall p, INR (Pos.to_nat p) = IPR p.
 Proof.
-  assert (H: forall p, 2 * INR (Pos.to_nat p) = IPR_2 p).
-    induction p as [p|p|] ; simpl IPR_2.
-    rewrite Pos2Nat.inj_xI, S_INR, mult_INR, <- IHp.
-    now rewrite (Rplus_comm (2 * _)).
-    now rewrite Pos2Nat.inj_xO, mult_INR, <- IHp.
-    apply Rmult_1_r.
-  intros [p|p|] ; unfold IPR.
-  rewrite Pos2Nat.inj_xI, S_INR, mult_INR, <- H.
-  apply Rplus_comm.
-  now rewrite Pos2Nat.inj_xO, mult_INR, <- H.
-  easy.
+
 Qed.
 
 (**********)
 Lemma INR_IZR_INZ : forall n:nat, INR n = IZR (Z.of_nat n).
 Proof.
-  intros [|n].
-  easy.
-  simpl Z.of_nat. unfold IZR.
-  now rewrite <- INR_IPR, SuccNat2Pos.id_succ.
+
 Qed.
 
 Lemma plus_IZR_NEG_POS :
   forall p q:positive, IZR (Zpos p + Zneg q) = IZR (Zpos p) + IZR (Zneg q).
 Proof.
-  intros p q; simpl. rewrite Z.pos_sub_spec.
-  case Pos.compare_spec; intros H; unfold IZR.
-  subst. ring.
-  rewrite <- 3!INR_IPR, Pos2Nat.inj_sub by trivial.
-  rewrite minus_INR by (now apply lt_le_weak, Pos2Nat.inj_lt).
-  ring.
-  rewrite <- 3!INR_IPR, Pos2Nat.inj_sub by trivial.
-  rewrite minus_INR by (now apply lt_le_weak, Pos2Nat.inj_lt).
-  ring.
+
 Qed.
 
 (**********)
 Lemma plus_IZR : forall n m:Z, IZR (n + m) = IZR n + IZR m.
 Proof.
-  intro z; destruct z; intro t; destruct t; intros; auto with real.
-  simpl. unfold IZR. rewrite <- 3!INR_IPR, Pos2Nat.inj_add. apply plus_INR.
-  apply plus_IZR_NEG_POS.
-  rewrite Z.add_comm; rewrite Rplus_comm; apply plus_IZR_NEG_POS.
-  simpl. unfold IZR. rewrite <- 3!INR_IPR, Pos2Nat.inj_add, plus_INR.
-  apply Ropp_plus_distr.
+
 Qed.
 
 (**********)
 Lemma mult_IZR : forall n m:Z, IZR (n * m) = IZR n * IZR m.
 Proof.
-  intros z t; case z; case t; simpl; auto with real;
-    unfold IZR; intros m n; rewrite <- 3!INR_IPR, Pos2Nat.inj_mul, mult_INR; ring.
+
 Qed.
 
 Lemma pow_IZR : forall z n, pow (IZR z) n = IZR (Z.pow z (Z.of_nat n)).
 Proof.
- intros z [|n];simpl;trivial.
- rewrite Zpower_pos_nat.
- rewrite SuccNat2Pos.id_succ. unfold Zpower_nat;simpl.
- rewrite mult_IZR.
- induction n;simpl;trivial.
- rewrite mult_IZR;ring[IHn].
+
 Qed.
 
 (**********)
 Lemma succ_IZR : forall n:Z, IZR (Z.succ n) = IZR n + 1.
 Proof.
-  intro; unfold Z.succ; apply plus_IZR.
+
 Qed.
 
 (**********)
 Lemma opp_IZR : forall n:Z, IZR (- n) = - IZR n.
 Proof.
-  intros [|z|z]; unfold IZR; simpl; auto with real.
+
 Qed.
 
 Definition Ropp_Ropp_IZR := opp_IZR.
 
 Lemma minus_IZR : forall n m:Z, IZR (n - m) = IZR n - IZR m.
 Proof.
-  intros; unfold Z.sub, Rminus.
-  rewrite <- opp_IZR.
-  apply plus_IZR.
+
 Qed.
 
 (**********)
 Lemma Z_R_minus : forall n m:Z, IZR n - IZR m = IZR (n - m).
 Proof.
-  intros z1 z2; unfold Rminus; unfold Z.sub.
-  rewrite <- (Ropp_Ropp_IZR z2); symmetry ; apply plus_IZR.
+
 Qed.
 
 (**********)
 Lemma lt_0_IZR : forall n:Z, 0 < IZR n -> (0 < n)%Z.
 Proof.
-  intro z; case z; simpl; intros.
-  elim (Rlt_irrefl _ H).
-  easy.
-  elim (Rlt_not_le _ _ H).
-  unfold IZR.
-  rewrite <- INR_IPR.
-  auto with real.
+
 Qed.
 
 (**********)
 Lemma lt_IZR : forall n m:Z, IZR n < IZR m -> (n < m)%Z.
 Proof.
-  intros z1 z2 H; apply Z.lt_0_sub.
-  apply lt_0_IZR.
-  rewrite <- Z_R_minus.
-  exact (Rgt_minus (IZR z2) (IZR z1) H).
+
 Qed.
 
 (**********)
 Lemma eq_IZR_R0 : forall n:Z, IZR n = 0 -> n = 0%Z.
 Proof.
-  intro z; destruct z; simpl; intros; auto with zarith.
-  elim Rgt_not_eq with (2 := H).
-  unfold IZR. rewrite <- INR_IPR.
-  apply lt_0_INR, Pos2Nat.is_pos.
-  elim Rlt_not_eq with (2 := H).
-  unfold IZR. rewrite <- INR_IPR.
-  apply Ropp_lt_gt_0_contravar, lt_0_INR, Pos2Nat.is_pos.
+
 Qed.
 
 (**********)
 Lemma eq_IZR : forall n m:Z, IZR n = IZR m -> n = m.
 Proof.
-  intros z1 z2 H; generalize (Rminus_diag_eq (IZR z1) (IZR z2) H);
-    rewrite (Z_R_minus z1 z2); intro; generalize (eq_IZR_R0 (z1 - z2) H0);
-      intro; omega.
+
 Qed.
 
 (**********)
 Lemma not_0_IZR : forall n:Z, n <> 0%Z -> IZR n <> 0.
 Proof.
-  intros z H; red; intros H0; case H.
-  apply eq_IZR; auto.
+
 Qed.
 
 (*********)
 Lemma le_0_IZR : forall n:Z, 0 <= IZR n -> (0 <= n)%Z.
 Proof.
-  unfold Rle; intros z [H| H].
-  red; intro; apply (Z.lt_le_incl 0 z (lt_0_IZR z H)); assumption.
-  rewrite (eq_IZR_R0 z); auto with zarith real.
+
 Qed.
 
 (**********)
 Lemma le_IZR : forall n m:Z, IZR n <= IZR m -> (n <= m)%Z.
 Proof.
-  unfold Rle; intros z1 z2 [H| H].
-  apply (Z.lt_le_incl z1 z2); auto with real.
-  apply lt_IZR; trivial.
-  rewrite (eq_IZR z1 z2); auto with zarith real.
+
 Qed.
 
 (**********)
 Lemma le_IZR_R1 : forall n:Z, IZR n <= 1 -> (n <= 1)%Z.
 Proof.
-  intros n.
-  apply le_IZR.
+
 Qed.
 
 (**********)
 Lemma IZR_ge : forall n m:Z, (n >= m)%Z -> IZR n >= IZR m.
 Proof.
-  intros m n H; apply Rnot_lt_ge; red; intro.
-  generalize (lt_IZR m n H0); intro; omega.
+
 Qed.
 
 Lemma IZR_le : forall n m:Z, (n <= m)%Z -> IZR n <= IZR m.
 Proof.
-  intros m n H; apply Rnot_gt_le; red; intro.
-  unfold Rgt in H0; generalize (lt_IZR n m H0); intro; omega.
+
 Qed.
 
 Lemma IZR_lt : forall n m:Z, (n < m)%Z -> IZR n < IZR m.
 Proof.
-  intros m n H; cut (m <= n)%Z.
-  intro H0; elim (IZR_le m n H0); intro; auto.
-  generalize (eq_IZR m n H1); intro; exfalso; omega.
-  omega.
+
 Qed.
 
 Lemma IZR_neq : forall z1 z2:Z, z1 <> z2 -> IZR z1 <> IZR z2.
@@ -2611,26 +2740,13 @@ Hint Extern 0 (IZR _ <> IZR _) => apply IZR_neq, Zeq_bool_neq, eq_refl : real.
 
 Lemma one_IZR_lt1 : forall n:Z, -1 < IZR n < 1 -> n = 0%Z.
 Proof.
-  intros z [H1 H2].
-  apply Z.le_antisymm.
-  apply Z.lt_succ_r; apply lt_IZR; trivial.
-  change 0%Z with (Z.succ (-1)).
-  apply Z.le_succ_l; apply lt_IZR; trivial.
+
 Qed.
 
 Lemma one_IZR_r_R1 :
   forall r (n m:Z), r < IZR n <= r + 1 -> r < IZR m <= r + 1 -> n = m.
 Proof.
-  intros r z x [H1 H2] [H3 H4].
-  cut ((z - x)%Z = 0%Z); auto with zarith.
-  apply one_IZR_lt1.
-  rewrite <- Z_R_minus; split.
-  replace (-1) with (r - (r + 1)).
-  unfold Rminus; apply Rplus_lt_le_compat; auto with real.
-  ring.
-  replace 1 with (r + 1 - r).
-  unfold Rminus; apply Rplus_le_lt_compat; auto with real.
-  ring.
+
 Qed.
 
 
@@ -2639,7 +2755,7 @@ Lemma single_z_r_R1 :
   forall r (n m:Z),
     r < IZR n -> IZR n <= r + 1 -> r < IZR m -> IZR m <= r + 1 -> n = m.
 Proof.
-  intros; apply one_IZR_r_R1 with r; auto.
+
 Qed.
 
 (**********)
@@ -2649,102 +2765,67 @@ Lemma tech_single_z_r_R1 :
     IZR n <= r + 1 ->
     (exists s : Z, s <> n /\ r < IZR s /\ IZR s <= r + 1) -> False.
 Proof.
-  intros r z H1 H2 [s [H3 [H4 H5]]].
-  apply H3; apply single_z_r_R1 with r; trivial.
+
 Qed.
 
 (*********)
 Lemma Rmult_le_pos : forall r1 r2, 0 <= r1 -> 0 <= r2 -> 0 <= r1 * r2.
 Proof.
-  intros x y H H0; rewrite <- (Rmult_0_l x); rewrite <- (Rmult_comm x);
-    apply (Rmult_le_compat_l x 0 y H H0).
+
 Qed.
 
 Lemma Rinv_le_contravar :
   forall x y, 0 < x -> x <= y -> / y <= / x.
 Proof.
-  intros x y H1 [H2|H2].
-  apply Rlt_le.
-  apply Rinv_lt_contravar with (2 := H2).
-  apply Rmult_lt_0_compat with (1 := H1).
-  now apply Rlt_trans with x.
-  rewrite H2.
-  apply Rle_refl.
+
 Qed.
 
 Lemma Rle_Rinv : forall x y:R, 0 < x -> 0 < y -> x <= y -> / y <= / x.
 Proof.
-  intros x y H _.
-  apply Rinv_le_contravar with (1 := H).
+
 Qed.
 
 Lemma Ropp_div : forall x y, -x/y = - (x / y).
-intros x y; unfold Rdiv; ring.
+Proof.
 Qed.
 
 Lemma double : forall r1, 2 * r1 = r1 + r1.
 Proof.
-  intro; ring.
+
 Qed.
 
 Lemma double_var : forall r1, r1 = r1 / 2 + r1 / 2.
 Proof.
-  intro; rewrite <- double; unfold Rdiv; rewrite <- Rmult_assoc;
-    symmetry ; apply Rinv_r_simpl_m.
-  now apply not_0_IZR.
+
 Qed.
 
 Lemma R_rm : ring_morph
   0%R 1%R Rplus Rmult Rminus Ropp eq
   0%Z 1%Z Zplus Zmult Zminus Z.opp Zeq_bool IZR.
 Proof.
-constructor ; try easy.
-exact plus_IZR.
-exact minus_IZR.
-exact mult_IZR.
-exact opp_IZR.
-intros x y H.
-apply f_equal.
-now apply Zeq_bool_eq.
+
 Qed.
 
 Lemma Zeq_bool_IZR x y :
   IZR x = IZR y -> Zeq_bool x y = true.
 Proof.
-intros H.
-apply Zeq_is_eq_bool.
-now apply eq_IZR.
+
 Qed.
 
 Add Field RField : Rfield
   (completeness Zeq_bool_IZR, morphism R_rm, constants [IZR_tac], power_tac R_power_theory [Rpow_tac]).
 
-(*********************************************************)
-(** ** Other rules about < and <=                        *)
-(*********************************************************)
-
 Lemma Rmult_ge_0_gt_0_lt_compat :
   forall r1 r2 r3 r4,
     r3 >= 0 -> r2 > 0 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
 Proof.
-  intros; apply Rle_lt_trans with (r2 * r3); auto with real.
+
 Qed.
 
 Lemma le_epsilon :
   forall r1 r2, (forall eps:R, 0 < eps -> r1 <= r2 + eps) -> r1 <= r2.
 Proof.
-  intros x y H.
-  destruct (Rle_or_lt x y) as [H1|H1].
-  exact H1.
-  apply Rplus_le_reg_r with x.
-  replace (y + x) with (2 * (y + (x - y) * / 2)) by field.
-  replace (x + x) with (2 * x) by ring.
-  apply Rmult_le_compat_l.
-  now apply (IZR_le 0 2).
-  apply H.
-  apply Rmult_lt_0_compat.
-  now apply Rgt_minus.
-  apply Rinv_0_lt_compat, Rlt_0_2.
+
 Qed.
 
 (**********)
@@ -2752,35 +2833,27 @@ Lemma completeness_weak :
   forall E:R -> Prop,
     bound E -> (exists x : R, E x) ->  exists m : R, is_lub E m.
 Proof.
-  intros; elim (completeness E H H0); intros; split with x; assumption.
+
 Qed.
 
 Lemma Rdiv_lt_0_compat : forall a b, 0 < a -> 0 < b -> 0 < a/b.
 Proof. 
-intros; apply Rmult_lt_0_compat;[|apply Rinv_0_lt_compat]; assumption.
+
 Qed.
 
 Lemma Rdiv_plus_distr : forall a b c, (a + b)/c = a/c + b/c.
-intros a b c; apply Rmult_plus_distr_r.
+Proof.
 Qed.
 
 Lemma Rdiv_minus_distr : forall a b c, (a - b)/c = a/c - b/c.
-intros a b c; unfold Rminus, Rdiv; rewrite Rmult_plus_distr_r; ring.
+Proof.
 Qed.
 
-(* A test for equality function. *)
 Lemma Req_EM_T : forall r1 r2:R, {r1 = r2} + {r1 <> r2}.
 Proof.
-  intros; destruct (total_order_T r1 r2) as [[H|]|H].
-  - right; red; intros ->; elim (Rlt_irrefl r2 H).
-  - left; assumption.
-  - right; red; intros ->; elim (Rlt_irrefl r2 H).
+
 Qed.
 
-
-(*********************************************************)
-(** * Definitions of new types                           *)
-(*********************************************************)
 
 Record nonnegreal : Type := mknonnegreal
   {nonneg :> R; cond_nonneg : 0 <= nonneg}.
@@ -2794,9 +2867,6 @@ Record negreal : Type := mknegreal {neg :> R; cond_neg : neg < 0}.
 
 Record nonzeroreal : Type := mknonzeroreal
   {nonzero :> R; cond_nonzero : nonzero <> 0}.
-
-
-(** Compatibility *)
 
 Notation prod_neq_R0 := Rmult_integral_contrapositive_currified (only parsing).
 Notation minus_Rgt := Rminus_gt (only parsing).
