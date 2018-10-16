@@ -2237,9 +2237,10 @@ Proof.
   exact h.
 Qed.
 
+Arguments INR n : simpl nomatch.
+
 Lemma S_INR : forall n:nat, INR (S n) = INR n + 1.
 Proof.
-  Arguments INR n : simpl nomatch.
   intro n.
   destruct n.
   simpl. rewrite Rplus_0_l. reflexivity.
