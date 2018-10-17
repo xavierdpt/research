@@ -2606,130 +2606,447 @@ Qed.
 
 Lemma INR_IPR : forall p, INR (Pos.to_nat p) = IPR p.
 Proof.
-
+  intro p.
+  induction p as [ p i | p i | ].
+  {
+    rewrite Pos2Nat.inj_xI.
+    rewrite S_INR.
+    rewrite mult_INR.
+    rewrite i. clear i.
+    unfold IPR at 2.
+    rewrite Rplus_comm.
+    apply Rplus_eq_compat_l.
+    destruct p.
+    { simpl. unfold IPR. simpl. reflexivity. }
+    { simpl. unfold IPR. reflexivity. }
+    { simpl. unfold IPR. rewrite Rmult_1_r. reflexivity. }
+  }
+  {
+    rewrite Pos2Nat.inj_xO.
+    rewrite mult_INR.
+    rewrite i; clear i.
+    simpl.
+    unfold IPR at 2.
+    destruct p.
+    { simpl. unfold IPR. reflexivity. }
+    { simpl. unfold IPR. reflexivity. }
+    { simpl. unfold IPR. rewrite Rmult_1_r. reflexivity. }
+  }
+  {
+    simpl. unfold IPR. reflexivity.
+  }
 Qed.
 
-(**********)
 Lemma INR_IZR_INZ : forall n:nat, INR n = IZR (Z.of_nat n).
 Proof.
-
+  intro n.
+  induction n as [ | n i ].
+  { simpl. reflexivity. }
+  {
+    rewrite S_INR. rewrite i. clear i.
+    rewrite Nat2Z.inj_succ.
+    destruct (Z.of_nat n).
+    {
+      simpl. rewrite Rplus_0_l. reflexivity.
+    }
+    {
+      simpl. unfold IZR at 1. unfold IZR at 2.
+      apply Rplus_eq_reg_l with (- IPR p).
+      rewrite <- Rplus_assoc.
+      rewrite Rplus_opp_l.
+      rewrite Rplus_0_l.
+      rewrite Rplus_comm.
+      fold (Rminus (IPR (p+1)) (IPR p)).
+      rewrite <- INR_IPR.
+      rewrite <- INR_IPR.
+      rewrite <- minus_INR.
+      {
+        rewrite <- Pos2Nat.inj_sub.
+        {
+          rewrite Pos.add_comm.
+          rewrite Pos.add_sub.
+          simpl.
+          reflexivity.
+        }
+        {
+          apply Pos.lt_add_r.
+        }
+      }
+      {
+        rewrite Pos2Nat.inj_add.
+        apply Nat.le_add_r.
+      }
+    }
+    {
+      simpl. unfold IZR at 1.
+      apply Rplus_eq_reg_l with (IPR p).
+      rewrite <- Rplus_assoc.
+      rewrite Rplus_opp_r.
+      rewrite Rplus_0_l.
+      destruct p.
+      {
+        simpl.
+        unfold IZR.
+        unfold IPR.
+        rewrite Rplus_assoc.
+        rewrite Rplus_opp_r.
+        rewrite Rplus_0_r.
+        reflexivity.
+      }
+      {
+        unfold IPR.
+        unfold Z.pos_sub.
+        unfold IZR.
+        rewrite Pos.pred_double_spec.
+        rewrite <- Pos.sub_1_r.
+        rewrite <- INR_IPR.
+        rewrite <- INR_IPR.
+        rewrite Pos2Nat.inj_sub.
+        {
+          rewrite minus_INR.
+          {
+            rewrite INR_IPR.
+            rewrite INR_IPR.
+            unfold IPR at 2.
+            rewrite Ropp_minus_distr.
+            unfold Rminus.
+            rewrite Rplus_comm.
+            rewrite Rplus_assoc.
+            rewrite Rplus_opp_l.
+            rewrite Rplus_0_r.
+            reflexivity.
+          }
+          {
+            apply Pos2Nat.inj_le.
+            apply Pos.le_1_l.
+          }
+        }
+        { constructor. }
+      }
+      {
+        unfold Z.pos_sub.
+        rewrite Rplus_0_r.
+        unfold IPR.
+        reflexivity.
+      }
+    }
+  }
 Qed.
 
-Lemma plus_IZR_NEG_POS :
-  forall p q:positive, IZR (Zpos p + Zneg q) = IZR (Zpos p) + IZR (Zneg q).
+Lemma plus_IZR_NEG_POS : forall p q:positive,
+  IZR (Zpos p + Zneg q) = IZR (Zpos p) + IZR (Zneg q).
 Proof.
-
+  intros p q. simpl.
+  rewrite Z.pos_sub_spec.
+  destruct (Pos.compare_spec p q) as [ H | H | H ].
+  {
+    unfold IZR. subst q. rewrite Rplus_opp_r. reflexivity.
+  }
+  {
+    unfold IZR.
+    rewrite <- INR_IPR.
+    rewrite <- INR_IPR.
+    rewrite <- INR_IPR.
+    rewrite Pos2Nat.inj_sub.
+    rewrite minus_INR.
+    unfold Rminus.
+    rewrite Ropp_plus_distr.
+    rewrite Ropp_involutive.
+    rewrite Rplus_comm.
+    reflexivity.
+    apply Pos2Nat.inj_le.
+    apply Pos.lt_le_incl.
+    exact H.
+    exact H.
+  }
+  {
+    unfold IZR.
+    rewrite <- INR_IPR.
+    rewrite <- INR_IPR.
+    rewrite <- INR_IPR.
+    rewrite Pos2Nat.inj_sub.
+    rewrite minus_INR.
+    reflexivity.
+    apply Pos2Nat.inj_le.
+    apply Pos.lt_le_incl.
+    exact H.
+    exact H.
+  }
 Qed.
 
-(**********)
 Lemma plus_IZR : forall n m:Z, IZR (n + m) = IZR n + IZR m.
 Proof.
-
+  intros n m.
+  destruct n.
+  simpl. rewrite Rplus_0_l. reflexivity.
+  destruct m.
+    simpl. rewrite Rplus_0_r. reflexivity.
+    simpl. unfold IZR. repeat(rewrite <- INR_IPR). rewrite Pos2Nat.inj_add. rewrite plus_INR. reflexivity.
+    simpl. rewrite <- plus_IZR_NEG_POS. simpl. reflexivity.
+  destruct m.
+    simpl. rewrite Rplus_0_r. reflexivity.
+    simpl. rewrite Rplus_comm. rewrite <- plus_IZR_NEG_POS. simpl. reflexivity.
+    simpl. unfold IZR.
+    apply Rmult_eq_reg_r with (- R1).
+    rewrite <- Ropp_plus_distr.
+    rewrite Rmult_opp_opp.
+    rewrite Rmult_opp_opp.
+    rewrite Rmult_1_r.
+    rewrite Rmult_1_r.
+    repeat(rewrite <- INR_IPR).
+    rewrite Pos2Nat.inj_add.
+    rewrite plus_INR.
+    reflexivity.
+    apply Ropp_neq_0_compat.
+    apply Rgt_not_eq.
+    apply Rlt_0_1.
 Qed.
 
-(**********)
 Lemma mult_IZR : forall n m:Z, IZR (n * m) = IZR n * IZR m.
 Proof.
+  intros n m.
+  destruct n.
+  simpl. rewrite Rmult_0_l. reflexivity.
+  destruct m.
+    simpl. rewrite Rmult_0_r. reflexivity.
 
+    simpl. unfold IZR. repeat(rewrite <- INR_IPR).
+    rewrite Pos2Nat.inj_mul.
+    rewrite mult_INR. reflexivity.
+
+    simpl. unfold IZR. rewrite <- Ropp_mult_distr_r.
+    repeat(rewrite <- INR_IPR). rewrite Pos2Nat.inj_mul.
+    rewrite mult_INR. reflexivity.
+
+  destruct m.
+    simpl. rewrite Rmult_0_r. reflexivity.
+
+    simpl. unfold IZR. rewrite <- Ropp_mult_distr_l. repeat(rewrite <- INR_IPR).
+    rewrite Pos2Nat.inj_mul.
+    rewrite mult_INR. reflexivity.
+
+    simpl. unfold IZR. rewrite Rmult_opp_opp.
+    repeat(rewrite <- INR_IPR). rewrite Pos2Nat.inj_mul.
+    rewrite mult_INR. reflexivity.
 Qed.
 
 Lemma pow_IZR : forall z n, pow (IZR z) n = IZR (Z.pow z (Z.of_nat n)).
 Proof.
-
+  intros z [ | n ].
+  {
+    simpl. reflexivity.
+  }
+  {
+    simpl.
+    (* Z.pow_pos z p = Zpower_nat z (Pos.to_nat p) *)
+    rewrite Zpower_pos_nat.
+    (* Pos.to_nat (Pos.of_succ_nat n) = S n *)
+    rewrite SuccNat2Pos.id_succ.
+    (* IZR (n * m) = IZR n * IZR m *)
+    simpl.
+    rewrite mult_IZR.
+    induction n as [ | n i ].
+    {
+      simpl. reflexivity.
+    }
+    {
+      simpl. rewrite i.
+      rewrite mult_IZR.
+      reflexivity.
+    }
+  }
 Qed.
 
-(**********)
 Lemma succ_IZR : forall n:Z, IZR (Z.succ n) = IZR n + 1.
 Proof.
-
+  intro n.
+  unfold Z.succ.
+  rewrite plus_IZR.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma opp_IZR : forall n:Z, IZR (- n) = - IZR n.
 Proof.
-
+  intros [ | z | z ].
+  simpl. rewrite Ropp_0. reflexivity.
+  simpl. unfold IZR. reflexivity.
+  simpl. unfold IZR. rewrite Ropp_involutive. reflexivity.
 Qed.
 
 Definition Ropp_Ropp_IZR := opp_IZR.
 
 Lemma minus_IZR : forall n m:Z, IZR (n - m) = IZR n - IZR m.
 Proof.
-
+  intros n m.
+  unfold Z.sub.
+  rewrite plus_IZR.
+  rewrite opp_IZR.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma Z_R_minus : forall n m:Z, IZR n - IZR m = IZR (n - m).
 Proof.
-
+  intros n m.
+  rewrite minus_IZR.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma lt_0_IZR : forall n:Z, 0 < IZR n -> (0 < n)%Z.
 Proof.
-
+  intros [ | z | z ].
+  intro h. apply Rlt_irrefl in h. contradiction.
+  unfold IZR. intro h.
+  apply Pos2Z.pos_is_pos.
+  unfold IZR. intro h.
+  exfalso. apply Rlt_irrefl with R0.
+  apply Rlt_trans with (- IPR z).
+  exact h.
+  rewrite <- INR_IPR.
+  apply Ropp_lt_gt_0_contravar.
+  apply lt_0_INR.
+  apply Pos2Nat.is_pos.
 Qed.
 
-(**********)
 Lemma lt_IZR : forall n m:Z, IZR n < IZR m -> (n < m)%Z.
 Proof.
-
+  intros n m h.
+  apply Z.lt_0_sub.
+  apply lt_0_IZR.
+  rewrite minus_IZR.
+  apply Rlt_Rminus.
+  exact h.
 Qed.
 
-(**********)
 Lemma eq_IZR_R0 : forall n:Z, IZR n = 0 -> n = 0%Z.
 Proof.
-
+  intros n h.
+  destruct n.
+  reflexivity.
+  unfold IZR in h.
+  exfalso. apply Rlt_irrefl with R0. pattern R0 at 2;rewrite <- h.
+  rewrite <- INR_IPR. apply lt_0_INR. apply Pos2Nat.is_pos.
+  unfold IZR in h.
+  exfalso. apply Rlt_irrefl with R0. pattern R0 at 1;rewrite <- h.
+  apply Ropp_lt_gt_0_contravar.
+  rewrite <- INR_IPR. apply lt_0_INR. apply Pos2Nat.is_pos.
 Qed.
 
-(**********)
 Lemma eq_IZR : forall n m:Z, IZR n = IZR m -> n = m.
 Proof.
-
+  intros n m h.
+  apply Z.add_reg_l with (-m)%Z.
+  rewrite Z.add_opp_diag_l.
+  apply eq_IZR_R0.
+  rewrite plus_IZR.
+  rewrite opp_IZR.
+  rewrite h.
+  rewrite Rplus_opp_l.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma not_0_IZR : forall n:Z, n <> 0%Z -> IZR n <> 0.
 Proof.
-
+  intros n h eq.
+  apply h.
+  apply eq_IZR_R0.
+  exact eq.
 Qed.
 
-(*********)
 Lemma le_0_IZR : forall n:Z, 0 <= IZR n -> (0 <= n)%Z.
 Proof.
-
+  intros z [ h | ].
+  {
+    apply Z.lt_le_incl.
+    destruct z.
+    apply Rlt_irrefl in h. contradiction.
+    apply Pos2Z.pos_is_pos.
+    exfalso. apply Rlt_irrefl with 0.
+    unfold IZR in h.
+    apply Rlt_trans with (- IPR p).
+    exact h.
+    apply Ropp_lt_gt_0_contravar.
+    rewrite <- INR_IPR.
+    apply pos_INR_nat_of_P.
+  }
+  {
+    apply Z.eq_le_incl.
+    apply eq_IZR.
+    exact H.
+  }
 Qed.
 
-(**********)
 Lemma le_IZR : forall n m:Z, IZR n <= IZR m -> (n <= m)%Z.
 Proof.
-
+  intros n m h.
+  apply Zplus_le_reg_r with (-n)%Z.
+  rewrite Z.add_opp_diag_r.
+  apply le_0_IZR.
+  rewrite plus_IZR.
+  rewrite opp_IZR.
+  apply Rplus_le_reg_r with (IZR n).
+  rewrite Rplus_0_l.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  exact h.
 Qed.
 
-(**********)
 Lemma le_IZR_R1 : forall n:Z, IZR n <= 1 -> (n <= 1)%Z.
 Proof.
-
+  intros z h.
+  apply le_IZR.
+  exact h.
 Qed.
 
-(**********)
 Lemma IZR_ge : forall n m:Z, (n >= m)%Z -> IZR n >= IZR m.
 Proof.
-
+  intros n m ge.
+  apply Rnot_lt_ge.
+  intro lt.
+  Search ( IZR _ < IZR _).
+  apply lt_IZR in lt.
+  apply Z.ge_le in ge.
+  apply Zle_lt_or_eq in ge.
+  destruct ge as [ lt' | eq ].
+  apply Z.lt_irrefl with n.
+  apply Z.lt_trans with m.
+  exact lt. exact lt'.
+  subst m. apply Z.lt_irrefl with n. exact lt.
 Qed.
 
 Lemma IZR_le : forall n m:Z, (n <= m)%Z -> IZR n <= IZR m.
 Proof.
-
+  intros n m h.
+  apply Rge_le.
+  apply IZR_ge.
+  apply Z.le_ge.
+  exact h.
 Qed.
 
 Lemma IZR_lt : forall n m:Z, (n < m)%Z -> IZR n < IZR m.
 Proof.
-
+  intros n m h.
+  apply Rnot_ge_lt.
+  intro h'.
+  destruct h' as [ gt | eq ].
+  apply Z.lt_irrefl with n.
+  apply Z.lt_trans with m.
+  exact h.
+  apply lt_IZR.
+  exact gt.
+  apply eq_IZR in eq.
+  subst m.
+  apply Z.lt_irrefl with n.
+  exact h.
 Qed.
 
 Lemma IZR_neq : forall z1 z2:Z, z1 <> z2 -> IZR z1 <> IZR z2.
 Proof.
-intros; red; intro; elim H; apply eq_IZR; assumption.
+  intros n m h eq.
+  apply eq_IZR in eq.
+  subst m.
+  apply h.
+  reflexivity.
 Qed.
 
 Hint Extern 0 (IZR _ <= IZR _) => apply IZR_le, Zle_bool_imp_le, eq_refl : real.
@@ -2740,13 +3057,75 @@ Hint Extern 0 (IZR _ <> IZR _) => apply IZR_neq, Zeq_bool_neq, eq_refl : real.
 
 Lemma one_IZR_lt1 : forall n:Z, -1 < IZR n < 1 -> n = 0%Z.
 Proof.
-
+  intros z [h1z hz1].
+  apply Z.le_antisymm. (* n <= m -> m <= n -> n = m *)
+  {
+    apply Z.lt_succ_r. (* n < Z.succ m <-> n <= m *)
+    apply lt_IZR.
+    simpl.
+    exact hz1.
+  }
+  {
+    assert (eq : Z.succ (-1) = 0%Z).
+    { reflexivity. }
+    rewrite <- eq.
+    apply Z.le_succ_l. (* Z.succ n <= m <-> n < m *)
+    apply lt_IZR.
+    exact h1z.
+  }
 Qed.
 
 Lemma one_IZR_r_R1 :
   forall r (n m:Z), r < IZR n <= r + 1 -> r < IZR m <= r + 1 -> n = m.
 Proof.
+  intros x y z.
+  intros [hxy hyx1] [hxz hzx1].
+  apply Z.add_reg_l with (-z)%Z.
+  rewrite Z.add_opp_diag_l.
+  rewrite Z.add_comm.
+  apply one_IZR_lt1.
+  split.
+  {
+    rewrite plus_IZR.
+    rewrite opp_IZR.
+    rewrite <- Rplus_0_l with (-1).
+    rewrite <- Rplus_opp_r with x.
+    rewrite Rplus_assoc.
+    
+    destruct hyx1 as [ hyx1 | hyx1 ];
+    destruct hzx1 as [ hzx1 | hzx1 ].
 
+    apply Rplus_lt_compat.
+    { exact hxy. }
+    unfold IZR at 1.
+    unfold IPR at 1.
+    rewrite <- Ropp_plus_distr.
+    apply Ropp_lt_contravar.
+    exact hzx1.
+    rewrite hzx1.
+    rewrite hzx1 in hxz.
+    clear hxz hzx1.
+    rewrite <- Rplus_assoc.
+    rewrite Rplus_opp_r.
+    rewrite Rplus_0_l.
+    unfold IZR at 1.
+    unfold IPR.
+    Search ( - ( _ + _)).
+    rewrite Ropp_plus_distr.
+    unfold IZR at 2.
+    unfold IPR.
+    rewrite <- Rplus_assoc.
+    pattern (- R1) at 1;rewrite <- Rplus_0_l with (- R1).
+    apply Rplus_lt_compat_r. 
+    apply Rplus_lt_reg_r with x.
+    rewrite Rplus_0_l.
+    rewrite Rplus_assoc.
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+    exact hxy.
+ 
+    rewrite hyx1. rewrite <- Rplus_assoc. rewrite Rplus_opp_r. rewrite Rplus_0_l.
+    
 Qed.
 
 
