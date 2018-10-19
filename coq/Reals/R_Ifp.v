@@ -1,30 +1,9 @@
-(************************************************************************)
-(*         *   The Coq Proof Assistant / The Coq Development Team       *)
-(*  v      *   INRIA, CNRS and contributors - Copyright 1999-2018       *)
-(* <O___,, *       (see CREDITS file for the list of authors)           *)
-(*   \VV/  **************************************************************)
-(*    //   *    This file is distributed under the terms of the         *)
-(*         *     GNU Lesser General Public License Version 2.1          *)
-(*         *     (see LICENSE file for the text of the license)         *)
-(************************************************************************)
-
-(**********************************************************)
-(** Complements for the reals.Integer and fractional part *)
-(*                                                        *)
-(**********************************************************)
-
 Require Import Rbase.
 Require Import Omega.
 Local Open Scope R_scope.
 
-(*********************************************************)
-(** *    Fractional part                                 *)
-(*********************************************************)
-
-(**********)
 Definition Int_part (r:R) : Z := (up r - 1)%Z.
 
-(**********)
 Definition frac_part (r:R) : R := r - IZR (Int_part r).
 
 (* Sufficient conditions for a Z integer to be equal to (up r) *)
@@ -154,8 +133,7 @@ Proof.
   }
 Qed.
 
-(* stopped here *)
-
+(* TODO *)
 Lemma base_Int_part :  forall r:R,
   IZR (Int_part r) <= r /\ IZR (Int_part r) - r > -1.
 Proof.
@@ -169,6 +147,7 @@ Proof.
   now apply Rgt_minus.
 Qed.
 
+(* TODO *)
 Lemma Int_part_INR : forall n:nat,
   Int_part (INR n) = Z.of_nat n.
 Proof.
@@ -184,6 +163,7 @@ Proof.
   repeat rewrite <- INR_IZR_INZ; auto with real.
 Qed.
 
+(* TODO *)
 Lemma fp_nat : forall r:R,
   frac_part r = 0 ->
   exists c : Z, r = IZR c.
@@ -192,6 +172,7 @@ Proof.
     apply Rminus_diag_uniq; auto with zarith real.
 Qed.
 
+(* TODO *)
 Lemma R0_fp_O : forall r:R,
   0 <> frac_part r ->
   0 <> r.
@@ -552,219 +533,438 @@ Proof.
   }
 Qed.
 
-(**********)
 Lemma Rminus_fp1 :
   forall r1 r2:R,
     frac_part r1 >= frac_part r2 ->
     frac_part (r1 - r2) = frac_part r1 - frac_part r2.
 Proof.
-  intros; unfold frac_part; generalize (Rminus_Int_part1 r1 r2 H);
-    intro; rewrite H0; rewrite <- (Z_R_minus (Int_part r1) (Int_part r2));
-      unfold Rminus;
-        rewrite (Ropp_plus_distr (IZR (Int_part r1)) (- IZR (Int_part r2)));
-          rewrite (Ropp_plus_distr r2 (- IZR (Int_part r2)));
-            rewrite (Ropp_involutive (IZR (Int_part r2)));
-              rewrite (Rplus_assoc r1 (- r2) (- IZR (Int_part r1) + IZR (Int_part r2)));
-                rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (- r2 + IZR (Int_part r2)));
-                  rewrite <- (Rplus_assoc (- r2) (- IZR (Int_part r1)) (IZR (Int_part r2)));
-                    rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- r2) (IZR (Int_part r2)));
-                      rewrite (Rplus_comm (- r2) (- IZR (Int_part r1)));
-                        auto with zarith real.
+  intros r1 r2 H.
+  apply Rminus_Int_part1 in H.
+  unfold frac_part.
+  rewrite H. clear H.
+
+  rewrite minus_IZR.
+  unfold Rminus.
+  repeat (rewrite Ropp_plus_distr).
+  repeat (rewrite Ropp_involutive).
+  repeat (rewrite Rplus_assoc).
+  apply Rplus_eq_compat_l.
+  repeat (rewrite <- Rplus_assoc).
+  apply Rplus_eq_compat_r.
+  rewrite Rplus_comm.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma Rminus_fp2 :
   forall r1 r2:R,
     frac_part r1 < frac_part r2 ->
     frac_part (r1 - r2) = frac_part r1 - frac_part r2 + 1.
 Proof.
-  intros; unfold frac_part; generalize (Rminus_Int_part2 r1 r2 H);
-    intro; rewrite H0; rewrite <- (Z_R_minus (Int_part r1 - Int_part r2) 1);
-      rewrite <- (Z_R_minus (Int_part r1) (Int_part r2));
-        unfold Rminus;
-          rewrite
-            (Ropp_plus_distr (IZR (Int_part r1) + - IZR (Int_part r2)) (- IZR 1))
-            ; rewrite (Ropp_plus_distr r2 (- IZR (Int_part r2)));
-              rewrite (Ropp_involutive (IZR 1));
-                rewrite (Ropp_involutive (IZR (Int_part r2)));
-                  rewrite (Ropp_plus_distr (IZR (Int_part r1)));
-                    rewrite (Ropp_involutive (IZR (Int_part r2))); simpl;
-                      rewrite <-
-                        (Rplus_assoc (r1 + - r2) (- IZR (Int_part r1) + IZR (Int_part r2)) 1)
-                        ; rewrite (Rplus_assoc r1 (- r2) (- IZR (Int_part r1) + IZR (Int_part r2)));
-                          rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (- r2 + IZR (Int_part r2)));
-                            rewrite <- (Rplus_assoc (- r2) (- IZR (Int_part r1)) (IZR (Int_part r2)));
-                              rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- r2) (IZR (Int_part r2)));
-                                rewrite (Rplus_comm (- r2) (- IZR (Int_part r1)));
-                                  auto with zarith real.
+
+  intros r1 r2 H.
+  apply Rminus_Int_part2 in H.
+  unfold frac_part.
+  rewrite H. clear H.
+
+  rewrite minus_IZR.
+  rewrite minus_IZR.
+  unfold Rminus.
+  repeat (rewrite Ropp_plus_distr).
+  repeat (rewrite Ropp_involutive).
+  repeat (rewrite Rplus_assoc).
+  apply Rplus_eq_compat_l.
+  repeat (rewrite <- Rplus_assoc).
+  apply Rplus_eq_compat_r.
+  repeat (rewrite <- Rplus_assoc).
+  apply Rplus_eq_compat_r.
+  rewrite Rplus_comm.
+  reflexivity.
 Qed.
 
-(**********)
 Lemma plus_Int_part1 :
   forall r1 r2:R,
     frac_part r1 + frac_part r2 >= 1 ->
     Int_part (r1 + r2) = (Int_part r1 + Int_part r2 + 1)%Z.
 Proof.
-  intros; generalize (Rge_le (frac_part r1 + frac_part r2) 1 H); intro; clear H;
-    elim (base_fp r1); elim (base_fp r2); intros; clear H H2;
-      generalize (Rplus_lt_compat_l (frac_part r2) (frac_part r1) 1 H3);
-        intro; clear H3; generalize (Rplus_lt_compat_l 1 (frac_part r2) 1 H1);
-          intro; clear H1; rewrite (Rplus_comm 1 (frac_part r2)) in H2;
-            generalize
-              (Rlt_trans (frac_part r2 + frac_part r1) (frac_part r2 + 1) 2 H H2);
-              intro; clear H H2; rewrite (Rplus_comm (frac_part r2) (frac_part r1)) in H1;
-                unfold frac_part in H0, H1; unfold Rminus in H0, H1;
-                  rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (r2 + - IZR (Int_part r2)))
-                    in H1; rewrite (Rplus_comm r2 (- IZR (Int_part r2))) in H1;
-                      rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- IZR (Int_part r2)) r2)
-                        in H1;
-                        rewrite (Rplus_comm (- IZR (Int_part r1) + - IZR (Int_part r2)) r2) in H1;
-                          rewrite <- (Rplus_assoc r1 r2 (- IZR (Int_part r1) + - IZR (Int_part r2)))
-                            in H1;
-                            rewrite <- (Ropp_plus_distr (IZR (Int_part r1)) (IZR (Int_part r2))) in H1;
-                              rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (r2 + - IZR (Int_part r2)))
-                                in H0; rewrite (Rplus_comm r2 (- IZR (Int_part r2))) in H0;
-                                  rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- IZR (Int_part r2)) r2)
-                                    in H0;
-                                    rewrite (Rplus_comm (- IZR (Int_part r1) + - IZR (Int_part r2)) r2) in H0;
-                                      rewrite <- (Rplus_assoc r1 r2 (- IZR (Int_part r1) + - IZR (Int_part r2)))
-                                        in H0;
-                                        rewrite <- (Ropp_plus_distr (IZR (Int_part r1)) (IZR (Int_part r2))) in H0;
-                                          generalize
-                                            (Rplus_le_compat_l (IZR (Int_part r1) + IZR (Int_part r2)) 1
-                                              (r1 + r2 + - (IZR (Int_part r1) + IZR (Int_part r2))) H0);
-                                            intro; clear H0;
-                                              generalize
-                                                (Rplus_lt_compat_l (IZR (Int_part r1) + IZR (Int_part r2))
-                                                  (r1 + r2 + - (IZR (Int_part r1) + IZR (Int_part r2))) 2 H1);
-                                                intro; clear H1;
-                                                  rewrite (Rplus_comm (r1 + r2) (- (IZR (Int_part r1) + IZR (Int_part r2))))
-                                                    in H;
-                                                    rewrite <-
-                                                      (Rplus_assoc (IZR (Int_part r1) + IZR (Int_part r2))
-                                                        (- (IZR (Int_part r1) + IZR (Int_part r2))) (r1 + r2))
-                                                      in H; rewrite (Rplus_opp_r (IZR (Int_part r1) + IZR (Int_part r2))) in H;
-                                                        elim (Rplus_ne (r1 + r2)); intros a b; rewrite b in H;
-                                                          clear a b;
-                                                            rewrite (Rplus_comm (r1 + r2) (- (IZR (Int_part r1) + IZR (Int_part r2))))
-                                                              in H0;
-                                                              rewrite <-
-                                                                (Rplus_assoc (IZR (Int_part r1) + IZR (Int_part r2))
-                                                                  (- (IZR (Int_part r1) + IZR (Int_part r2))) (r1 + r2))
-                                                                in H0; rewrite (Rplus_opp_r (IZR (Int_part r1) + IZR (Int_part r2))) in H0;
-                                                                  elim (Rplus_ne (r1 + r2)); intros a b; rewrite b in H0;
-                                                                    clear a b;
-                                                                      change 2 with (1 + 1) in H0;
-                                                                      rewrite <- (Rplus_assoc (IZR (Int_part r1) + IZR (Int_part r2)) 1 1) in H0;
-                                                                        auto with zarith real.
-    rewrite <- (plus_IZR (Int_part r1) (Int_part r2)) in H;
-      rewrite <- (plus_IZR (Int_part r1) (Int_part r2)) in H0;
-        rewrite <- (plus_IZR (Int_part r1 + Int_part r2) 1) in H;
-          rewrite <- (plus_IZR (Int_part r1 + Int_part r2) 1) in H0;
-            rewrite <- (plus_IZR (Int_part r1 + Int_part r2 + 1) 1) in H0;
-              generalize (up_tech (r1 + r2) (Int_part r1 + Int_part r2 + 1) H H0);
-                intro; clear H H0; unfold Int_part at 1; omega.
+
+  intros x y h.
+
+  (* Some rewriting in the hypotheses *)
+
+  unfold frac_part in h.
+  unfold Int_part in *.
+  repeat (rewrite minus_IZR in h).
+  unfold Rminus in *.
+  repeat (rewrite Ropp_plus_distr in h).
+  repeat (rewrite Ropp_involutive in h).
+
+  (* Some rewriting in the goal *)
+  Local Open Scope Z_scope.
+
+  unfold Z.sub.
+  rewrite (Z.add_comm _ (-1)).
+  repeat (rewrite Z.add_assoc).
+  rewrite (Z.add_comm (up x)).
+  apply Z.add_reg_l with 1.
+  repeat (rewrite Z.add_assoc).
+  repeat (rewrite Z.add_opp_diag_r).
+  repeat (rewrite Z.add_0_l).
+  symmetry.
+
+  Local Close Scope Z_scope.
+
+  (* We will use base_fp for both x and y *)
+
+  destruct (base_fp x) as [hlx hux].
+  destruct (base_fp y) as [hly huy].
+
+  (* Mre rewriting *)
+  apply Rge_le in hlx.
+  apply Rge_le in hly.
+  apply Rge_le in h.
+
+  unfold frac_part in *.
+  unfold Int_part in *.
+  rewrite minus_IZR in *.
+  unfold Rminus in *.
+  repeat (rewrite Ropp_plus_distr in *).
+  repeat (rewrite Ropp_involutive in *).
+  repeat (rewrite <- Rplus_assoc in hux, huy).
+  pattern 1 at 2 in hux ; rewrite <- (Rplus_0_l 1) in hux.
+  pattern 1 at 2 in huy ; rewrite <- (Rplus_0_l 1) in huy.
+  apply Rplus_lt_reg_r in hux.
+  apply Rplus_lt_reg_r in huy.
+
+  (* Introduce variables to reduce cognitive load *)
+
+  pose (ix:= IZR (up x)).
+  pose (iy:= IZR (up y)).
+
+  fold ix in h, hlx, hux, hly, huy .
+  fold iy in h, hlx, hux, hly, huy .
+
+  rewrite (Rplus_comm _ 1) in hlx.
+  rewrite (Rplus_comm _ 1) in hly.
+
+  (* More rewriting *)
+  apply (Rplus_le_compat_r ix) in hlx.
+  apply (Rplus_le_compat_r iy) in hly.
+
+  repeat (rewrite Rplus_assoc in hlx).
+  repeat (rewrite Rplus_assoc in hly).
+
+  rewrite Rplus_opp_l in hlx.
+  rewrite Rplus_opp_l in hly.
+
+  rewrite Rplus_0_r in hlx.
+  rewrite Rplus_0_r in hly.
+
+  rewrite Rplus_0_l in hlx.
+  rewrite Rplus_0_l in hly.
+
+  apply (Rplus_lt_compat_r ix) in hux.
+  apply (Rplus_lt_compat_r iy) in huy.
+
+  repeat (rewrite Rplus_assoc in hux).
+  repeat (rewrite Rplus_assoc in huy).
+
+  rewrite Rplus_opp_l in hux.
+  rewrite Rplus_opp_l in huy.
+
+  rewrite Rplus_0_r in hux.
+  rewrite Rplus_0_r in huy.
+
+  rewrite Rplus_0_l in hux.
+  rewrite Rplus_0_l in huy.
+
+  (* Now we can apply up_tech *)
+  apply up_tech.
+
+
+  {
+
+    (* It may not be immediately obvious, but the goal is equivalent to h *)
+    rewrite plus_IZR.
+    rewrite plus_IZR.
+    rewrite opp_IZR.
+
+    fold ix. fold iy.
+
+    apply Rplus_le_reg_r with 1.
+    repeat (rewrite Rplus_assoc).
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+
+    repeat (rewrite <- Rplus_assoc in h).
+    pattern 1 at 1 in h;rewrite <- Rplus_0_l with 1 in h.
+    apply Rplus_le_reg_r in h.
+    apply (Rplus_le_compat_r iy) in h.
+    repeat (rewrite Rplus_assoc in h).
+    rewrite Rplus_opp_l in h.
+    rewrite Rplus_0_r in h.
+    rewrite Rplus_0_l in h.
+    rewrite (Rplus_comm (- ix)) in h.
+    repeat (rewrite <- Rplus_assoc in h).
+    apply (Rplus_le_compat_r ix) in h.
+    repeat (rewrite Rplus_assoc in h).
+    rewrite Rplus_opp_l in h.
+    rewrite Rplus_0_r in h.
+    rewrite (Rplus_comm iy) in h.
+    rewrite (Rplus_comm 1) in h.
+    exact h.
+  }
+  {
+    repeat (rewrite plus_IZR).
+    rewrite opp_IZR.
+    fold ix. fold iy.
+    repeat (rewrite Rplus_assoc).
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+
+    apply Rplus_lt_compat.
+    exact hux.
+    exact huy.
+  }
 Qed.
 
-(**********)
 Lemma plus_Int_part2 :
   forall r1 r2:R,
     frac_part r1 + frac_part r2 < 1 ->
     Int_part (r1 + r2) = (Int_part r1 + Int_part r2)%Z.
 Proof.
-  intros; elim (base_fp r1); elim (base_fp r2); intros; clear H1 H3;
-    generalize (Rge_le (frac_part r2) 0 H0); intro; clear H0;
-      generalize (Rge_le (frac_part r1) 0 H2); intro; clear H2;
-        generalize (Rplus_le_compat_l (frac_part r1) 0 (frac_part r2) H1);
-          intro; clear H1; elim (Rplus_ne (frac_part r1)); intros a b;
-            rewrite a in H2; clear a b;
-              generalize (Rle_trans 0 (frac_part r1) (frac_part r1 + frac_part r2) H0 H2);
-                intro; clear H0 H2; unfold frac_part in H, H1; unfold Rminus in H, H1;
-                  rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (r2 + - IZR (Int_part r2)))
-                    in H1; rewrite (Rplus_comm r2 (- IZR (Int_part r2))) in H1;
-                      rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- IZR (Int_part r2)) r2)
-                        in H1;
-                        rewrite (Rplus_comm (- IZR (Int_part r1) + - IZR (Int_part r2)) r2) in H1;
-                          rewrite <- (Rplus_assoc r1 r2 (- IZR (Int_part r1) + - IZR (Int_part r2)))
-                            in H1;
-                            rewrite <- (Ropp_plus_distr (IZR (Int_part r1)) (IZR (Int_part r2))) in H1;
-                              rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (r2 + - IZR (Int_part r2)))
-                                in H; rewrite (Rplus_comm r2 (- IZR (Int_part r2))) in H;
-                                  rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- IZR (Int_part r2)) r2) in H;
-                                    rewrite (Rplus_comm (- IZR (Int_part r1) + - IZR (Int_part r2)) r2) in H;
-                                      rewrite <- (Rplus_assoc r1 r2 (- IZR (Int_part r1) + - IZR (Int_part r2)))
-                                        in H;
-                                        rewrite <- (Ropp_plus_distr (IZR (Int_part r1)) (IZR (Int_part r2))) in H;
-                                          generalize
-                                            (Rplus_le_compat_l (IZR (Int_part r1) + IZR (Int_part r2)) 0
-                                              (r1 + r2 + - (IZR (Int_part r1) + IZR (Int_part r2))) H1);
-                                            intro; clear H1;
-                                              generalize
-                                                (Rplus_lt_compat_l (IZR (Int_part r1) + IZR (Int_part r2))
-                                                  (r1 + r2 + - (IZR (Int_part r1) + IZR (Int_part r2))) 1 H);
-                                                intro; clear H;
-                                                  rewrite (Rplus_comm (r1 + r2) (- (IZR (Int_part r1) + IZR (Int_part r2))))
-                                                    in H1;
-                                                    rewrite <-
-                                                      (Rplus_assoc (IZR (Int_part r1) + IZR (Int_part r2))
-                                                        (- (IZR (Int_part r1) + IZR (Int_part r2))) (r1 + r2))
-                                                      in H1; rewrite (Rplus_opp_r (IZR (Int_part r1) + IZR (Int_part r2))) in H1;
-                                                        elim (Rplus_ne (r1 + r2)); intros a b; rewrite b in H1;
-                                                          clear a b;
-                                                            rewrite (Rplus_comm (r1 + r2) (- (IZR (Int_part r1) + IZR (Int_part r2))))
-                                                              in H0;
-                                                              rewrite <-
-                                                                (Rplus_assoc (IZR (Int_part r1) + IZR (Int_part r2))
-                                                                  (- (IZR (Int_part r1) + IZR (Int_part r2))) (r1 + r2))
-                                                                in H0; rewrite (Rplus_opp_r (IZR (Int_part r1) + IZR (Int_part r2))) in H0;
-                                                                  elim (Rplus_ne (IZR (Int_part r1) + IZR (Int_part r2)));
-                                                                    intros a b; rewrite a in H0; clear a b; elim (Rplus_ne (r1 + r2));
-                                                                      intros a b; rewrite b in H0; clear a b.
-    rewrite <- (plus_IZR (Int_part r1) (Int_part r2)) in H0;
-      rewrite <- (plus_IZR (Int_part r1) (Int_part r2)) in H1;
-        rewrite <- (plus_IZR (Int_part r1 + Int_part r2) 1) in H1;
-          generalize (up_tech (r1 + r2) (Int_part r1 + Int_part r2) H0 H1);
-            intro; clear H0 H1; unfold Int_part at 1;
-              omega.
+
+  intros x y h.
+
+  (* Some rewriting in the hypotheses *)
+
+  unfold frac_part in h.
+  unfold Int_part in *.
+  repeat (rewrite minus_IZR in h).
+  unfold Rminus in *.
+  repeat (rewrite Ropp_plus_distr in h).
+  repeat (rewrite Ropp_involutive in h).
+
+  (* Some rewriting in the goal *)
+  Local Open Scope Z_scope.
+
+  unfold Z.sub.
+  rewrite (Z.add_comm _ (-1)).
+  rewrite (Z.add_comm _ (-1)).
+  apply Z.add_reg_l with 1.
+  repeat (rewrite Z.add_assoc).
+  repeat (rewrite Z.add_opp_diag_r).
+  repeat (rewrite Z.add_0_l).
+  symmetry.
+
+  Local Close Scope Z_scope.
+
+  (* We will use base_fp for both x and y *)
+
+  destruct (base_fp x) as [hlx hux].
+  destruct (base_fp y) as [hly huy].
+
+  (* Mre rewriting *)
+  apply Rge_le in hlx.
+  apply Rge_le in hly.
+
+  unfold frac_part in *.
+  unfold Int_part in *.
+  rewrite minus_IZR in *.
+  unfold Rminus in *.
+  repeat (rewrite Ropp_plus_distr in *).
+  repeat (rewrite Ropp_involutive in *).
+  repeat (rewrite <- Rplus_assoc in hux, huy).
+  pattern 1 at 2 in hux ; rewrite <- (Rplus_0_l 1) in hux.
+  pattern 1 at 2 in huy ; rewrite <- (Rplus_0_l 1) in huy.
+  apply Rplus_lt_reg_r in hux.
+  apply Rplus_lt_reg_r in huy.
+
+  (* Introduce variables to reduce cognitive load *)
+
+  pose (ix:= IZR (up x)).
+  pose (iy:= IZR (up y)).
+
+  fold ix in h, hlx, hux, hly, huy .
+  fold iy in h, hlx, hux, hly, huy .
+
+  rewrite (Rplus_comm _ 1) in hlx.
+  rewrite (Rplus_comm _ 1) in hly.
+
+  (* More rewriting *)
+  apply (Rplus_le_compat_r ix) in hlx.
+  apply (Rplus_le_compat_r iy) in hly.
+
+  repeat (rewrite Rplus_assoc in hlx).
+  repeat (rewrite Rplus_assoc in hly).
+
+  rewrite Rplus_opp_l in hlx.
+  rewrite Rplus_opp_l in hly.
+
+  rewrite Rplus_0_r in hlx.
+  rewrite Rplus_0_r in hly.
+
+  rewrite Rplus_0_l in hlx.
+  rewrite Rplus_0_l in hly.
+
+  apply (Rplus_lt_compat_r ix) in hux.
+  apply (Rplus_lt_compat_r iy) in huy.
+
+  repeat (rewrite Rplus_assoc in hux).
+  repeat (rewrite Rplus_assoc in huy).
+
+  rewrite Rplus_opp_l in hux.
+  rewrite Rplus_opp_l in huy.
+
+  rewrite Rplus_0_r in hux.
+  rewrite Rplus_0_r in huy.
+
+  rewrite Rplus_0_l in hux.
+  rewrite Rplus_0_l in huy.
+
+  (* Now we can apply tech_up *)
+  apply tech_up.
+
+  {
+
+    (* It may not be immediately obvious, but the goal is equivalent to h *)
+    rewrite plus_IZR.
+    rewrite plus_IZR.
+    rewrite opp_IZR.
+
+    fold ix. fold iy.
+
+    repeat (rewrite <- Rplus_assoc in h).
+    pattern 1 at 3 in h; rewrite <- Rplus_0_l with 1 in h.
+    apply Rplus_lt_reg_r in h.
+    apply (Rplus_lt_compat_r iy) in h.
+    rewrite Rplus_0_l in h.
+    repeat (rewrite  Rplus_assoc in h).
+    rewrite Rplus_opp_l in h.
+    rewrite Rplus_0_r in h.
+    rewrite (Rplus_comm (-ix)) in h.
+    apply (Rplus_lt_compat_r ix) in h.
+    repeat (rewrite  Rplus_assoc in h).
+    rewrite Rplus_opp_l in h.
+    rewrite Rplus_0_r in h.
+    rewrite (Rplus_comm 1) in h.
+    rewrite (Rplus_comm iy) in h.
+
+    apply Rplus_lt_reg_r with 1.
+    repeat (rewrite Rplus_assoc).
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+
+    exact h.
+
+  }
+  {
+    repeat (rewrite plus_IZR).
+    rewrite opp_IZR.
+    fold ix. fold iy.
+    apply Rplus_le_reg_r with 1.
+    repeat (rewrite Rplus_assoc).
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+    rewrite (Rplus_comm y).
+    repeat (rewrite Rplus_assoc).
+    rewrite (Rplus_comm _ y).
+
+    rewrite <- Rplus_assoc.
+    apply Rplus_le_compat.
+    exact hlx. exact hly.
+  }
 Qed.
 
-(**********)
 Lemma plus_frac_part1 :
   forall r1 r2:R,
     frac_part r1 + frac_part r2 >= 1 ->
     frac_part (r1 + r2) = frac_part r1 + frac_part r2 - 1.
 Proof.
-  intros; unfold frac_part; generalize (plus_Int_part1 r1 r2 H); intro;
-    rewrite H0; rewrite (plus_IZR (Int_part r1 + Int_part r2) 1);
-      rewrite (plus_IZR (Int_part r1) (Int_part r2)); simpl;
-        unfold Rminus at 3 4;
-          rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (r2 + - IZR (Int_part r2)));
-            rewrite (Rplus_comm r2 (- IZR (Int_part r2)));
-              rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- IZR (Int_part r2)) r2);
-                rewrite (Rplus_comm (- IZR (Int_part r1) + - IZR (Int_part r2)) r2);
-                  rewrite <- (Rplus_assoc r1 r2 (- IZR (Int_part r1) + - IZR (Int_part r2)));
-                    rewrite <- (Ropp_plus_distr (IZR (Int_part r1)) (IZR (Int_part r2)));
-                      unfold Rminus;
-                        rewrite
-                          (Rplus_assoc (r1 + r2) (- (IZR (Int_part r1) + IZR (Int_part r2))) (-(1)))
-                          ; rewrite <- (Ropp_plus_distr (IZR (Int_part r1) + IZR (Int_part r2)) 1);
-                            trivial with zarith real.
+
+  intros x y h.
+
+  apply plus_Int_part1 in h.
+  unfold frac_part.
+  unfold Int_part in *.
+  repeat (rewrite minus_IZR).
+  unfold Rminus.
+  repeat (rewrite Ropp_plus_distr).
+  repeat (rewrite Ropp_involutive).
+  repeat (rewrite Rplus_assoc).
+
+  pose (ix := IZR (up x)).
+  pose (iy := IZR (up y)).
+
+  fold ix. fold iy.
+
+  apply Rplus_eq_compat_l.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_r.
+  rewrite (Rplus_comm 1).
+  repeat (rewrite <- Rplus_assoc).
+  rewrite (Rplus_comm (- ix)).
+  repeat (rewrite Rplus_assoc).
+  apply Rplus_eq_compat_l.
+
+  Local Open Scope Z_scope.
+
+  unfold Z.sub in h.
+  rewrite (Z.add_comm _ (-1)) in h.
+  repeat (rewrite <- Z.add_assoc in h).
+  rewrite Z.add_opp_diag_l in h.
+  rewrite Z.add_0_r in h.
+  repeat (rewrite Z.add_assoc in h).
+  rewrite (Z.add_comm (up x)) in h.
+  repeat (rewrite <- Z.add_assoc in h).
+  apply Z.add_reg_l in h.
+  rewrite h. clear h.
+
+  Local Close Scope Z_scope.
+
+  rewrite plus_IZR.
+  fold ix. fold iy.
+
+  repeat (rewrite Ropp_plus_distr).
+  repeat (rewrite Rplus_assoc).
+
+  reflexivity.
+
 Qed.
 
-(**********)
 Lemma plus_frac_part2 :
   forall r1 r2:R,
     frac_part r1 + frac_part r2 < 1 ->
     frac_part (r1 + r2) = frac_part r1 + frac_part r2.
 Proof.
-  intros; unfold frac_part; generalize (plus_Int_part2 r1 r2 H); intro;
-    rewrite H0; rewrite (plus_IZR (Int_part r1) (Int_part r2));
-      unfold Rminus at 2 3;
-        rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (r2 + - IZR (Int_part r2)));
-          rewrite (Rplus_comm r2 (- IZR (Int_part r2)));
-            rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- IZR (Int_part r2)) r2);
-              rewrite (Rplus_comm (- IZR (Int_part r1) + - IZR (Int_part r2)) r2);
-                rewrite <- (Rplus_assoc r1 r2 (- IZR (Int_part r1) + - IZR (Int_part r2)));
-                  rewrite <- (Ropp_plus_distr (IZR (Int_part r1)) (IZR (Int_part r2)));
-                    unfold Rminus; trivial with zarith real.
+
+  intros x y h.
+
+  apply plus_Int_part2 in h.
+
+  unfold frac_part.
+  unfold Int_part in *.
+  rewrite h. clear h.
+
+  unfold Z.sub.
+  unfold Rminus.
+  repeat (rewrite plus_IZR).
+  repeat (rewrite opp_IZR).
+  repeat (rewrite Ropp_plus_distr).
+  repeat (rewrite Ropp_involutive).
+  repeat (rewrite Rplus_assoc).
+
+  pose (ix := IZR (up x)).
+  pose (iy := IZR (up y)).
+
+  fold ix. fold iy.  
+
+  apply Rplus_eq_compat_l.
+  repeat (rewrite <- Rplus_assoc).
+  rewrite (Rplus_comm y).
+  repeat (rewrite Rplus_assoc).
+  apply Rplus_eq_compat_l.
+  repeat (rewrite <- Rplus_assoc).
+  rewrite (Rplus_comm y).
+  repeat (rewrite Rplus_assoc).
+  reflexivity.
 Qed.
