@@ -446,55 +446,139 @@ Qed.
 Lemma Rsqr_neg_pos_le_1 :
   forall x y:R, - y <= x -> x <= y -> 0 <= y -> Rsqr x <= Rsqr y.
 Proof.
-  intros x y H H0 H1; destruct (Rcase_abs x) as [Hlt|Hle].
-  apply Ropp_lt_gt_contravar, Rlt_le in Hlt; rewrite Ropp_0 in Hlt;
-  apply Ropp_le_ge_contravar, Rge_le in H; rewrite Ropp_involutive in H;
-  rewrite (Rsqr_neg x); apply Rsqr_incr_1; assumption.
-  apply Rge_le in Hle; apply Rsqr_incr_1; assumption.
+  intros x y hbot htop hy.
+  destruct hy.
+  2:{
+    subst y. right. rewrite Rsqr_0.
+    unfold Rsqr.
+    apply Rmult_eq_0_compat.
+    left.
+    apply Rle_antisym. assumption. rewrite Ropp_0 in hbot. assumption.
+  }
+  destruct htop.
+  2:{
+    subst y. right. reflexivity.
+  }
+  destruct hbot.
+  2:{
+    subst x. rewrite <- Rsqr_neg. right. reflexivity.
+  }
+  left.
+  unfold Rsqr.
+  destruct (Rtotal_order 0 x).
+  apply Rmult_le_0_lt_compat.
+  left;assumption.
+  left;assumption.
+  assumption.
+  assumption.
+  destruct H2. subst x.
+  apply Rmult_le_0_lt_compat.
+  right;reflexivity.
+  right;reflexivity.
+  assumption.
+  assumption.
+  apply Rgt_lt in H2.
+  rewrite <- Ropp_involutive with (x*x).
+  rewrite Ropp_mult_distr_l.
+  rewrite Ropp_mult_distr_r.
+  apply Rmult_le_0_lt_compat.
+  left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+  left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+  rewrite <- Ropp_involutive with y. apply Ropp_lt_contravar. assumption.
+  rewrite <- Ropp_involutive with y. apply Ropp_lt_contravar. assumption.
 Qed.
 
 Lemma neg_pos_Rsqr_le : forall x y:R, - y <= x -> x <= y -> Rsqr x <= Rsqr y.
 Proof.
-  intros x y H H0; destruct (Rcase_abs x) as [Hlt|Hle].
-  apply Ropp_lt_gt_contravar, Rlt_le in Hlt; rewrite Ropp_0 in Hlt;
-  apply Ropp_le_ge_contravar, Rge_le in H; rewrite Ropp_involutive in H.
-  assert (0 <= y) by (apply Rle_trans with (-x); assumption).
-  rewrite (Rsqr_neg x); apply Rsqr_incr_1; assumption.
-  apply Rge_le in Hle;
-  assert (0 <= y) by (apply Rle_trans with x; assumption).
-  apply Rsqr_incr_1; assumption.
+  intros x y hbot htop.
+  destruct (Rtotal_order 0 y) as [ hlt | [ heq | hgt ] ].
+  { apply Rsqr_neg_pos_le_1. assumption. assumption. left. assumption. }
+  { apply Rsqr_neg_pos_le_1. assumption. assumption. right. assumption. }
+  {
+    apply Rgt_lt in hgt.
+    destruct hbot.
+    2:{
+      subst x. rewrite <- Rsqr_neg. right. reflexivity.
+    }
+    destruct htop.
+    2:{
+      subst y. right. reflexivity.
+    }
+    destruct (Rtotal_order 0 x).
+    {
+      rewrite Rsqr_neg with y.
+      unfold Rsqr.
+      left.
+      apply Rmult_le_0_lt_compat.
+      left;assumption. left;assumption.
+      apply Rlt_trans with y. assumption.
+      apply Rlt_trans with 0. assumption.
+      rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+      apply Rlt_trans with y. assumption.
+      apply Rlt_trans with 0. assumption.
+      rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+    }
+    destruct H1.
+    { subst x. exfalso. apply Rlt_irrefl with 0. apply Rlt_trans with y;assumption. }
+    { apply Rgt_lt in H1.
+      exfalso.
+      apply Rlt_irrefl with (-y).
+      apply Rlt_trans with x. assumption.
+      apply Rlt_trans with y. assumption.
+      apply Rlt_trans with 0. assumption.
+      rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+    }
+  }
 Qed.
 
 Lemma Rsqr_abs : forall x:R, Rsqr x = Rsqr (Rabs x).
 Proof.
-  intro; unfold Rabs; case (Rcase_abs x); intro;
-    [ apply Rsqr_neg | reflexivity ].
+  intros x.
+  unfold Rsqr.
+  unfold Rabs. destruct (Rcase_abs x).
+  rewrite <- Ropp_mult_distr_l.
+  rewrite <- Ropp_mult_distr_r.
+  rewrite Ropp_involutive.
+  reflexivity.
+  reflexivity.
 Qed.
 
 Lemma Rsqr_le_abs_0 : forall x y:R, Rsqr x <= Rsqr y -> Rabs x <= Rabs y.
 Proof.
-  intros; apply Rsqr_incr_0; repeat rewrite <- Rsqr_abs;
-    [ assumption | apply Rabs_pos | apply Rabs_pos ].
+  intros x y h.
+  apply Rsqr_incr_0.
+  rewrite <- Rsqr_abs.
+  rewrite <- Rsqr_abs.
+  assumption.
+  apply Rabs_pos.
+  apply Rabs_pos.
 Qed.
 
 Lemma Rsqr_le_abs_1 : forall x y:R, Rabs x <= Rabs y -> Rsqr x <= Rsqr y.
 Proof.
-  intros; rewrite (Rsqr_abs x); rewrite (Rsqr_abs y);
-    apply (Rsqr_incr_1 (Rabs x) (Rabs y) H (Rabs_pos x) (Rabs_pos y)).
+  intros x y h.
+  rewrite (Rsqr_abs x).
+  rewrite (Rsqr_abs y).
+  apply Rsqr_incr_1. assumption.
+  apply Rabs_pos.
+  apply Rabs_pos.
 Qed.
 
+(* TODO *)
 Lemma Rsqr_lt_abs_0 : forall x y:R, Rsqr x < Rsqr y -> Rabs x < Rabs y.
 Proof.
   intros; apply Rsqr_incrst_0; repeat rewrite <- Rsqr_abs;
     [ assumption | apply Rabs_pos | apply Rabs_pos ].
 Qed.
 
+(* TODO *)
 Lemma Rsqr_lt_abs_1 : forall x y:R, Rabs x < Rabs y -> Rsqr x < Rsqr y.
 Proof.
   intros; rewrite (Rsqr_abs x); rewrite (Rsqr_abs y);
     apply (Rsqr_incrst_1 (Rabs x) (Rabs y) H (Rabs_pos x) (Rabs_pos y)).
 Qed.
 
+(* TODO *)
 Lemma Rsqr_inj : forall x y:R, 0 <= x -> 0 <= y -> Rsqr x = Rsqr y -> x = y.
 Proof.
   intros; generalize (Rle_le_eq (Rsqr x) (Rsqr y)); intro; elim H2; intros _ H3;
@@ -504,31 +588,40 @@ Qed.
 
 Lemma Rsqr_eq_abs_0 : forall x y:R, Rsqr x = Rsqr y -> Rabs x = Rabs y.
 Proof.
-  intros; unfold Rabs; case (Rcase_abs x) as [Hltx|Hgex];
-    case (Rcase_abs y) as [Hlty|Hgey].
-  rewrite (Rsqr_neg x), (Rsqr_neg y) in H;
-    generalize (Ropp_lt_gt_contravar y 0 Hlty);
-      generalize (Ropp_lt_gt_contravar x 0 Hltx); rewrite Ropp_0;
-        intros; generalize (Rlt_le 0 (- x) H0); generalize (Rlt_le 0 (- y) H1);
-          intros; apply Rsqr_inj; assumption.
-  rewrite (Rsqr_neg x) in H; generalize (Rge_le y 0 Hgey); intro;
-    generalize (Ropp_lt_gt_contravar x 0 Hltx); rewrite Ropp_0;
-      intro; generalize (Rlt_le 0 (- x) H1); intro; apply Rsqr_inj;
-        assumption.
-  rewrite (Rsqr_neg y) in H; generalize (Rge_le x 0 Hgex); intro;
-    generalize (Ropp_lt_gt_contravar y 0 Hlty); rewrite Ropp_0;
-      intro; generalize (Rlt_le 0 (- y) H1); intro; apply Rsqr_inj;
-        assumption.
-  apply Rsqr_inj; auto using Rge_le.
+  intros x y h.
+  unfold Rabs.
+  destruct (Rcase_abs x);destruct (Rcase_abs y).
+  apply Rsqr_inj.
+  left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+  left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+  rewrite <- Rsqr_neg. rewrite <- Rsqr_neg. assumption.
+  apply Rsqr_inj.
+  left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+  apply Rge_le in r0. assumption.
+  rewrite <- Rsqr_neg. assumption.
+  apply Rsqr_inj.
+  apply Rge_le in r. assumption.
+  left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
+  rewrite <- Rsqr_neg. assumption.
+  apply Rsqr_inj.
+  apply Rge_le in r. assumption.
+  apply Rge_le in r0. assumption.
+  assumption.
 Qed.
 
 Lemma Rsqr_eq_asb_1 : forall x y:R, Rabs x = Rabs y -> Rsqr x = Rsqr y.
 Proof.
-  intros; cut (Rsqr (Rabs x) = Rsqr (Rabs y)).
-  intro; repeat rewrite <- Rsqr_abs in H0; assumption.
-  rewrite H; reflexivity.
+  intros x y.
+  unfold Rabs.
+  destruct (Rcase_abs x);destruct (Rcase_abs y);intros.
+  apply Ropp_eq_compat in H. repeat (rewrite Ropp_involutive in H).
+  subst y. reflexivity.
+  subst y. rewrite <- Rsqr_neg. reflexivity.
+  subst x. rewrite <- Rsqr_neg. reflexivity.
+  subst y. reflexivity.
 Qed.
 
+(* TODO *)
 Lemma triangle_rectangle :
   forall x y z:R,
     0 <= z -> Rsqr x + Rsqr y <= Rsqr z -> - z <= x <= z /\ - z <= y <= z.
@@ -546,6 +639,7 @@ Proof.
                   | apply Rsqr_incr_0_var; assumption ] ].
 Qed.
 
+(* TODO *)
 Lemma triangle_rectangle_lt :
   forall x y z:R,
     Rsqr x + Rsqr y < Rsqr z -> Rabs x < Rabs z /\ Rabs y < Rabs z.
@@ -558,6 +652,7 @@ Proof.
           intro; apply Rsqr_lt_abs_0; assumption ].
 Qed.
 
+(* TODO *)
 Lemma triangle_rectangle_le :
   forall x y z:R,
     Rsqr x + Rsqr y <= Rsqr z -> Rabs x <= Rabs z /\ Rabs y <= Rabs z.
@@ -572,29 +667,170 @@ Qed.
 
 Lemma Rsqr_inv : forall x:R, x <> 0 -> Rsqr (/ x) = / Rsqr x.
 Proof.
-  intros; unfold Rsqr.
-  rewrite Rinv_mult_distr; try reflexivity || assumption.
+  intros x h.
+  unfold Rsqr.
+  rewrite Rinv_mult_distr. reflexivity.
+  assumption. assumption.
 Qed.
 
+(* Coq would shine if there was a natural way to do this kind of stuff *)
 Lemma canonical_Rsqr :
   forall (a:nonzeroreal) (b c x:R),
     a * Rsqr x + b * x + c =
     a * Rsqr (x + b / (2 * a)) + (4 * a * c - Rsqr b) / (4 * a).
 Proof.
+
+  assert (neq20 : 2 <> 0).
+  {
+    unfold IZR. unfold IPR. unfold IPR_2. intro h.
+    apply Rlt_irrefl with 0. pattern 0 at 2;rewrite <- h.
+    apply Rlt_trans with R1. apply Rlt_0_1.
+    apply Rplus_lt_reg_l with (-R1).
+    rewrite Rplus_opp_l. rewrite <- Rplus_assoc.
+    rewrite Rplus_opp_l. rewrite Rplus_0_l. apply Rlt_0_1.
+  }
+
+  assert (neq40 : 4 <> 0).
+  {
+    intro eq.
+    apply Rlt_irrefl with 0.
+    pattern 0 at 2;rewrite <- eq.
+    unfold IZR. unfold IPR. unfold IPR_2.
+    rewrite Rmult_plus_distr_l.
+    rewrite Rmult_plus_distr_r.
+    rewrite Rmult_1_r.
+    apply Rlt_trans with R1.
+    apply Rlt_0_1.
+    apply Rplus_lt_reg_r with (-R1).
+    rewrite Rplus_opp_r.
+    apply Rlt_trans with R1.
+    apply Rlt_0_1.
+    apply Rplus_lt_reg_r with (-R1).
+    rewrite Rplus_opp_r.
+    apply Rlt_trans with R1.
+    apply Rlt_0_1.
+    apply Rplus_lt_reg_r with (-R1).
+    rewrite Rplus_opp_r.
+    repeat (rewrite Rplus_assoc).
+    rewrite <- (Rplus_assoc R1 (-R1)).
+    rewrite Rplus_opp_r.
+    rewrite Rplus_0_l.
+    rewrite <- (Rplus_assoc R1 (-R1)).
+    rewrite Rplus_opp_r.
+    rewrite Rplus_0_l.
+    rewrite Rplus_opp_r.
+    rewrite Rplus_0_r.
+    apply Rlt_0_1.
+  }
+
   intros.
-  unfold Rsqr.
-  field.
-  apply a.
+
+  unfold Rsqr, Rdiv, Rminus.
+  repeat (rewrite Rinv_mult_distr).
+  repeat (rewrite Rmult_plus_distr_l).
+  repeat (rewrite Rmult_plus_distr_r).
+  repeat (rewrite Rmult_plus_distr_l).
+  repeat (rewrite Rmult_assoc).
+  repeat (rewrite Rplus_assoc).
+  apply Rplus_eq_compat_l.
+  rewrite (Rmult_comm 4).
+  rewrite (Rmult_comm (/ 4)).
+  repeat (rewrite Rmult_assoc).
+  rewrite Rinv_l.
+  rewrite Rmult_1_r.
+  rewrite (Rmult_comm c).
+  repeat (rewrite <- Rmult_assoc).
+  rewrite Rinv_r.
+  rewrite Rmult_1_l.
+  rewrite (Rplus_comm c).
+  repeat (rewrite <- Rplus_assoc).
+  apply Rplus_eq_compat_r.
+  repeat (rewrite Rmult_assoc).
+  rewrite (Rmult_comm (/2)).
+  repeat (rewrite Rmult_assoc).
+  pattern b at 1;rewrite (Rmult_comm b).
+  repeat (rewrite <- Rmult_assoc).
+  rewrite Rinv_r.
+  rewrite Rmult_1_l.
+  repeat (rewrite Rmult_assoc).
+  pattern b at 1;rewrite (Rmult_comm b).
+  repeat (rewrite Rmult_assoc).
+  pattern x at 2;rewrite (Rmult_comm x).
+  repeat (rewrite Rmult_assoc).
+  pattern (/ 2) at 1;rewrite (Rmult_comm (/2 )).
+  repeat (rewrite <- Rmult_assoc).
+  rewrite Rinv_r.
+  rewrite Rmult_1_l.
+  repeat (rewrite <- Rmult_assoc).
+  pattern x at 1;rewrite (Rmult_comm x).
+  rewrite (Rmult_comm _ (/2)).
+  repeat (rewrite Rmult_assoc).
+  rewrite <- (Rmult_plus_distr_l (/ 2)).
+  pattern x at 1;rewrite (Rmult_comm x).
+  rewrite <- double.
+  repeat (rewrite <- Rmult_assoc).
+  rewrite Rinv_l.
+  rewrite Rmult_1_l.
+  repeat rewrite (Rplus_assoc).
+  pattern (b*x) at 1;rewrite <- (Rplus_0_r (b*x)).
+  apply Rplus_eq_compat_l.
+  repeat (rewrite Rmult_assoc).
+  rewrite (Rmult_comm (/ 2)).
+  repeat (rewrite Rmult_assoc).
+  rewrite (Rmult_comm b).
+  repeat (rewrite <- Rmult_assoc).
+  rewrite Rinv_r. rewrite Rmult_1_l.
+  repeat (rewrite Rmult_assoc).
+  rewrite (Rmult_comm (/ 2)).
+  rewrite (Rmult_comm (- (b*b))).
+  repeat (rewrite Rmult_assoc).
+  rewrite <- (Rmult_plus_distr_l (/a)).
+  apply Rmult_eq_reg_l with a.
+  rewrite Rmult_0_r.
+  repeat (rewrite <- Rmult_assoc).
+  rewrite Rinv_r.
+  rewrite Rmult_1_l.
+  rewrite <- Ropp_mult_distr_r.
+  repeat (rewrite Rmult_assoc).
+  pattern b at 1;rewrite (Rmult_comm b).
+  pattern b at 0;rewrite (Rmult_comm b).
+  repeat (rewrite <- Rmult_assoc).
+  rewrite <- (Rinv_mult_distr).
+  change (2*2) with 4.
+  repeat (rewrite Rmult_assoc).
+  rewrite Rplus_opp_r.
+  reflexivity.
+
+  assumption.
+  assumption.
+
+  apply cond_nonzero.
+  apply cond_nonzero.
+  apply cond_nonzero.
+
+  assumption.
+
+  apply cond_nonzero.
+  apply cond_nonzero.
+  apply cond_nonzero.
+
+  assumption.
+  assumption.
+  apply cond_nonzero.
+  assumption.
+  apply cond_nonzero.
+
 Qed.
 
 Lemma Rsqr_eq : forall x y:R, Rsqr x = Rsqr y -> x = y \/ x = - y.
 Proof.
-  intros; unfold Rsqr in H;
-    generalize (Rplus_eq_compat_l (- (y * y)) (x * x) (y * y) H);
-      rewrite Rplus_opp_l; replace (- (y * y) + x * x) with ((x - y) * (x + y)).
-  intro; generalize (Rmult_integral (x - y) (x + y) H0); intro; elim H1; intros.
-  left; apply Rminus_diag_uniq; assumption.
-  right; apply Rminus_diag_uniq; unfold Rminus; rewrite Ropp_involutive;
-    assumption.
-  ring.
+  intros x y h.
+  apply (Rplus_eq_compat_r (-y²)) in h. 
+  rewrite Rplus_opp_r in h.
+  fold (x² - y²) in h.
+  rewrite <- Rsqr_plus_minus in h.
+  apply Rmult_integral in h.
+  destruct h.
+  right. apply Rplus_eq_reg_r with y. rewrite Rplus_opp_l. assumption.
+  left. apply Rplus_eq_reg_r with (-y). rewrite Rplus_opp_r. assumption.
 Qed.
