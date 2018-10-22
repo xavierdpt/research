@@ -1154,51 +1154,138 @@ Qed.
 
 Lemma Rabs_def1 : forall x a:R, x < a -> - a < x -> Rabs x < a.
 Proof.
-
+  intros x a hu hl.
+  unfold Rabs. destruct (Rcase_abs x).
+  apply Ropp_lt_cancel. rewrite Ropp_involutive. assumption.
+  assumption.
 Qed.
 
 Lemma Rabs_def2 : forall x a:R, Rabs x < a -> x < a /\ - a < x.
 Proof.
-
+  intros x a.
+  split.
+  unfold Rabs in H. destruct (Rcase_abs x).
+  apply Rlt_trans with 0. assumption.
+  apply Rlt_trans with (-x).
+  apply Ropp_lt_cancel. rewrite Ropp_involutive. rewrite Ropp_0.
+  assumption. assumption.
+  assumption.
+  unfold Rabs in H. destruct (Rcase_abs x).
+  apply Ropp_lt_cancel. rewrite Ropp_involutive. assumption.
+  destruct r.
+  apply Rlt_trans with 0.
+  apply Ropp_lt_cancel. rewrite Ropp_involutive. rewrite Ropp_0.
+  apply Rlt_trans with x. assumption. assumption. assumption.
+  subst x. apply Ropp_lt_cancel. rewrite Ropp_involutive. rewrite Ropp_0.
+  assumption.
 Qed.
 
 Lemma RmaxAbs :
   forall (p q:R) r, p <= q -> q <= r -> Rabs q <= Rmax (Rabs p) (Rabs r).
 Proof.
-
-Qed.
+  intros x y z hxy hyz.
+  destruct hxy as [ hxy  | hxy ].
+  {
+    destruct hyz as [ hyz | hyz ].
+    {
+      apply Rmax_case_strong.
+      {
+        intros [ hzx | hzx ].
+        {
+          admit.
+        }
+        {
+          destruct (Rabs_case x) as [ [ eqx hx ] | [ eqx hx ] ];
+          destruct (Rabs_case y) as [ [ eqy hy ] | [ eqy hy ] ];
+          destruct (Rabs_case z) as [ [ eqz hz ] | [ eqz hz ] ];
+          rewrite eqx in *;rewrite eqy in *;rewrite eqz in *;
+          clear eqx eqy eqz.
+          {
+            subst z. exfalso. apply Rlt_irrefl with x.
+            apply Rlt_trans with y;assumption.
+          }
+          {
+            subst x.
+            apply Rle_trans with z.
+            left;assumption.
+            apply Rle_trans with 0.
+            left;assumption.
+            assumption.
+          }
+          {
+            subst z. exfalso. apply Rlt_irrefl with x.
+            apply Rlt_trans with y;assumption.
+          }
+          {
+            subst x. exfalso.
+            apply Rlt_irrefl with (-z).
+            apply Rlt_trans with y. assumption.
+            apply Rlt_trans with 0. assumption.
+            apply Ropp_lt_cancel. rewrite Ropp_involutive. rewrite Ropp_0.
+            assumption.
+          }
+          {
+            subst z. left. assumption.
+          }
+          {
+            apply Ropp_eq_compat in hzx.
+            repeat (rewrite Ropp_involutive in hzx).
+            subst z.
+            exfalso. apply Rlt_irrefl with x. apply Rlt_trans with y;assumption.
+          }
+          {
+            subst z.
+            apply Ropp_le_contravar.
+            left. assumption.
+          }
+          {
+            apply Ropp_eq_compat in hzx.
+            repeat (rewrite Ropp_involutive in hzx).
+            subst z.
+            exfalso. apply Rlt_irrefl with x. apply Rlt_trans with y;assumption.
+          }
+        }
+      }
+      { intros [ hxz | hxz ].
+        admit. admit.
+      }
+    }
+    { subst y. apply Rmax_r. }
+  }
+  { subst y. apply Rmax_l. }
+Admitted.
 
 Lemma Rabs_Zabs : forall z:Z, Rabs (IZR z) = IZR (Z.abs z).
 Proof.
 
-Qed.
+Admitted.
 
 Lemma abs_IZR : forall z, IZR (Z.abs z) = Rabs (IZR z).
 Proof.
 
-Qed.
+Admitted.
 
 Lemma Ropp_Rmax : forall x y, - Rmax x y = Rmin (-x) (-y).
 Proof.
-Qed.
+Admitted.
 
 Lemma Ropp_Rmin : forall x y, - Rmin x y = Rmax (-x) (-y).
 Proof.
-Qed.
+Admitted.
 
 Lemma Rmax_assoc : forall a b c, Rmax a (Rmax b c) = Rmax (Rmax a b) c.
 Proof.
 
-Qed.
+Admitted.
 
 Lemma Rminmax : forall a b, Rmin a b <= Rmax a b.
 Proof.
 
-Qed.
+Admitted.
 
 Lemma Rmin_assoc : forall x y z, Rmin x (Rmin y z) =
   Rmin (Rmin x y) z.
 Proof.
 
-Qed.
+Admitted.
 
