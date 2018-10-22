@@ -564,26 +564,37 @@ Proof.
   apply Rabs_pos.
 Qed.
 
-(* TODO *)
 Lemma Rsqr_lt_abs_0 : forall x y:R, Rsqr x < Rsqr y -> Rabs x < Rabs y.
 Proof.
-  intros; apply Rsqr_incrst_0; repeat rewrite <- Rsqr_abs;
-    [ assumption | apply Rabs_pos | apply Rabs_pos ].
+  intros x y h.
+  apply Rsqr_incrst_0.
+  rewrite <- Rsqr_abs.
+  rewrite <- Rsqr_abs.
+  assumption.
+  apply Rabs_pos.
+  apply Rabs_pos.
 Qed.
 
-(* TODO *)
+
 Lemma Rsqr_lt_abs_1 : forall x y:R, Rabs x < Rabs y -> Rsqr x < Rsqr y.
 Proof.
-  intros; rewrite (Rsqr_abs x); rewrite (Rsqr_abs y);
-    apply (Rsqr_incrst_1 (Rabs x) (Rabs y) H (Rabs_pos x) (Rabs_pos y)).
+  intros.
+  rewrite (Rsqr_abs x).
+  rewrite (Rsqr_abs y).
+  apply Rsqr_incrst_1.
+  assumption.
+  apply Rabs_pos.
+  apply Rabs_pos.
 Qed.
 
-(* TODO *)
 Lemma Rsqr_inj : forall x y:R, 0 <= x -> 0 <= y -> Rsqr x = Rsqr y -> x = y.
 Proof.
-  intros; generalize (Rle_le_eq (Rsqr x) (Rsqr y)); intro; elim H2; intros _ H3;
-    generalize (H3 H1); intro; elim H4; intros; apply Rle_antisym;
-      apply Rsqr_incr_0; assumption.
+  intros x y hx hy heq.
+  apply Rle_antisym.
+  apply Rsqr_incr_0. right. assumption.
+  assumption. assumption.
+  apply Rsqr_incr_0. right. symmetry. assumption.
+  assumption. assumption.
 Qed.
 
 Lemma Rsqr_eq_abs_0 : forall x y:R, Rsqr x = Rsqr y -> Rabs x = Rabs y.
@@ -626,17 +637,50 @@ Lemma triangle_rectangle :
   forall x y z:R,
     0 <= z -> Rsqr x + Rsqr y <= Rsqr z -> - z <= x <= z /\ - z <= y <= z.
 Proof.
-  intros;
-    generalize (plus_le_is_le (Rsqr x) (Rsqr y) (Rsqr z) (Rle_0_sqr y) H0);
-      rewrite Rplus_comm in H0;
-        generalize (plus_le_is_le (Rsqr y) (Rsqr x) (Rsqr z) (Rle_0_sqr x) H0);
-          intros; split;
-            [ split;
-              [ apply Rsqr_neg_pos_le_0; assumption
-                | apply Rsqr_incr_0_var; assumption ]
-              | split;
-                [ apply Rsqr_neg_pos_le_0; assumption
-                  | apply Rsqr_incr_0_var; assumption ] ].
+(*
+  Rplus_le_reg_pos_r
+    0 <= r2 ->
+    r1 + r2 <= r3 ->
+    r1 <= r3
+
+  Rsqr_neg_pos_le_0
+    x² <= y² ->
+    0 <= y ->
+    - y <= x
+
+  Rle_0_sqr 
+    0 <= r²
+
+  Rsqr_incr_0_var :
+    x² <= y² ->
+    0 <= y ->
+    x <= y
+
+
+*)
+  intros.
+  split.
+  { split.
+    {
+      apply Rsqr_neg_pos_le_0.
+      {
+        apply Rplus_le_reg_pos_r with y².
+        { apply Rle_0_sqr. }
+        { assumption. }
+      }
+      { assumption. }
+    }
+apply Rsqr_incr_0_var.
+apply Rplus_le_reg_pos_r with y².
+apply Rle_0_sqr. assumption. assumption.
+}
+split.
+apply Rsqr_neg_pos_le_0.
+apply Rplus_le_reg_pos_r with x².
+apply Rle_0_sqr. rewrite Rplus_comm. assumption. assumption.
+apply Rsqr_incr_0_var. 
+apply Rplus_le_reg_pos_r with x².
+apply Rle_0_sqr. rewrite Rplus_comm. assumption. assumption.
 Qed.
 
 (* TODO *)
