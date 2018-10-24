@@ -374,9 +374,7 @@ Proof.
   { simpl. rewrite Rabs_mult. rewrite i. reflexivity. }
 Qed.
 
-(* stopped here *)
-
-Lemma INR_Rge : forall r:R, exists n:nat, INR n >= r.
+Lemma XD_INR_Rge : forall r:R, exists n:nat, INR n >= r.
 Proof.
   intro r.
   destruct (archimed r) as [ agt ale ].
@@ -440,7 +438,7 @@ Proof.
   destruct (archimed exp) as [H0 H1].
   clear H1.
   {
-    destruct (INR_Rge exp) as [x0 H1].
+    destruct (XD_INR_Rge exp) as [x0 H1].
     exists x0.
     intros n H2.
     apply Rge_trans with (Rabs (x ^ x0)).
@@ -508,21 +506,23 @@ Qed.
 
 Lemma pow_ne_zero : forall n:nat, n <> 0%nat -> 0 ^ n = 0.
 Proof.
-  simple induction n.
-  simpl; auto.
-  intros; elim H; reflexivity.
-  intros; simpl; apply Rmult_0_l.
+  intros n h.
+  destruct n.
+  { exfalso. apply h. reflexivity. }
+  { simpl. rewrite Rmult_0_l. reflexivity. }
 Qed.
 
 Lemma Rinv_pow : forall (x:R) (n:nat), x <> 0 -> / x ^ n = (/ x) ^ n.
 Proof.
-  intros; elim n; simpl.
-  apply Rinv_1.
-  intro m; intro; rewrite Rinv_mult_distr.
-  rewrite H0; reflexivity; assumption.
-  assumption.
-  apply pow_nonzero; assumption.
+  intros x n h.
+  induction n as [ | n i].
+  simpl. rewrite Rinv_1. reflexivity.
+  simpl. rewrite Rinv_mult_distr. rewrite i. reflexivity.
+  exact h.
+  apply pow_nonzero. exact h.
 Qed.
+
+(* stopped here *)
 
 Lemma pow_lt_1_zero :
   forall x:R,
@@ -531,84 +531,284 @@ Lemma pow_lt_1_zero :
       0 < y ->
       exists N : nat, (forall n:nat, (n >= N)%nat -> Rabs (x ^ n) < y).
 Proof.
-  intros; elim (Req_dec x 0); intro.
-  exists 1%nat; rewrite H1; intros n GE; rewrite pow_ne_zero.
-  rewrite Rabs_R0; assumption.
-  inversion GE; auto.
-  cut (Rabs (/ x) > 1).
-  intros; elim (Pow_x_infinity (/ x) H2 (/ y + 1)); intros N.
-  exists N; intros; rewrite <- (Rinv_involutive y).
-  rewrite <- (Rinv_involutive (Rabs (x ^ n))).
-  apply Rinv_lt_contravar.
-  apply Rmult_lt_0_compat.
-  apply Rinv_0_lt_compat.
-  assumption.
-  apply Rinv_0_lt_compat.
-  apply Rabs_pos_lt.
-  apply pow_nonzero.
-  assumption.
-  rewrite <- Rabs_Rinv.
-  rewrite Rinv_pow.
-  apply (Rlt_le_trans (/ y) (/ y + 1) (Rabs ((/ x) ^ n))).
-  pattern (/ y) at 1.
-  rewrite <- (let (H1, H2) := Rplus_ne (/ y) in H1).
-  apply Rplus_lt_compat_l.
-  apply Rlt_0_1.
-  apply Rge_le.
-  apply H3.
-  assumption.
-  assumption.
-  apply pow_nonzero.
-  assumption.
-  apply Rabs_no_R0.
-  apply pow_nonzero.
-  assumption.
-  apply Rlt_dichotomy_converse.
-  right; unfold Rgt; assumption.
-  rewrite <- (Rinv_involutive 1).
-  rewrite Rabs_Rinv.
-  unfold Rgt; apply Rinv_lt_contravar.
-  apply Rmult_lt_0_compat.
-  apply Rabs_pos_lt.
-  assumption.
-  rewrite Rinv_1; apply Rlt_0_1.
-  rewrite Rinv_1; assumption.
-  assumption.
-  red; intro; apply R1_neq_R0; assumption.
+  intros x H y hy.
+  destruct (Req_dec x 0) as [hz | hnz]. (* x = 0 \/ x <> 0 *)
+  { (* x = 0 *)
+    subst x.
+    exists 1%nat.
+    intros n hn.
+    rewrite pow_ne_zero. (* n <> 0 -> 0 ^ n = 0 *)
+    {
+      rewrite Rabs_R0. (* Rabs 0 = 0 *)
+      exact hy.
+    }
+    {
+      inversion hn as [ heq | m hmn ].
+      {
+        intro eq.
+        inversion eq.
+      }
+      {
+        subst n.
+        intro eq.
+        inversion eq.
+      }
+    }
+  }
+  { (* x <> 0 *)
+    assert (hadx : Rabs (/ x) > 1).
+    {
+      rewrite <- (Rinv_involutive 1).
+      { 
+        rewrite Rabs_Rinv.
+        {
+          unfold Rgt.
+          apply Rinv_lt_contravar.
+          {
+            apply Rmult_lt_0_compat.
+            {
+              apply Rabs_pos_lt.
+              exact hnz.
+            }
+            {
+              rewrite Rinv_1.
+              apply Rlt_0_1.
+            }
+          }
+          {
+            rewrite Rinv_1.
+            exact H.
+          }
+        }
+        { exact hnz. }
+      }
+      { 
+        apply R1_neq_R0.
+      }
+    }
+    generalize Pow_x_infinity;intro hpow.
+    specialize (hpow (/ x)).
+    specialize (hpow hadx).
+    specialize (hpow (/ y + 1)).
+    destruct hpow as [N hpow].
+    exists N.
+    intros n hnN.
+    specialize (hpow n).
+    specialize (hpow hnN).
+    rewrite <- (Rinv_involutive y).
+    {
+      rewrite <- (Rinv_involutive (Rabs (x ^ n))).
+      {
+        apply Rinv_lt_contravar.
+        {
+          apply Rmult_lt_0_compat.
+          {
+            apply Rinv_0_lt_compat.
+            exact hy.
+          }
+          {
+            apply Rinv_0_lt_compat.
+            apply Rabs_pos_lt.
+            apply pow_nonzero.
+            exact hnz.
+          }
+        }
+        {
+          rewrite <- Rabs_Rinv.
+          {
+            rewrite Rinv_pow.
+            {
+              apply Rlt_le_trans with (/ y + 1).
+              {
+                pattern (/ y) at 1;rewrite <- Rplus_0_r.
+                apply Rplus_lt_compat_l.
+                apply Rlt_0_1.
+              }
+              {
+                apply Rge_le.
+                exact hpow.
+              }
+            }
+            { exact hnz. }
+          }
+          {
+            apply pow_nonzero.
+            exact hnz.
+          }
+        }
+      }
+      {
+        apply Rabs_no_R0.
+        apply pow_nonzero.
+        exact hnz.
+      }
+    }
+    {
+      apply Rlt_dichotomy_converse.
+      right.
+      unfold Rgt.
+      exact hy.
+    }
+  }
 Qed.
 
 Lemma pow_R1 : forall (r:R) (n:nat), r ^ n = 1 -> Rabs r = 1 \/ n = 0%nat.
 Proof.
-  intros r n H'.
-  case (Req_dec (Rabs r) 1); auto; intros H'1.
-  case (Rdichotomy _ _ H'1); intros H'2.
-  generalize H'; case n; auto.
-  intros n0 H'0.
-  cut (r <> 0); [ intros Eq1 | idtac ].
-  cut (Rabs r <> 0); [ intros Eq2 | apply Rabs_no_R0 ]; auto.
-  absurd (Rabs (/ r) ^ 0 < Rabs (/ r) ^ S n0); auto.
-  replace (Rabs (/ r) ^ S n0) with 1.
-  simpl; apply Rlt_irrefl; auto.
-  rewrite Rabs_Rinv; auto.
-  rewrite <- Rinv_pow; auto.
-  rewrite RPow_abs; auto.
-  rewrite H'0; rewrite Rabs_right; auto with real rorders.
-  apply Rlt_pow; auto with arith.
-  rewrite Rabs_Rinv; auto.
-  apply Rmult_lt_reg_l with (r := Rabs r).
-  case (Rabs_pos r); auto.
-  intros H'3; case Eq2; auto.
-  rewrite Rmult_1_r; rewrite Rinv_r; auto with real.
-  red; intro; absurd (r ^ S n0 = 1); auto.
-  simpl; rewrite H; rewrite Rmult_0_l; auto with real.
-  generalize H'; case n; auto.
-  intros n0 H'0.
-  cut (r <> 0); [ intros Eq1 | auto with real ].
-  cut (Rabs r <> 0); [ intros Eq2 | apply Rabs_no_R0 ]; auto.
-  absurd (Rabs r ^ 0 < Rabs r ^ S n0); auto with real arith.
-  repeat rewrite RPow_abs; rewrite H'0; simpl; auto with real.
-  red; intro; absurd (r ^ S n0 = 1); auto.
-  simpl; rewrite H; rewrite Rmult_0_l; auto with real.
+  intros r n h.
+  case (Req_dec (Rabs r) 1).
+  {
+    intro hr. left. exact hr.
+  }
+  {
+    intros hr.
+    destruct (Rdichotomy _ _ hr)as [ hrlt | hrgt ].
+    {
+      generalize h.
+      {
+        destruct n as [ | n ].
+        { auto. }
+        {
+          intros hrsn.
+          {
+            cut (r <> 0).
+            {
+              intros hrnz.
+              cut (Rabs r <> 0); [ intros Eq2 | apply Rabs_no_R0 ].
+              {
+                absurd (Rabs (/ r) ^ 0 < Rabs (/ r) ^ S n).
+                {
+                  replace (Rabs (/ r) ^ S n) with 1.
+                  {
+                    simpl.
+                    apply Rlt_irrefl.
+                  }
+                  rewrite Rabs_Rinv; auto.
+                  {
+                    rewrite <- Rinv_pow.
+                    {
+                      rewrite RPow_abs.
+                      {
+                        rewrite hrsn.
+                        rewrite Rabs_right.
+                        {
+                          auto with real rorders.
+                        }
+                        {
+                          auto with real rorders.
+                        }
+                      }
+                    }
+                    {
+                      auto.
+                    }
+                  }
+                }
+                {
+                  apply Rlt_pow. 
+                  {
+                    rewrite Rabs_Rinv.
+                    apply Rmult_lt_reg_l with (Rabs r).
+                    {
+                      case (Rabs_pos r).
+                      {
+                        auto.
+                      }
+                      {
+                        intros hz.
+                        case Eq2.
+                        auto.
+                      }
+                    }
+                    {
+                      rewrite Rmult_1_r.
+                      rewrite Rinv_r.
+                      {
+                        auto with real.
+                      }
+                      {
+                        auto with real.
+                      }
+                    }
+                    {
+                      auto.
+                    }
+                  }
+                  {
+                    auto with arith.
+                  }
+                }
+              }
+              {
+                auto.
+              }
+            }
+            {
+              red.
+              intro.
+              absurd (r ^ S n = 1).
+              {
+                simpl.
+                rewrite H.
+                rewrite Rmult_0_l.
+                auto with real.
+              }
+              {
+                auto.
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      generalize h.
+      destruct n as [ | n ].
+      {
+        auto.
+      }
+      {
+        intros H'0.
+        cut (r <> 0); [ intros Eq1 | auto with real ].
+        {
+          cut (Rabs r <> 0); [ intros Eq2 | apply Rabs_no_R0 ].
+          {
+            clear H'0.
+            exfalso.
+            assert (ab: forall P:Prop,  (P -> False) -> P -> False).
+            {
+              intros. apply H. assumption.
+            }
+            apply ab with (Rabs r ^ 0 < Rabs r ^ S n).
+            {
+              repeat rewrite RPow_abs.
+              rewrite h.
+              simpl.
+              apply Rlt_irrefl.
+            }
+            {
+              apply Rlt_pow.
+              { exact hrgt. }
+              {
+                unfold lt.
+                apply le_n_S.
+                apply le_0_n.
+              }
+            }
+          }
+          { exact Eq1. }
+        }
+        {
+          intro hrz.
+          subst r.
+          simpl in h.
+          rewrite Rmult_0_l in h.
+          symmetry in h.
+          apply R1_neq_R0 in h.
+          contradiction.
+        }
+      }
+    }
+  }
 Qed.
 
 Lemma pow_Rsqr : forall (x:R) (n:nat), x ^ (2 * n) = Rsqr x ^ n.
