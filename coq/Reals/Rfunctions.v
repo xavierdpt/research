@@ -374,49 +374,136 @@ Proof.
   { simpl. rewrite Rabs_mult. rewrite i. reflexivity. }
 Qed.
 
-(* stopped hiere *)
+(* stopped here *)
+
+Lemma INR_Rge : forall r:R, exists n:nat, INR n >= r.
+Proof.
+  intro r.
+  destruct (archimed r) as [ agt ale ].
+  exists (Z.abs_nat (up r)).
+  destruct (up r) eqn:upeq.
+  { (* up r = 0 *)
+    simpl.
+    left. exact agt.
+  }
+  { (* up r = Z.pos p *)
+    simpl.
+    destruct (Pos.to_nat p) eqn:poseq.
+    { (* Pos.to_nat p = 0 *)
+      simpl.
+      generalize (Pos2Nat.is_pos p);intro hpos.
+      rewrite poseq in hpos.
+      inversion hpos.
+    }
+    { (* Pos.to_nat p = S n *)
+      (* rewrite S_INR. *)
+      left.
+      rewrite INR_IZR_INZ.
+      rewrite <- poseq.
+      rewrite positive_nat_Z.
+      exact agt.
+    }
+  }
+  { (* up r = Z.neg p *)
+    simpl.
+    destruct (Pos.to_nat p) eqn:poseq.
+    { (* Pos.to_nat p = 0 *)
+      simpl.
+      generalize (Pos2Nat.is_pos p);intro hpos.
+      rewrite poseq in hpos.
+      inversion hpos.
+    }
+    { (* Pos.to_nat p = S n *)
+      left.
+      rewrite INR_IZR_INZ.
+      rewrite <- poseq.
+      rewrite positive_nat_Z.
+      apply Rgt_trans with (IZR (Z.neg p)).
+      {
+        apply Rlt_gt.
+        apply IZR_lt.
+        apply Pos2Z.neg_lt_pos.
+      }
+      { exact agt. }
+    }
+  }
+Qed.
+
 Lemma Pow_x_infinity :
   forall x:R,
     Rabs x > 1 ->
     forall b:R,
       exists N : nat, (forall n:nat, (n >= N)%nat -> Rabs (x ^ n) >= b).
 Proof.
-  intros; elim (archimed (b * / (Rabs x - 1))); intros; clear H1;
-    cut (exists N : nat, INR N >= b * / (Rabs x - 1)).
-  intro; elim H1; clear H1; intros; exists x0; intros;
-    apply (Rge_trans (Rabs (x ^ n)) (Rabs (x ^ x0)) b).
-  apply Rle_ge; apply Power_monotonic; assumption.
-  rewrite <- RPow_abs; cut (Rabs x = 1 + (Rabs x - 1)).
-  intro; rewrite H3;
-    apply (Rge_trans ((1 + (Rabs x - 1)) ^ x0) (1 + INR x0 * (Rabs x - 1)) b).
-  apply Rle_ge; apply poly; fold (Rabs x - 1 > 0); apply Rgt_minus;
-    assumption.
-  apply (Rge_trans (1 + INR x0 * (Rabs x - 1)) (INR x0 * (Rabs x - 1)) b).
-  apply Rle_ge; apply Rlt_le; rewrite (Rplus_comm 1 (INR x0 * (Rabs x - 1)));
-    pattern (INR x0 * (Rabs x - 1)) at 1;
-      rewrite <- (let (H1, H2) := Rplus_ne (INR x0 * (Rabs x - 1)) in H1);
-        apply Rplus_lt_compat_l; apply Rlt_0_1.
-  cut (b = b * / (Rabs x - 1) * (Rabs x - 1)).
-  intros; rewrite H4; apply Rmult_ge_compat_r.
-  apply Rge_minus; unfold Rge; left; assumption.
-  assumption.
-  rewrite Rmult_assoc; rewrite Rinv_l.
-  ring.
-  apply Rlt_dichotomy_converse; right; apply Rgt_minus; assumption.
-  ring.
-  cut ((0 <= up (b * / (Rabs x - 1)))%Z \/ (up (b * / (Rabs x - 1)) <= 0)%Z).
-  intros; elim H1; intro.
-  elim (IZN (up (b * / (Rabs x - 1))) H2); intros; exists x0;
-    apply
-      (Rge_trans (INR x0) (IZR (up (b * / (Rabs x - 1)))) (b * / (Rabs x - 1))).
-  rewrite INR_IZR_INZ; apply IZR_ge; omega.
-  unfold Rge; left; assumption.
-  exists 0%nat;
-    apply
-      (Rge_trans (INR 0) (IZR (up (b * / (Rabs x - 1)))) (b * / (Rabs x - 1))).
-  rewrite INR_IZR_INZ; apply IZR_ge; simpl; omega.
-  unfold Rge; left; assumption.
-  omega.
+  intros.
+  pose (exp := b * / (Rabs x -1)).
+  destruct (archimed exp) as [H0 H1].
+  clear H1.
+  {
+    destruct (INR_Rge exp) as [x0 H1].
+    exists x0.
+    intros n H2.
+    apply Rge_trans with (Rabs (x ^ x0)).
+    {
+      apply Rle_ge.
+      apply Power_monotonic.
+      { exact H. }
+      { unfold ge in H2. exact H2. }
+    }
+    {
+      rewrite <- RPow_abs.
+      rewrite <- Rplus_0_l with (Rabs x).
+      rewrite <- Rplus_opp_r with 1.
+      rewrite Rplus_assoc.
+      rewrite (Rplus_comm _ (Rabs x)).
+      fold (Rabs x - 1).
+      apply Rge_trans with (1 + INR x0 * (Rabs x - 1)).
+      {
+        apply Rle_ge.
+        apply poly.
+        apply Rgt_lt.
+        apply Rgt_minus.
+        exact H.
+      }
+      {
+        apply Rge_trans with (INR x0 * (Rabs x - 1)).
+        {
+          apply Rle_ge.
+          apply Rlt_le.
+          rewrite (Rplus_comm 1).
+          pattern (INR x0 * (Rabs x - 1)) at 1;rewrite <- Rplus_0_r.
+          apply Rplus_lt_compat_l.
+          apply Rlt_0_1.
+        }
+        {
+          rewrite <- Rmult_1_r with b.
+          pattern 1 at 2;rewrite <- Rinv_l with (Rabs x - 1).
+          rewrite <- Rmult_assoc.
+          fold (b / (Rabs x - 1)).
+          {
+            apply Rmult_ge_compat_r.
+            {
+              apply Rge_minus.
+              unfold Rge.
+              left.
+              exact H.
+            }
+            { 
+              fold exp.
+              fold exp in H0, H1.
+              exact H1.
+            }
+          }
+          {
+            apply Rlt_dichotomy_converse.
+            right.
+            apply Rgt_minus.
+            exact H.
+          }
+        }
+      }
+    }
+  }
 Qed.
 
 Lemma pow_ne_zero : forall n:nat, n <> 0%nat -> 0 ^ n = 0.
