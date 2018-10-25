@@ -652,108 +652,101 @@ Proof.
   }
 Qed.
 
+Lemma XD_Rabs_lt_0_Sn: forall r n,
+  r<>0 ->
+  1 < Rabs r ->
+  Rabs r ^ 0 < Rabs r ^ S n.
+Proof.
+  intros r n hrnz harlt.
+  simpl.
+  induction n as [ | n i ].
+  {
+    simpl.
+    rewrite Rmult_1_r.
+    exact harlt.
+  }
+  {
+    simpl.
+    apply Rlt_trans with (Rabs r).
+    {
+      exact harlt.
+    }
+    {
+      pattern (Rabs r) at 1;rewrite <- Rmult_1_r.
+      apply Rmult_lt_compat_l.
+      2:exact i.
+      {
+        apply Rabs_pos_lt.
+        exact hrnz.
+      }
+    }
+  }
+Qed.
+
 Lemma pow_R1 : forall (r:R) (n:nat), r ^ n = 1 -> Rabs r = 1 \/ n = 0%nat.
 Proof.
   intros r n h.
-  case (Req_dec (Rabs r) 1).
-  {
-    intro hr. left. exact hr.
+  destruct (Req_dec (Rabs r) 1) as [ hareq | harneq ].
+  { (* Rabs r = 1 *)
+    left. exact hareq.
   }
-  {
-    intros hr.
-    destruct (Rdichotomy _ _ hr)as [ hrlt | hrgt ].
-    {
-      generalize h.
+  { (* Rabs r <> 1 *)
+    right.
+    apply Rdichotomy in harneq.
+    destruct harneq as [ harlt | hargt ].
+    { (* Rabs r < 1 *)
       {
         destruct n as [ | n ].
-        { auto. }
-        {
-          intros hrsn.
+        { (* n = 0 *)
+          reflexivity.
+        }
+        { (* n <> 0 *)
           {
-            cut (r <> 0).
+            (* h is absurd when r = 0 *)
+            assert (hrnz: r<>0).
             {
-              intros hrnz.
-              cut (Rabs r <> 0); [ intros Eq2 | apply Rabs_no_R0 ].
-              {
-                absurd (Rabs (/ r) ^ 0 < Rabs (/ r) ^ S n).
-                {
-                  replace (Rabs (/ r) ^ S n) with 1.
-                  {
-                    simpl.
-                    apply Rlt_irrefl.
-                  }
-                  rewrite Rabs_Rinv; auto.
-                  {
-                    rewrite <- Rinv_pow.
-                    {
-                      rewrite RPow_abs.
-                      {
-                        rewrite hrsn.
-                        rewrite Rabs_right.
-                        {
-                          auto with real rorders.
-                        }
-                        {
-                          auto with real rorders.
-                        }
-                      }
-                    }
-                    {
-                      auto.
-                    }
-                  }
-                }
-                {
-                  apply Rlt_pow. 
-                  {
-                    rewrite Rabs_Rinv.
-                    apply Rmult_lt_reg_l with (Rabs r).
-                    {
-                      case (Rabs_pos r).
-                      {
-                        auto.
-                      }
-                      {
-                        intros hz.
-                        case Eq2.
-                        auto.
-                      }
-                    }
-                    {
-                      rewrite Rmult_1_r.
-                      rewrite Rinv_r.
-                      {
-                        auto with real.
-                      }
-                      {
-                        auto with real.
-                      }
-                    }
-                    {
-                      auto.
-                    }
-                  }
-                  {
-                    auto with arith.
-                  }
-                }
-              }
-              {
-                auto.
-              }
+              intro heq.
+              subst r.
+              simpl in h.
+              rewrite Rmult_0_l in h.
+              apply R1_neq_R0.
+              symmetry.
+              exact h.
+            }
+            (* from there, it's obvious that Rabs r <> 0 *)
+            assert (harnz : Rabs r <> 0).
+            { apply Rabs_no_R0. exact hrnz. }
+            (* We cannot show this goal, so there must be an inconsistency *)
+            exfalso.
+            (* We use XD_Rabs_lt_0_Sn to reveal the inconsistency *)
+            apply Rlt_irrefl with 1.
+            pattern 1 at 1;rewrite <- pow_O with (Rabs (/ r)).
+            rewrite <- Rabs_R1.
+            rewrite <- Rinv_1.
+            rewrite <- h.
+            rewrite Rinv_pow.
+            2:exact hrnz.
+            rewrite <- RPow_abs.
+            apply XD_Rabs_lt_0_Sn.
+            {
+              apply Rinv_neq_0_compat.
+              exact hrnz.
             }
             {
-              red.
-              intro.
-              absurd (r ^ S n = 1).
+              rewrite Rabs_Rinv.
+              2:exact hrnz.
+              pattern 1 at 1;rewrite <- Rinv_involutive.
+              2:exact R1_neq_R0.
+              apply Rinv_lt_contravar.
               {
-                simpl.
-                rewrite H.
-                rewrite Rmult_0_l.
-                auto with real.
+                rewrite Rinv_1.
+                rewrite Rmult_1_r.
+                apply Rabs_pos_lt.
+                exact hrnz.
               }
               {
-                auto.
+                rewrite Rinv_1.
+                exact harlt.
               }
             }
           }
@@ -761,42 +754,10 @@ Proof.
       }
     }
     {
-      generalize h.
       destruct n as [ | n ].
+      { reflexivity. }
       {
-        auto.
-      }
-      {
-        intros H'0.
-        cut (r <> 0); [ intros Eq1 | auto with real ].
-        {
-          cut (Rabs r <> 0); [ intros Eq2 | apply Rabs_no_R0 ].
-          {
-            clear H'0.
-            exfalso.
-            assert (ab: forall P:Prop,  (P -> False) -> P -> False).
-            {
-              intros. apply H. assumption.
-            }
-            apply ab with (Rabs r ^ 0 < Rabs r ^ S n).
-            {
-              repeat rewrite RPow_abs.
-              rewrite h.
-              simpl.
-              apply Rlt_irrefl.
-            }
-            {
-              apply Rlt_pow.
-              { exact hrgt. }
-              {
-                unfold lt.
-                apply le_n_S.
-                apply le_0_n.
-              }
-            }
-          }
-          { exact Eq1. }
-        }
+        assert (hrnz:r<>0).
         {
           intro hrz.
           subst r.
@@ -806,6 +767,21 @@ Proof.
           apply R1_neq_R0 in h.
           contradiction.
         }
+        assert (harnz:Rabs r <> 0).
+        {
+          apply Rabs_no_R0.
+          exact hrnz.
+        }
+        exfalso.
+        apply Rgt_lt in hargt.
+        apply Rlt_irrefl with 1.
+        pattern 1 at 1;rewrite <- pow_O with (Rabs r).
+        rewrite <- Rabs_R1.
+        rewrite <- h.
+        rewrite <- RPow_abs.
+        apply XD_Rabs_lt_0_Sn.
+        exact hrnz.
+        exact hargt.
       }
     }
   }
