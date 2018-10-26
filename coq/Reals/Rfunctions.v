@@ -1080,23 +1080,14 @@ Proof.
   reflexivity.
 Qed.
 
-(* stopped here *)
-
-(*******************************)
-(** *       PowerRZ            *)
-(*******************************)
-(*i Due to L.Thery i*)
-
 Section PowerRZ.
 
 Local Coercion Z_of_nat : nat >-> Z.
 
-(* the following section should probably be somewhere else, but not sure where *)
 Section Z_compl.
 
 Local Open Scope Z_scope.
 
-(* Provides a way to reason directly on Z in terms of nats instead of positive *)
 Inductive Z_spec (x : Z) : Z -> Type :=
 | ZintNull : x = 0 -> Z_spec x 0
 | ZintPos (n : nat) : x = n -> Z_spec x n
@@ -1104,15 +1095,24 @@ Inductive Z_spec (x : Z) : Z -> Type :=
 
 Lemma intP (x : Z) : Z_spec x x.
 Proof.
-  destruct x as [|p|p].
-  - now apply ZintNull.
-  - rewrite <-positive_nat_Z at 2.
-    apply ZintPos.
-    now rewrite positive_nat_Z.
-  - rewrite <-Pos2Z.opp_pos.
-    rewrite <-positive_nat_Z at 2.
+  induction x.
+  {
+    apply ZintNull. (* x = 0 -> Z_spec x 0 *)
+    reflexivity.
+  }
+  {
+    rewrite <- positive_nat_Z at 2. (* Pos.to_nat p = Z.pos p *)
+    apply ZintPos. (* x = n -> Z_spec x n *)
+    rewrite positive_nat_Z.
+    reflexivity.
+  }
+  {
+    rewrite  <- Pos2Z.opp_pos. (* - Z.pos p = Z.neg p *)
+    rewrite <- positive_nat_Z at 2.
     apply ZintNeg.
-    now rewrite positive_nat_Z.
+    rewrite positive_nat_Z.
+    reflexivity.
+  }
 Qed.
 
 End Z_compl.
@@ -1129,24 +1129,60 @@ Local Infix "^Z" := powerRZ (at level 30, right associativity) : R_scope.
 Lemma Zpower_NR0 :
   forall (x:Z) (n:nat), (0 <= x)%Z -> (0 <= Zpower_nat x n)%Z.
 Proof.
-  induction n; unfold Zpower_nat; simpl; auto with zarith.
+  intros x n h.
+  induction n as [ | n i ].
+  {
+    simpl.
+    unfold Z.le.
+    simpl.
+    intro eq.
+    inversion eq.
+  }
+  {
+    simpl.
+    apply Z.mul_nonneg_nonneg.
+    exact h.
+    exact i.
+  }
 Qed.
 
 Lemma powerRZ_O : forall x:R, x ^Z 0 = 1.
 Proof.
+  intro x.
+  simpl.
   reflexivity.
 Qed.
 
 Lemma powerRZ_1 : forall x:R, x ^Z Z.succ 0 = x.
 Proof.
-  simpl; auto with real.
+  intro x.
+  simpl.
+  rewrite Rmult_1_r.
+  reflexivity.
 Qed.
 
 Lemma powerRZ_NOR : forall (x:R) (z:Z), x <> 0 -> x ^Z z <> 0.
 Proof.
-  destruct z; simpl; auto with real.
+  intros x z neq eq.
+  destruct z;simpl in eq.
+  {
+    apply R1_neq_R0. exact eq.
+  }
+  {
+    apply (pow_nonzero _ (Pos.to_nat p)) in neq.
+    contradiction.
+  }
+  {
+    generalize neq;intro neqpow.
+    apply Rinv_neq_0_compat in neqpow.
+    apply (pow_nonzero _ (Pos.to_nat p)) in neqpow.
+    rewrite Rinv_pow in eq.
+    contradiction.
+    exact neq.
+  }
 Qed.
 
+(* skipped *)
 Lemma powerRZ_pos_sub (x:R) (n m:positive) : x <> 0 ->
    x ^Z (Z.pos_sub n m) = x ^ Pos.to_nat n * / x ^ Pos.to_nat m.
 Proof.
@@ -1166,6 +1202,7 @@ Proof.
    reflexivity.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_add :
   forall (x:R) (n m:Z), x <> 0 -> x ^Z (n + m) = x ^Z n * x ^Z m.
 Proof.
@@ -1183,6 +1220,7 @@ Proof.
 Qed.
 Hint Resolve powerRZ_O powerRZ_1 powerRZ_NOR powerRZ_add: real.
 
+(* skipped *)
 Lemma Zpower_nat_powerRZ :
   forall n m:nat, IZR (Zpower_nat (Z.of_nat n) m) = INR n ^Z Z.of_nat m.
 Proof.
@@ -1198,6 +1236,7 @@ Proof.
   unfold Zpower_nat; auto.
 Qed.
 
+(* skipped *)
 Lemma Zpower_pos_powerRZ :
   forall n m, IZR (Z.pow_pos n m) = IZR n ^Z Zpos m.
 Proof.
@@ -1210,18 +1249,21 @@ Proof.
   now rewrite <- IHn0.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_lt : forall (x:R) (z:Z), 0 < x -> 0 < x ^Z z.
 Proof.
   intros x z; case z; simpl; auto with real.
 Qed.
 Hint Resolve powerRZ_lt: real.
 
+(* skipped *)
 Lemma powerRZ_le : forall (x:R) (z:Z), 0 < x -> 0 <= x ^Z z.
 Proof.
   intros x z H'; apply Rlt_le; auto with real.
 Qed.
 Hint Resolve powerRZ_le: real.
 
+(* skipped *)
 Lemma Zpower_nat_powerRZ_absolu :
   forall n m:Z, (0 <= m)%Z -> IZR (Zpower_nat n (Z.abs_nat m)) = IZR n ^Z m.
 Proof.
@@ -1232,6 +1274,7 @@ Proof.
   intros p H'; absurd (0 <= Zneg p)%Z; auto with zarith.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_R1 : forall n:Z, 1 ^Z n = 1.
 Proof.
   intros n; case n; simpl; auto.
@@ -1245,6 +1288,7 @@ Qed.
 
 Local Open Scope Z_scope.
 
+(* skipped *)
 Lemma pow_powerRZ (r : R) (n : nat) :
   (r ^ n)%R = powerRZ r (Z_of_nat n).
 Proof.
@@ -1252,6 +1296,7 @@ Proof.
   now rewrite SuccNat2Pos.id_succ.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_ind (P : Z -> R -> R -> Prop) :
   (forall x, P 0 x 1%R) ->
   (forall x n, P (Z.of_nat n) x (x ^ n)%R) ->
@@ -1268,6 +1313,7 @@ Proof.
     now rewrite <- Pos2Z.opp_pos, <- positive_nat_Z.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_inv x alpha : (x <> 0)%R -> powerRZ (/ x) alpha = Rinv (powerRZ x alpha).
 Proof.
   intros; destruct (intP alpha).
@@ -1280,6 +1326,7 @@ Proof.
     + now rewrite <-Rinv_pow.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_neg x : forall alpha, x <> R0 -> powerRZ x (- alpha) = powerRZ (/ x) alpha.
 Proof.
   intros [|n|n] H ; simpl.
@@ -1289,6 +1336,7 @@ Proof.
     now rewrite Rinv_involutive.
 Qed.
 
+(* skipped *)
 Lemma powerRZ_mult_distr :
   forall m x y, ((0 <= m)%Z \/ (x * y <> 0)%R) ->
            (powerRZ (x*y) m = powerRZ x m * powerRZ y m)%R.
@@ -1311,154 +1359,199 @@ End PowerRZ.
 
 Local Infix "^Z" := powerRZ (at level 30, right associativity) : R_scope.
 
-(*******************************)
-(* For easy interface          *)
-(*******************************)
-(* decimal_exp r z is defined as r 10^z *)
-
 Definition decimal_exp (r:R) (z:Z) : R := (r * 10 ^Z z).
 
 
-(*******************************)
-(** * Sum of n first naturals  *)
-(*******************************)
-(*********)
 Fixpoint sum_nat_f_O (f:nat -> nat) (n:nat) : nat :=
   match n with
     | O => f 0%nat
     | S n' => (sum_nat_f_O f n' + f (S n'))%nat
   end.
 
-(*********)
 Definition sum_nat_f (s n:nat) (f:nat -> nat) : nat :=
   sum_nat_f_O (fun x:nat => f (x + s)%nat) (n - s).
 
-(*********)
 Definition sum_nat_O (n:nat) : nat := sum_nat_f_O (fun x:nat => x) n.
 
-(*********)
 Definition sum_nat (s n:nat) : nat := sum_nat_f s n (fun x:nat => x).
 
-(*******************************)
-(** *          Sum             *)
-(*******************************)
-(*********)
 Fixpoint sum_f_R0 (f:nat -> R) (N:nat) : R :=
   match N with
     | O => f 0%nat
     | S i => sum_f_R0 f i + f (S i)
   end.
 
-(*********)
 Definition sum_f (s n:nat) (f:nat -> R) : R :=
   sum_f_R0 (fun x:nat => f (x + s)%nat) (n - s).
 
+Definition fGP (x:R) (n : nat) := x ^n.
+
 Lemma GP_finite :
   forall (x:R) (n:nat),
-    sum_f_R0 (fun n:nat => x ^ n) n * (x - 1) = x ^ (n + 1) - 1.
+    sum_f_R0 (fGP x) n * (x - 1) = x ^ (n + 1) - 1.
 Proof.
-  intros; induction  n as [| n Hrecn]; simpl.
-  ring.
-  rewrite Rmult_plus_distr_r; rewrite Hrecn; cut ((n + 1)%nat = S n).
-  intro H; rewrite H; simpl; ring.
-  omega.
+  intros x n.
+  pose (f:=fun k => x^k).
+  fold f.
+  induction n as [ | n i].
+  { simpl. rewrite Rmult_1_l. rewrite Rmult_1_r. reflexivity. }
+  {
+    simpl.
+    unfold fGP at 2.
+    rewrite Rmult_plus_distr_r.
+    rewrite i.
+    unfold Rminus.
+    rewrite Rmult_plus_distr_l.
+    rewrite <- Ropp_mult_distr_r.
+    rewrite Rmult_1_r.
+    rewrite pow_add.
+    simpl.
+    rewrite Rmult_1_r.
+    repeat (rewrite Rplus_assoc).
+    rewrite Rplus_comm at 1.
+    repeat (rewrite Rplus_assoc).
+    rewrite (Rmult_comm x (x^n)).
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+    rewrite Rplus_comm.
+    apply Rplus_eq_compat_r.
+    rewrite Rmult_comm.
+    reflexivity.
+  }
 Qed.
+
+Definition fTR (f : nat -> R) (n:nat) := Rabs (f n).
 
 Lemma sum_f_R0_triangle :
-  forall (x:nat -> R) (n:nat),
-    Rabs (sum_f_R0 x n) <= sum_f_R0 (fun i:nat => Rabs (x i)) n.
+  forall (f:nat -> R) (n:nat),
+    Rabs (sum_f_R0 f n) <= sum_f_R0 (fTR f) n.
 Proof.
-  intro; simple induction n; simpl.
-  unfold Rle; right; reflexivity.
-  intro m; intro;
-    apply
-      (Rle_trans (Rabs (sum_f_R0 x m + x (S m)))
-        (Rabs (sum_f_R0 x m) + Rabs (x (S m)))
-        (sum_f_R0 (fun i:nat => Rabs (x i)) m + Rabs (x (S m)))).
-  apply Rabs_triang.
-  rewrite Rplus_comm;
-    rewrite (Rplus_comm (sum_f_R0 (fun i:nat => Rabs (x i)) m) (Rabs (x (S m))));
-      apply Rplus_le_compat_l; assumption.
+  intros f n.
+  induction n as [ | n i ].
+  { simpl. unfold fTR. right. reflexivity. }
+  {
+    simpl.
+    pose (a:=sum_f_R0 f n).
+    fold a in i.
+    pose (b:=sum_f_R0 (fTR f) n).
+    fold b in i. fold b.
+    Search (Rabs ( _ + _)  <= _).
+    fold a.
+    pose (c:= f (S n)).
+    fold c.
+    apply Rle_trans with (Rabs a + Rabs c).
+    apply Rabs_triang.
+    apply Rplus_le_compat.
+    exact i.
+    unfold c. unfold fTR. right. reflexivity.
+  }
 Qed.
 
-(*******************************)
-(** *     Distance  in R       *)
-(*******************************)
-
-(*********)
 Definition R_dist (x y:R) : R := Rabs (x - y).
 
-(*********)
 Lemma R_dist_pos : forall x y:R, R_dist x y >= 0.
 Proof.
-  intros; unfold R_dist; unfold Rabs; case (Rcase_abs (x - y));
-    intro l.
-  unfold Rge; left; apply (Ropp_gt_lt_0_contravar (x - y) l).
-  trivial.
+  intros x y.
+  unfold R_dist.
+  apply Rle_ge.
+  apply Rabs_pos.
 Qed.
 
-(*********)
 Lemma R_dist_sym : forall x y:R, R_dist x y = R_dist y x.
 Proof.
-  unfold R_dist; intros; split_Rabs; try ring.
-  generalize (Ropp_gt_lt_0_contravar (y - x) Hlt0); intro;
-    rewrite (Ropp_minus_distr y x) in H; generalize (Rlt_asym (x - y) 0 Hlt);
-      intro; unfold Rgt in H; exfalso; auto.
-  generalize (minus_Rge y x Hge0); intro; generalize (minus_Rge x y Hge); intro;
-    generalize (Rge_antisym x y H0 H); intro; rewrite H1;
-      ring.
+  intros x y.
+  unfold R_dist.
+  rewrite Rabs_minus_sym.
+  reflexivity.
 Qed.
 
-(*********)
 Lemma R_dist_refl : forall x y:R, R_dist x y = 0 <-> x = y.
 Proof.
-  unfold R_dist; intros; split_Rabs; split; intros.
-  rewrite (Ropp_minus_distr x y) in H; symmetry;
-    apply (Rminus_diag_uniq y x H).
-  rewrite (Ropp_minus_distr x y); generalize (eq_sym H); intro;
-    apply (Rminus_diag_eq y x H0).
-  apply (Rminus_diag_uniq x y H).
-  apply (Rminus_diag_eq x y H).
+  intros x y.
+  split.
+  {
+    intro eq.
+    unfold R_dist in eq.
+    unfold Rabs in eq.
+    unfold Rminus in eq.
+    destruct (Rcase_abs (x + - y)).
+    {
+      apply Rplus_eq_reg_r with (-y).
+      rewrite Rplus_opp_r.
+      rewrite <- Ropp_0.
+      rewrite <- eq.
+      rewrite Ropp_involutive.
+      reflexivity.
+    }
+    {
+      apply Rplus_eq_reg_r with (-y).
+      rewrite Rplus_opp_r.
+      rewrite eq.
+      reflexivity.
+    }
+  }
+  { intro eq. subst y. unfold R_dist. unfold Rminus. rewrite Rplus_opp_r. rewrite Rabs_R0. reflexivity. }
 Qed.
 
 Lemma R_dist_eq : forall x:R, R_dist x x = 0.
 Proof.
-  unfold R_dist; intros; split_Rabs; intros; ring.
+  intros x.
+  unfold R_dist.
+  unfold Rminus.
+  rewrite Rplus_opp_r.
+  rewrite Rabs_R0.
+  reflexivity.
 Qed.
 
-(***********)
 Lemma R_dist_tri : forall x y z:R, R_dist x y <= R_dist x z + R_dist z y.
 Proof.
-  intros; unfold R_dist; replace (x - y) with (x - z + (z - y));
-    [ apply (Rabs_triang (x - z) (z - y)) | ring ].
+  intros x y z.
+  unfold R_dist.
+  unfold Rminus.
+  pattern x at 1;rewrite <- Rplus_0_r.
+  rewrite <- Rplus_opp_l with z.
+  rewrite Rplus_assoc.
+  rewrite Rplus_assoc.
+  rewrite <- (Rplus_assoc x).
+  apply Rle_trans with (Rabs (x+-z) + Rabs (z+-y)).
+  apply Rabs_triang.
+  right.
+  reflexivity.
 Qed.
 
-(*********)
 Lemma R_dist_plus :
   forall a b c d:R, R_dist (a + c) (b + d) <= R_dist a b + R_dist c d.
 Proof.
-  intros; unfold R_dist;
-    replace (a + c - (b + d)) with (a - b + (c - d)).
-  exact (Rabs_triang (a - b) (c - d)).
-  ring.
+  intros a b c d.
+  unfold R_dist.
+  unfold Rminus.
+  rewrite Ropp_plus_distr.
+  rewrite Rplus_assoc.
+  rewrite (Rplus_comm c).
+  rewrite Rplus_assoc.
+  rewrite (Rplus_comm _ c).
+  rewrite <- (Rplus_assoc a).
+  apply Rabs_triang.
 Qed.
 
 Lemma R_dist_mult_l : forall a b c,
   R_dist (a * b) (a * c) = Rabs a * R_dist b c.
 Proof.
-unfold R_dist. 
-intros a b c; rewrite <- Rmult_minus_distr_l, Rabs_mult; reflexivity.
+  intros a b c.
+  unfold R_dist at 1.
+  unfold Rminus.
+  rewrite Ropp_mult_distr_r.
+  rewrite <- Rmult_plus_distr_l.
+  fold (b-c).
+  rewrite Rabs_mult.
+  fold (R_dist b c).
+  reflexivity.
 Qed.
 
-(*******************************)
-(** *     Infinite Sum          *)
-(*******************************)
-(*********)
 Definition infinite_sum (s:nat -> R) (l:R) : Prop :=
   forall eps:R,
     eps > 0 ->
     exists N : nat,
       (forall n:nat, (n >= N)%nat -> R_dist (sum_f_R0 s n) l < eps).
 
-(** Compatibility with previous versions *)
 Notation infinit_sum := infinite_sum (only parsing).
