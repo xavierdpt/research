@@ -179,32 +179,56 @@ Section sequence.
     cv_crit_sum u l e m <= cv_crit_sum u l e (m + n) <= cv_crit_sum u l e m + (/ 2) ^ m - (/ 2) ^ (m + n).
   Proof.
       intros u l e m.
-      induction n.
-      rewrite<- plus_n_O.
-      ring_simplify (cv_crit_sum u l e m + (/ 2) ^ m - (/ 2) ^ m).
-      split ; apply Rle_refl.
-      rewrite <- plus_n_Sm.
-      simpl.
-      split.
-      apply Rle_trans with (cv_crit_sum u l e (m + n)%nat + 0).
-      rewrite Rplus_0_r.
-      apply IHn.
-      apply Rplus_le_compat_l.
-      case (cv_crit_test u l e (m + n)%nat).
-      apply Rlt_le.
-      exact (Hi2pn (S (m + n))).
-      apply Rle_refl.
-      apply Rle_trans with (cv_crit_sum u l e  (m + n)%nat + / 2 * (/ 2) ^ (m + n)).
-      apply Rplus_le_compat_l.
-      case (cv_crit_test u l e (m + n)%nat).
-      apply Rle_refl.
-      apply Rlt_le.
-      exact (Hi2pn (S (m + n))).
-      apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
-      rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
-      apply Rle_trans with (1 := proj2 IHn).
-      apply Req_le.
-      field.
+      induction n as [ | n i ].
+      {
+        rewrite<- plus_n_O.
+        ring_simplify (cv_crit_sum u l e m + (/ 2) ^ m - (/ 2) ^ m).
+        split ; apply Rle_refl.
+      }
+      {
+        rewrite <- plus_n_Sm.
+        simpl.
+        split.
+        {
+          apply Rle_trans with (cv_crit_sum u l e (m + n)%nat + 0).
+          {
+            rewrite Rplus_0_r.
+            apply i.
+          }
+          {
+            apply Rplus_le_compat_l.
+            case (cv_crit_test u l e (m + n)%nat).
+            {
+              apply Rlt_le.
+              exact (Hi2pn (S (m + n))).
+            }
+            {
+              apply Rle_refl.
+            }
+          }
+        }
+        {
+          apply Rle_trans with (cv_crit_sum u l e  (m + n)%nat + / 2 * (/ 2) ^ (m + n)).
+          {
+            apply Rplus_le_compat_l.
+            case (cv_crit_test u l e (m + n)%nat).
+            {
+              apply Rle_refl.
+            }
+            {
+              apply Rlt_le.
+              exact (Hi2pn (S (m + n))).
+            }
+          }
+          {
+            apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
+            rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+            apply Rle_trans with (1 := proj2 i).
+            apply Req_le.
+            field.
+          }
+        }
+      }
   Qed.
 
   Lemma cv_crit_sum_r_inj : forall (u : nat -> R) (l e : R) (n:nat) (r r' : R),
@@ -249,29 +273,99 @@ Section sequence.
     }
   Qed.
 
-  Lemma tata2 : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
+  Definition tata2_def := forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
     cv_crit_sum_r u l e m x ->
     cv_crit_sum_r u l e (m + n) y ->
     x <= y <= x + (/ 2) ^ m - (/ 2) ^ (m + n).
+
+  Lemma tata2_induction_n : tata2_def.
   Proof.
+    unfold tata2_def.
     intros u l e m n x y hx hy.
     generalize dependent m.
     induction n as [ | n i ].
     {
       intros m hx hy.
-      rewrite plus_comm in hy;simpl in hy.
-      rewrite plus_comm;simpl.
+      rewrite plus_comm in hy.
+      simpl in hy.
+      rewrite plus_comm.
+      simpl.
       unfold Rminus.
-      rewrite Rplus_assoc.  
+      rewrite Rplus_assoc.
       rewrite Rplus_opp_r.
       rewrite Rplus_0_r.
-      split;right;apply (cv_crit_sum_r_inj u l e m);assumption.
+      {
+        inversion hx.
+        {
+          subst x.
+          subst m.
+          inversion hy.
+          subst y.
+          split;right;reflexivity.
+        }
+        {
+          subst x.
+          subst m.
+          simpl.
+          simpl in hx.
+          inversion hy.
+          {
+            subst y.
+            subst n0.
+            simpl.
+            simpl in hy.
+            split.
+            {
+              right.
+              apply (cv_crit_sum_r_inj u l e (S n)).
+              assumption.
+              assumption.
+            }
+            {
+              right.
+              apply (cv_crit_sum_r_inj u l e (S n)).
+              assumption.
+              assumption.
+            }
+          }
+          {
+            subst n. subst y. exfalso.
+            destruct H2. apply Rlt_irrefl with (u n0). apply Rlt_trans with (l-e);assumption.
+            rewrite H1 in H. apply Rlt_irrefl in H. contradiction.
+          }
+        }
+        {
+          subst x.
+          subst m.
+          inversion hy.
+          {
+            subst y.
+            subst n0.
+            exfalso.
+            destruct H. apply Rlt_irrefl with (u n). apply Rlt_trans with (l-e);assumption.
+            rewrite H in H2. apply Rlt_irrefl in H2. contradiction.
+          }
+          {
+            subst y. subst n0. split.
+            { right. apply (cv_crit_sum_r_inj u l e (S n)). assumption. assumption. }
+            { right. apply (cv_crit_sum_r_inj u l e (S n)). assumption. assumption. }
+          }
+        }
+      }
     }
     {
-      intros m hx hy.
-      rewrite <- plus_n_Sm.
-      simpl.
-      (* to be continued *)
+
+  Admitted.
+
+
+  Lemma tata2_cheat : tata2_def.
+  Proof.
+    unfold tata2_def.
+    intros u l e m n x y hx hy.
+    rewrite cv_crit_equiv in hx.
+    rewrite cv_crit_equiv in hy.
+    subst x. subst y.
+    apply tata.
   Qed.
 
   Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
