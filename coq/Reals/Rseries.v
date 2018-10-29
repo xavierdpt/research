@@ -100,8 +100,7 @@ Section sequence.
       cv_crit_sum_r u l e n r ->
       cv_crit_sum_r u l e (S n) ( r + (/ 2)^(S n))
   | crit_f : forall (n:nat) (r:R),
-      ( u n
-   <= l - e) ->
+      ( u n <= l - e) ->
       cv_crit_sum_r u l e n r ->
       cv_crit_sum_r u l e (S n) r
   .
@@ -273,19 +272,65 @@ Section sequence.
     }
   Qed.
 
-  Definition tata2_def := forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
+  Lemma crit_Sn : forall u l e n y,
+    cv_crit_sum_r u l e (S n) y ->
+    (u n <= l - e /\ cv_crit_sum_r u l e n y) \/ (l - e < u n /\ cv_crit_sum_r u l e n (y - (/ 2) ^ (S n))).
+  Proof.
+    intros u l e n y hy.
+    inversion hy;clear hy.
+    { subst y n0.
+      right. split. assumption.
+      unfold Rminus. rewrite Rplus_assoc.
+      rewrite Rplus_opp_r.
+      rewrite Rplus_0_r.
+      assumption.
+    }
+    { subst n0 r. left. split;assumption. }
+  Qed.
+
+  Remark Rlt_0_half : 0 < / 2.
+  Proof.
+    apply Rinv_0_lt_compat.
+    apply Rlt_0_2.
+  Qed.
+
+  Remark Rlt_half_1 : / 2 < 1.
+  Proof.
+    rewrite <- Rinv_1.
+    Search (/ _ < / _).
+    apply Rinv_lt_contravar.
+    rewrite Rmult_1_l. apply Rlt_0_2.
+    pattern 2;rewrite <- Rmult_1_r. rewrite double.
+    pattern 1 at 1;rewrite <- Rplus_0_r. apply Rplus_lt_compat_l.
+    apply Rlt_0_1.
+  Qed.
+
+  Remark half_half :/ 2 + / 2 = 1.
+  Proof.
+    pattern (/ 2);rewrite <- Rmult_1_r.
+    rewrite <- Rmult_plus_distr_l.
+    rewrite <- double.
+    rewrite Rmult_1_r.
+    rewrite Rinv_l.
+    reflexivity.
+    intro eq.
+    apply Rlt_irrefl with 0.
+    pattern 0 at 2;rewrite <- eq.
+    apply Rlt_0_2.
+  Qed.
+
+  Lemma tata2 : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
     cv_crit_sum_r u l e m x ->
     cv_crit_sum_r u l e (m + n) y ->
     x <= y <= x + (/ 2) ^ m - (/ 2) ^ (m + n).
-
-  Lemma tata2_induction_n : tata2_def.
   Proof.
-    unfold tata2_def.
     intros u l e m n x y hx hy.
     generalize dependent m.
+    generalize dependent y.
+    generalize dependent x.
     induction n as [ | n i ].
     {
-      intros m hx hy.
+      intros x y m hx hy.
       rewrite plus_comm in hy.
       simpl in hy.
       rewrite plus_comm.
@@ -354,18 +399,52 @@ Section sequence.
       }
     }
     {
-
-  Admitted.
-
-
-  Lemma tata2_cheat : tata2_def.
-  Proof.
-    unfold tata2_def.
-    intros u l e m n x y hx hy.
-    rewrite cv_crit_equiv in hx.
-    rewrite cv_crit_equiv in hy.
-    subst x. subst y.
-    apply tata.
+      intros x y m hx hy.
+      rewrite <- plus_n_Sm in hy.
+      inversion hy;clear hy.
+      {
+        subst n0 y.
+        rename r into y;rename H1 into hy.
+        specialize (i x y m hx hy).
+        destruct i.
+        split.
+        {
+          apply Rle_trans with y.
+          assumption.
+          pattern y at 1;rewrite <- Rplus_0_r. apply Rplus_le_compat_l.
+          apply pow_le. left. apply Rlt_0_half.
+        }
+        {
+          simpl.
+          apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
+          rewrite Rplus_assoc. rewrite Rplus_opp_r. rewrite Rplus_0_r.
+          rewrite <- plus_n_Sm. simpl.
+          unfold Rminus.
+          rewrite Rplus_assoc.
+          rewrite <- Ropp_plus_distr.
+          rewrite <- Rmult_plus_distr_r.
+          rewrite half_half.
+          rewrite Rmult_1_l.
+          assumption.
+        }
+      }
+      {
+        subst y n0. rename r into y. rename H1 into hy.
+        specialize (i x y m hx hy).
+        destruct i.
+        split. assumption.
+        apply Rle_trans with (x + (/ 2) ^ m - (/ 2) ^ (m + n)).
+        assumption.
+        unfold Rminus. apply Rplus_le_compat_l.
+        apply Ropp_le_contravar.
+        rewrite <- plus_n_Sm. simpl.
+        pattern ((/ 2) ^ (m + n)) at 2;rewrite <- Rmult_1_l.
+        apply Rmult_le_compat_r.
+        apply pow_le.
+        left. apply Rlt_0_half.
+        left. apply Rlt_half_1.
+      }
+    }
   Qed.
 
   Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
