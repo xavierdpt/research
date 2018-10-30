@@ -497,6 +497,66 @@ Section sequence.
 
   Definition fcrit1 u l e x := exists n : nat, cv_crit_sum_r u l e n x.
 
+  Lemma crit_technic_1_fix : forall (u : nat -> R) (l e : R),
+    (forall n : nat, cv_crit_sum u l e n = 0) ->
+    forall n : nat, u n <= l - e.
+  Proof.
+    intros u l e h n.
+    generalize (eq_refl (cv_crit_sum u l e (S n)));intro eq.
+    simpl cv_crit_sum at 1 in eq.
+    rewrite h in eq.
+    rewrite h in eq.
+    rewrite Rplus_0_l in eq.
+    unfold cv_crit_test in eq.
+    destruct Rle_lt_dec.
+    { assumption. }
+    elim Rgt_not_eq with (2 := eq).
+    exact (Hi2pn (S n)).
+  Qed.
+
+  Lemma crit_technic_1 : forall (u : nat -> R) (l e : R),
+    (forall n : nat, cv_crit_sum_r u l e n 0) ->
+    forall n : nat, u n <= l - e.
+  Proof.
+    intros u l e h n.
+    induction n as [ | n i ].
+    {
+      specialize (h 1%nat).
+      inversion h;clear h.
+      {
+        subst n.
+        rewrite Rmult_1_r in H0.
+        apply (Rplus_eq_compat_r (-(/ 2))) in H0.
+        rewrite Rplus_0_l in H0.
+        rewrite Rplus_assoc in H0.
+        rewrite Rplus_opp_r in H0.
+        rewrite Rplus_0_r in H0.
+        subst r.
+        inversion H2.
+        rewrite <- Ropp_0 in H.
+        apply Ropp_eq_compat in H.
+        repeat (rewrite Ropp_involutive  in H).
+        exfalso;apply Rlt_irrefl with 0.
+        pattern 0 at 2;rewrite H.
+        apply Rlt_0_half.
+      }
+      assumption.
+    }
+    {
+      specialize (h (S (S n))).
+      apply crit_Sn in h.
+      destruct h. destruct H. assumption.
+      destruct H.
+      {
+        unfold Rminus in H0.
+        rewrite Rplus_0_l in H0.
+        inversion H0;clear H0.
+        { exfalso. clear - i H3. admit. }
+        { admit. }
+      }
+    }
+  Admitted.
+
   Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
   Proof.
     intros u hu l hlub.
@@ -506,237 +566,220 @@ Section sequence.
 
     assert (HE : exists N, u N > l - e).
     {
-
-    generalize (crit_bound_fix u l e);intro Hsum'.
-    generalize (crit_bound u l e );intro Hsum''.
-
-    generalize crit_bound_O;intro Hsumm.
-
-
-    destruct (completeness (fcrit1 u l e)) as (m, (Hm1, Hm2)).
-    {
-      exists 1.
-      intros x (n, H1).
-      rewrite cv_crit_equiv in H1.
-      rewrite <- H1.
+      generalize (crit_bound_fix u l e);intro Hsum'.
+      generalize (crit_bound u l e );intro Hsum''.
+      generalize crit_bound_O;intro Hsumm.
+      destruct (completeness (fcrit1 u l e)) as (m, (Hm1, Hm2)).
+      {
+        exists 1.
+        intros x (n, H1).
+        rewrite cv_crit_equiv in H1.
+        rewrite <- H1.
 
 
-      specialize (Hsumm u l e n x).
-      generalize H1;intro Hyoupi.
-      rewrite <- cv_crit_equiv in Hyoupi.
-      specialize (Hsumm Hyoupi).
-      destruct Hsumm as [lala yoto].
-      apply Rle_trans with (1 - (/ 2) ^ n).
-      rewrite H1. exact yoto.
-      unfold Rminus.
-      pattern 1 at 2;rewrite <- Rplus_0_r.
-      apply Rplus_le_compat_l.
-      rewrite <- Ropp_0.
-      apply Ropp_le_contravar.
-      apply pow_le.
-      left.
-      apply Rlt_0_half.
+        specialize (Hsumm u l e n x).
+        generalize H1;intro Hyoupi.
+        rewrite <- cv_crit_equiv in Hyoupi.
+        specialize (Hsumm Hyoupi).
+        destruct Hsumm as [lala yoto].
+        apply Rle_trans with (1 - (/ 2) ^ n).
+        rewrite H1. exact yoto.
+        unfold Rminus.
+        pattern 1 at 2;rewrite <- Rplus_0_r.
+        apply Rplus_le_compat_l.
+        rewrite <- Ropp_0.
+        apply Ropp_le_contravar.
+        apply pow_le.
+        left.
+        apply Rlt_0_half.
+      }
+      {
+        exists 0. unfold fcrit1. exists O. constructor.
+      }
+      {
+        destruct (Rle_or_lt m 0) as [[Hm|Hm]|Hm].
+        {
+          elim Rlt_not_le with (1 := Hm).
+          apply Hm1.
+          unfold fcrit1. exists O. constructor.
+        }
+        {
+          assert (Hs0: forall n, cv_crit_sum u l e n = 0).
+          {
+            generalize youpi;intro youpi.
+            specialize (youpi u l e). intro n.
+            unfold is_upper_bound in Hm1.
+            rewrite <- cv_crit_equiv.
+            apply youpi.
+            unfold is_upper_bound.
+            intros iti oto.
+            destruct oto as [ zim zam ].
+            subst m.
+            apply Hm1.
+            exists zim. assumption.
+          }
+          assert (Hub: forall n, u n <= l - e).
+          {
+            clear -Hs0.
+            generalize dependent Hs0.
+            generalize dependent e.
+            generalize dependent l.
+            generalize dependent u.
+            intros n.
+            generalize (eq_refl (cv_crit_sum u l e (S n))).
+            simpl cv_crit_sum at 1.
+            rewrite 2!Hs0, Rplus_0_l.
+            unfold cv_crit_test.
+            destruct Rle_lt_dec.
+            { easy. }
+            intros H'.
+            elim Rgt_not_eq with (2 := H').
+            exact (Hi2pn (S n)).
+          }
+          clear -he H Hub.
+          destruct H as (_, H).
+          refine (False_ind _ (Rle_not_lt _ _ (H (l - e) _) _)).
+          {
+            intros x (n, H1).
+            now rewrite H1.
+          }
+          apply Rplus_lt_reg_l with (e - l).
+          now ring_simplify.
+        }
+        assert (Rabs (/2) < 1).
+        {
+          rewrite Rabs_pos_eq.
+          apply Rlt_half_1.
+          left.
+          apply Rlt_0_half.
+        }
+        destruct (pow_lt_1_zero (/2) H0 m Hm) as [N H4].
+        exists N.
+        apply Rnot_le_lt.
+        intros H5.
+        apply Rlt_not_le with (1 := H4 _ (le_refl _)).
+        rewrite Rabs_pos_eq.
+        {
+          apply Hm2.
+          intros x (n, H6).
+          rewrite cv_crit_equiv in H6.
+          rewrite <- H6. clear x H6.
+          assert (Hs: cv_crit_sum u l e N = 0).
+          {
+            clear H4.
+            induction N.
+            { easy. }
+            {
+              simpl.
+              assert (H6: u N <= l - e).
+              {
+                apply Rle_trans with (2 := H5).
+                apply Rge_le.
+                apply growing_prop ; try easy.
+                apply le_n_Sn.
+              }
+              rewrite (IHN H6), Rplus_0_l.
+              unfold cv_crit_test.
+              destruct Rle_lt_dec as [Hle|Hlt].
+              {
+                apply eq_refl.
+              }
+              now elim Rlt_not_le with (1 := Hlt).
+            }
+          }
+          destruct (le_or_lt N n) as [Hn|Hn].
+          {
+            rewrite le_plus_minus with (1 := Hn).
+            specialize (Hsum' N).
+            specialize (Hsum' (n-N)%nat).
+            destruct Hsum' as [A B].
+            apply Rle_trans with (  cv_crit_sum u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
+            exact B.
+            rewrite Hs.
+            rewrite Rplus_0_l.
+            pose (k := (N + (n - N))%nat).
+            fold k.
+            pose (p2N:=(/2)^N).
+            pose (p2k:=(/2)^k).
+            fold p2N. fold p2k.
+            left.
+            apply Rplus_lt_reg_l with (p2k - p2N).
+            unfold Rminus.
+            repeat (rewrite Rplus_assoc).
+            rewrite (Rplus_comm).
+            repeat (rewrite <- Rplus_assoc).
+            rewrite Rplus_opp_l.
+            rewrite Rplus_0_l.
+            rewrite Rplus_opp_l.
+            repeat (rewrite Rplus_assoc).
+            rewrite Rplus_opp_l.
+            rewrite Rplus_0_r.
+            unfold p2k.
+            apply Hi2pn.
+          }
+          apply Rle_trans with (cv_crit_sum u l e N).
+          {
+            rewrite le_plus_minus with (1 := Hn).
+            rewrite plus_Snm_nSm.
+            apply Hsum'.
+          }
+          {
+            rewrite Hs.
+            left.
+            apply pow_lt.
+            apply Rlt_0_half.
+          }
+        }
+        left.
+        apply Hi2pn.
+      }
     }
-    {
-      exists 0. unfold fcrit1. exists O. constructor.
-    }
-
-    destruct (Rle_or_lt m 0) as [[Hm|Hm]|Hm].
-    {
-      elim Rlt_not_le with (1 := Hm).
-      apply Hm1.
-      unfold fcrit1. exists O. constructor.
-    }
-    {
-    assert (Hs0: forall n, cv_crit_sum u l e n = 0).
-    {
-      generalize youpi;intro youpi.
-      specialize (youpi u l e). intro n.
-      unfold is_upper_bound in Hm1.
-      rewrite <- cv_crit_equiv.
-      apply youpi.
-      unfold is_upper_bound.
-      intros iti oto.
-      destruct oto as [ zim zam ].
-      subst m.
-      apply Hm1.
-      exists zim. assumption.
-    }
-
-    assert (Hub: forall n, u n <= l - e).
-    {
-      intros n.
-      generalize (eq_refl (cv_crit_sum u l e (S n))).
-    simpl cv_crit_sum at 1.
-    rewrite 2!Hs0, Rplus_0_l.
-    unfold cv_crit_test.
-    destruct Rle_lt_dec.
-    { easy. }
-    intros H'.
-    elim Rgt_not_eq with (2 := H').
-    exact (Hi2pn (S n)).
-    }
-
-    clear -he H Hub.
-    destruct H as (_, H).
-    refine (False_ind _ (Rle_not_lt _ _ (H (l - e) _) _)).
-    {
-    intros x (n, H1).
-    now rewrite H1.
-    }
-    apply Rplus_lt_reg_l with (e - l).
-    now ring_simplify.
-    }
-
-    assert (Rabs (/2) < 1).
-    {
-    rewrite Rabs_pos_eq.
-    {
-    rewrite <- Rinv_1.
-    apply Rinv_lt_contravar.
-    {
-    rewrite Rmult_1_l.
-    now apply (IZR_lt 0 2).
-    }
-    now apply (IZR_lt 1 2).
-    }
-    apply Rlt_le.
-    apply Rinv_0_lt_compat.
-    now apply (IZR_lt 0 2).
-    }
-    destruct (pow_lt_1_zero (/2) H0 m Hm) as [N H4].
+    destruct HE as [N hun].
     exists N.
-    apply Rnot_le_lt.
-    intros H5.
-    apply Rlt_not_le with (1 := H4 _ (le_refl _)).
-    rewrite Rabs_pos_eq.
-{
-    apply Hm2.
-    intros x (n, H6).
-    rewrite cv_crit_equiv in H6.
-    rewrite <- H6. clear x H6.
-
-
-
-    assert (Hs: cv_crit_sum u l e N = 0).
-    {
-    clear H4.
-    induction N.
-    {
-    easy.
-    }
-    {
-    simpl.
-    assert (H6: u N <= l - e).
-    {
-    apply Rle_trans with (2 := H5).
-    apply Rge_le.
-    apply growing_prop ; try easy.
-    apply le_n_Sn.
-    }
-    rewrite (IHN H6), Rplus_0_l.
-    unfold cv_crit_test.
-    destruct Rle_lt_dec as [Hle|Hlt].
-    {
-    apply eq_refl.
-    }
-    now elim Rlt_not_le with (1 := Hlt).
-    }
-    }
-
-    destruct (le_or_lt N n) as [Hn|Hn].
-    {
-      rewrite le_plus_minus with (1 := Hn).
-      specialize (Hsum' N).
-      specialize (Hsum' (n-N)%nat).
-      destruct Hsum' as [A B].
-      apply Rle_trans with (  cv_crit_sum u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
-      exact B.
-      rewrite Hs.
-      rewrite Rplus_0_l.
-      pose (k := (N + (n - N))%nat).
-      fold k.
-      pose (p2N:=(/2)^N).
-      pose (p2k:=(/2)^k).
-      fold p2N. fold p2k.
-      left.
-      apply Rplus_lt_reg_l with (p2k - p2N).
-      unfold Rminus.
-      repeat (rewrite Rplus_assoc).
-      rewrite (Rplus_comm).
-      repeat (rewrite <- Rplus_assoc).
-      rewrite Rplus_opp_l.
-      rewrite Rplus_0_l.
-      rewrite Rplus_opp_l.
-      repeat (rewrite Rplus_assoc).
-      rewrite Rplus_opp_l.
-      rewrite Rplus_0_r.
-      unfold p2k.
-      apply Hi2pn.
-    }
-    apply Rle_trans with (cv_crit_sum u l e N).
-    {
-      rewrite le_plus_minus with (1 := Hn).
-      rewrite plus_Snm_nSm.
-      apply Hsum'.
-    }
-    {
-      rewrite Hs.
-      left.
-      apply pow_lt.
-      apply Rlt_0_half.
-    }
-  }
-  left.
-  apply Hi2pn.
-  }
-
-      destruct HE as [N hun].
-      exists N.
-      intros n hnN.
-      unfold R_dist.
-      rewrite Rabs_left1.
+    intros n hnN.
+    unfold R_dist.
+    rewrite Rabs_left1.
+    { (* ok *)
+      rewrite Ropp_minus_distr.
+      apply Rplus_lt_reg_l with (u n - e).
+      apply Rlt_le_trans with (u N).
       { (* ok *)
-        rewrite Ropp_minus_distr.
-        apply Rplus_lt_reg_l with (u n - e).
-        apply Rlt_le_trans with (u N).
-        { (* ok *)
-         apply Rgt_lt in hun.
-         unfold Rminus.
-         repeat (rewrite Rplus_assoc).
-         rewrite (Rplus_comm (u n)).
-         repeat (rewrite Rplus_assoc).
-         rewrite Rplus_opp_l.
-         rewrite Rplus_0_r.
-         rewrite Rplus_comm.
-         fold (l - e).
-         exact hun.
-        }
-        { (* ok *)
-          unfold Rminus.
-          rewrite Rplus_assoc.
-          rewrite Rplus_opp_l.
-          rewrite Rplus_0_r.
-          apply Rge_le.
-          apply growing_prop. (*  Un_growing U -> (n >= m)%nat -> U n >= U m *)
-          { exact hu. }
-          { exact hnN. }
-        }
+       apply Rgt_lt in hun.
+       unfold Rminus.
+       repeat (rewrite Rplus_assoc).
+       rewrite (Rplus_comm (u n)).
+       repeat (rewrite Rplus_assoc).
+       rewrite Rplus_opp_l.
+       rewrite Rplus_0_r.
+       rewrite Rplus_comm.
+       fold (l - e).
+       exact hun.
       }
       { (* ok *)
         unfold Rminus.
-        apply Rplus_le_reg_r with l.
         rewrite Rplus_assoc.
         rewrite Rplus_opp_l.
-        rewrite Rplus_0_l.
         rewrite Rplus_0_r.
-        destruct hlub as [ hup B ];clear B.
-        unfold is_upper_bound in hup.
-        apply hup.
-        unfold EUn.
-        exists n.
-        reflexivity.
+        apply Rge_le.
+        apply growing_prop. (*  Un_growing U -> (n >= m)%nat -> U n >= U m *)
+        { exact hu. }
+        { exact hnN. }
       }
+    }
+    { (* ok *)
+      unfold Rminus.
+      apply Rplus_le_reg_r with l.
+      rewrite Rplus_assoc.
+      rewrite Rplus_opp_l.
+      rewrite Rplus_0_l.
+      rewrite Rplus_0_r.
+      destruct hlub as [ hup B ];clear B.
+      unfold is_upper_bound in hup.
+      apply hup.
+      unfold EUn.
+      exists n.
+      reflexivity.
+    }
   Qed.
 
 (*********)
