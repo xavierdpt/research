@@ -514,48 +514,75 @@ Section sequence.
     exact (Hi2pn (S n)).
   Qed.
 
+  Lemma crit_pos : forall u l e n x, cv_crit_sum_r u l e n x -> 0 <= x.
+  Proof.
+    intros u l e n x h.
+    generalize dependent x.
+    induction n as [ | n i ].
+    { intros x h. inversion h. subst x. right. reflexivity. }
+    {
+      intros x h.
+      inversion h;clear h.
+      {
+        subst x n0.
+        apply Rle_trans with r.
+        { apply i. assumption. }
+        {
+          pattern r at 1;rewrite <- Rplus_0_r.
+          apply Rplus_le_compat_l.
+          apply pow_le.
+          left.
+          exact Rlt_0_half.
+        }
+      }
+      { subst x n0. apply i. assumption. }
+    }
+    Qed.
+
   Lemma crit_technic_1 : forall (u : nat -> R) (l e : R),
     (forall n : nat, cv_crit_sum_r u l e n 0) ->
     forall n : nat, u n <= l - e.
   Proof.
     intros u l e h n.
-    induction n as [ | n i ].
+    specialize (h (S n)).
+    inversion h;clear h.
     {
-      specialize (h 1%nat).
-      inversion h;clear h.
+      subst n0.
+      rename H0 into eq.
+      apply (Rplus_eq_compat_r (-(/ 2 * (/ 2) ^ n))) in eq.
+      rewrite Rplus_assoc in eq.
+      rewrite Rplus_opp_r in eq.
+      rewrite Rplus_0_r in eq.
+      rewrite Rplus_0_l in eq.
+      subst r.
+      rename H2 into h.
+      apply crit_pos in h.
+      exfalso. clear -h.
+      destruct h.
       {
-        subst n.
-        rewrite Rmult_1_r in H0.
-        apply (Rplus_eq_compat_r (-(/ 2))) in H0.
-        rewrite Rplus_0_l in H0.
-        rewrite Rplus_assoc in H0.
-        rewrite Rplus_opp_r in H0.
-        rewrite Rplus_0_r in H0.
-        subst r.
-        inversion H2.
-        rewrite <- Ropp_0 in H.
-        apply Ropp_eq_compat in H.
-        repeat (rewrite Ropp_involutive  in H).
-        exfalso;apply Rlt_irrefl with 0.
-        pattern 0 at 2;rewrite H.
-        apply Rlt_0_half.
+        apply Rlt_irrefl with 0.
+        apply Rlt_trans with (- (/ 2 * (/ 2) ^ n)).
+        { assumption. }
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          rewrite tech_pow_Rmult.
+          apply pow_lt.
+          exact Rlt_0_half.
+        }
       }
-      assumption.
-    }
-    {
-      specialize (h (S (S n))).
-      apply crit_Sn in h.
-      destruct h. destruct H. assumption.
-      destruct H.
       {
-        unfold Rminus in H0.
-        rewrite Rplus_0_l in H0.
-        inversion H0;clear H0.
-        { exfalso. clear - i H3. admit. }
-        { admit. }
+        apply Rlt_irrefl with 0.
+        pattern 0 at 1;rewrite H.
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        rewrite tech_pow_Rmult.
+        apply pow_lt.
+        exact Rlt_0_half.
       }
     }
-  Admitted.
+    { assumption. }
+    Qed.
 
   Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
   Proof.
