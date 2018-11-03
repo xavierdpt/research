@@ -82,6 +82,7 @@ Section sequence.
     constructor.
   Qed.
 
+
   (* This is the old crit test *)
   Definition cv_crit_test (u : nat->R ) (l e : R) (n:nat) := if Rle_lt_dec (u n) (l - e) then false else true.
 
@@ -91,6 +92,7 @@ Section sequence.
     | S n' => cv_crit_sum u l e n' +
       if cv_crit_test u l e n' then (/ 2)^n else 0
     end.
+
 
   (* This is an equivalent inductive relation  for crit sum and test *)
   Inductive cv_crit_sum_r (u : nat->R ) (l e : R) : nat -> R -> Prop :=
@@ -114,7 +116,6 @@ Section sequence.
   Remark Rlt_half_1 : / 2 < 1.
   Proof.
     rewrite <- Rinv_1.
-    Search (/ _ < / _).
     apply Rinv_lt_contravar.
     rewrite Rmult_1_l. apply Rlt_0_2.
     pattern 2;rewrite <- Rmult_1_r. rewrite double.
@@ -213,6 +214,17 @@ Section sequence.
     }
   Qed.
 
+  Lemma practice3 : forall u l e,
+    (forall n, u n <= l - e) ->
+    forall n, cv_crit_sum_r u l e n 0.
+  Proof.
+    intros u l e h n.
+    induction n as [ | n i ].
+    constructor.
+    apply crit_f. apply h. exact i.
+  Qed.
+
+
   (* This is the proof that both definitions are equivalent *)
   Remark cv_crit_equiv : forall (u : nat->R ) (l e : R) (n:nat) (r:R),
     cv_crit_sum_r u l e n r <-> cv_crit_sum u l e n = r.
@@ -273,15 +285,6 @@ Section sequence.
   }
   Qed.
 
-  (* Utility to go from the relation to the fixpoint definition *)
-  Remark crit_to_fix : forall (u : nat->R ) (l e : R) (n:nat) (r:R),
-    cv_crit_sum_r u l e n r -> (exists r, cv_crit_sum u l e n = r).
-  Proof.
-    intros u l e n r h.
-    apply cv_crit_equiv in h.
-    exists r. exact h.
-  Qed.
-
   Lemma crit_bound_fix : forall (u : nat -> R) (l e : R) (m n : nat),
     cv_crit_sum u l e m <= cv_crit_sum u l e (m + n) <= cv_crit_sum u l e m + (/ 2) ^ m - (/ 2) ^ (m + n).
   Proof.
@@ -337,6 +340,7 @@ Section sequence.
         }
       }
   Qed.
+
 
   Lemma cv_crit_sum_r_inj : forall (u : nat -> R) (l e : R) (n:nat) (r r' : R),
     cv_crit_sum_r u l e n r ->
@@ -576,23 +580,6 @@ Section sequence.
 
   Definition fcrit1 u l e x := exists n : nat, cv_crit_sum_r u l e n x.
 
-  Lemma crit_technic_1_fix : forall (u : nat -> R) (l e : R),
-    (forall n : nat, cv_crit_sum u l e n = 0) ->
-    forall n : nat, u n <= l - e.
-  Proof.
-    intros u l e h n.
-    generalize (eq_refl (cv_crit_sum u l e (S n)));intro eq.
-    simpl cv_crit_sum at 1 in eq.
-    rewrite h in eq.
-    rewrite h in eq.
-    rewrite Rplus_0_l in eq.
-    unfold cv_crit_test in eq.
-    destruct Rle_lt_dec.
-    { assumption. }
-    elim Rgt_not_eq with (2 := eq).
-    exact (Hi2pn (S n)).
-  Qed.
-
   Lemma crit_pos : forall u l e n x, cv_crit_sum_r u l e n x -> 0 <= x.
   Proof.
     intros u l e n x h.
@@ -617,26 +604,6 @@ Section sequence.
       { subst x n0. apply i. assumption. }
     }
     Qed.
-
-  Lemma practice3 : forall u l e n, l =e -> cv_crit_sum_r u l e n 0.
-  Proof.
-    generalize practice2;intro p.
-    generalize crit_pos;intro pos.
-    intros u l e n h.
-    subst e.
-    induction n as [ | n i].
-    { constructor. }
-    { apply crit_f.
-      {
-        unfold Rminus. rewrite Rplus_opp_r.
-        eapply (p u l (l+1) l n).
-        { admit. (* TODO *)}
-        { admit. (* TODO *)}
-        { assumption. }
-      }
-      apply i.
-    }
-  Qed.
 
   Lemma crit_technic_1 : forall (u : nat -> R) (l e : R),
     (forall n : nat, cv_crit_sum_r u l e n 0) ->
@@ -707,13 +674,12 @@ Section sequence.
 
   Lemma crit_technic_3 : forall (u : nat -> R) (l e : R),
     is_upper_bound (fcrit1 u l e) 0 ->
-    forall n : nat, cv_crit_sum u l e n = 0.
+    forall n : nat, cv_crit_sum_r u l e n 0.
   Proof.
     intros u l e h.
     generalize youpi;intro youpi.
     specialize (youpi u l e). intro n.
     unfold is_upper_bound in h.
-    rewrite <- cv_crit_equiv.
     apply youpi.
     unfold is_upper_bound.
     intros iti oto.
@@ -722,7 +688,8 @@ Section sequence.
     exists zim. assumption.
   Qed.
 
-  Lemma crit_technic_4 : forall (u : nat -> R) (l e : R), Un_growing u -> forall  (N : nat), u N <= l - e -> cv_crit_sum u l e N = 0.
+
+  Lemma crit_technic_4_fix : forall (u : nat -> R) (l e : R), Un_growing u -> forall  (N : nat), u N <= l - e -> cv_crit_sum u l e N = 0.
   Proof.
       intros.
       induction N.
@@ -743,193 +710,252 @@ Section sequence.
       }
   Qed.
 
+
+  Lemma crit_technic_4 : forall (u : nat -> R) (l e : R),
+    Un_growing u ->
+    forall  (N : nat), u N <= l - e ->
+    cv_crit_sum_r u l e N 0.
+  Proof.
+      intros.
+      induction N.
+      { constructor. }
+      {
+        simpl.
+        generalize crit_technic_2;intro H6.
+        specialize (H6 u l e H).
+        specialize (H6 N).
+        specialize (H6 H0).
+        apply crit_f.
+        exact H6.
+        apply IHN.
+        exact H6.
+      }
+  Qed.
+
+  Lemma crit_bounded : forall u l e, bound (fcrit1 u l e).
+  Proof.
+    intros u l e.
+    unfold bound.
+    exists 1.
+    unfold is_upper_bound.
+    intros x h.
+    unfold fcrit1 in h.
+    destruct h as [n h].
+    apply Rle_trans with (1-(/2)^n).
+    {
+      generalize crit_bound_O;intro cb.
+      specialize (cb u l e n x).
+      specialize (cb h).
+      apply proj2 in cb.
+      exact cb.
+    }
+    {
+      pattern 1 at 2;rewrite <- Rplus_0_r.
+      apply Rplus_le_compat_l.
+      rewrite <- Ropp_0.
+      apply Ropp_le_contravar.
+      left.
+      apply pow_lt.
+      exact Rlt_0_half.
+    }
+  Qed.
+
+  Lemma crit_exists : forall u l e, exists x : R, fcrit1 u l e x.
+  Proof.
+    intros u l e.
+    exists 0.
+    unfold fcrit1.
+    exists 0%nat.
+    constructor.
+  Qed.
+
+  Lemma crit_technic_5_neg : forall (u : nat -> R) (l e m : R),
+    is_lub (fcrit1 u l e) m ->
+    m < 0 ->
+    False.
+  Proof.
+    intros u l e m hub h.
+    destruct hub as [ hubl hubr ].
+    unfold is_upper_bound in hubl.
+    apply Rlt_not_le in h.
+    apply h.
+    apply hubl.
+    unfold fcrit1.
+    exists 0%nat.
+    constructor.
+  Qed.
+
+  Lemma crit_technic_b : forall (u : nat -> R) (l e : R),
+    e > 0 ->
+    is_lub (EUn u) l ->
+    (forall n : nat, u n <= l - e) ->
+    False.
+  Proof.
+    intros u l e he hlub h.
+    unfold is_lub in hlub.
+    unfold is_upper_bound in hlub.
+    unfold EUn in hlub.
+    destruct hlub as [hlubl hlubr].
+    specialize (hlubr (l-e)).
+    apply (Rle_not_lt (l-e) l).
+    2:{
+      pattern l at 2;rewrite <- Rplus_0_r.
+      unfold Rminus.
+      apply Rplus_lt_compat_l.
+      rewrite <- Ropp_0.
+      apply Ropp_lt_contravar.
+      apply Rgt_lt in he.
+      exact he.
+    }
+    {
+      apply hlubr.
+      intros x hex.
+      destruct hex as [n eq].
+      subst x.
+      apply h.
+    }
+  Qed.
+
+  Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
+    Un_growing u ->
+    0 < m ->
+    (forall b : R, is_upper_bound (fcrit1 u l e) b -> m <= b) ->
+    exists N : nat, u N > l - e.
+  Proof.
+    intros u l e m hu Hm Hm2.
+    generalize Rlt_abs_half_1;intro H0.
+    destruct (pow_lt_1_zero (/2) H0 m Hm) as [N H4].
+    exists N.
+    apply Rnot_le_lt.
+    intros H5.
+    apply Rlt_not_le with (1 := H4 _ (le_refl _)).
+    rewrite Rabs_pos_eq.
+    {
+      apply Hm2.
+      intros x (n, H6).
+      rewrite cv_crit_equiv in H6.
+      rewrite <- H6. clear x H6.
+
+      generalize crit_technic_4_fix;intro Hs.
+      specialize (Hs u l e hu).
+      specialize (Hs N H5).
+
+      destruct (le_or_lt N n) as [Hn|Hn].
+      {
+        rewrite le_plus_minus with (1 := Hn).
+        apply Rle_trans with (  cv_crit_sum u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
+        apply (crit_bound_fix u l e).
+        rewrite Hs.
+        rewrite Rplus_0_l.
+        pose (k := (N + (n - N))%nat).
+        fold k.
+        pose (p2N:=(/2)^N).
+        pose (p2k:=(/2)^k).
+        fold p2N. fold p2k.
+        left.
+        apply Rplus_lt_reg_l with (p2k - p2N).
+        unfold Rminus.
+        repeat (rewrite Rplus_assoc).
+        rewrite (Rplus_comm).
+        repeat (rewrite <- Rplus_assoc).
+        rewrite Rplus_opp_l.
+        rewrite Rplus_0_l.
+        rewrite Rplus_opp_l.
+        repeat (rewrite Rplus_assoc).
+        rewrite Rplus_opp_l.
+        rewrite Rplus_0_r.
+        unfold p2k.
+        apply Hi2pn.
+      }
+      apply Rle_trans with (cv_crit_sum u l e N).
+      {
+        rewrite le_plus_minus with (1 := Hn).
+        rewrite plus_Snm_nSm.
+        apply (crit_bound_fix u l e).
+      }
+      {
+        rewrite Hs.
+        left.
+        apply pow_lt.
+        apply Rlt_0_half.
+      }
+    }
+  left.
+  apply Hi2pn.
+Qed.
+
   Lemma crit_technic_5 : forall (u : nat -> R) (l e : R),
     Un_growing u -> is_lub (EUn u) l -> e > 0 ->
     exists N : nat, u N > l - e.
   Proof.
       intros u l e hu H  he.
-      generalize (crit_bound_fix u l e);intro Hsum'.
-      generalize (crit_bound u l e );intro Hsum''.
-      generalize crit_bound_O;intro Hsumm.
       generalize completeness;intro hc.
-      (* The completeness axiom states that
-        if some property over the reals is bounded,
-        and if there's a real number with that property,
-        then there's is a least upper bound on that property *)
-      (* The property is bounded if it's cease to be true at some point *)
       specialize (hc (fcrit1 u l e)).
-      destruct hc as (m, (Hm1, Hm2)).
-      { (* We must show that fcrit1 is bounded. *)
-
-        unfold bound.
-        exists 1.
-        unfold is_upper_bound.
-        intros x fcrit.
-        unfold fcrit1 in fcrit.
-        destruct fcrit as [n H1].
-        apply Rle_trans with (1 - (/ 2) ^ n).
-        {
-          apply (crit_bound_O u l e n x).
-          assumption.
-        }
-        {
-          pattern 1 at 2;rewrite <- Rplus_0_r.
-          apply Rplus_le_compat_l.
-          rewrite <- Ropp_0.
-          apply Ropp_le_contravar.
-          left.
-          apply pow_lt.
-          exact Rlt_0_half.
-        }
-      }
-      { (* We show that fcrit is satisfied at 0 *)
-        exists 0.
-        unfold fcrit1. 
-        exists O.
-        constructor.
-      }
-      { (* And we must show that our original goal holds knowing that 
-           there's some m which is a least upper bound of fcrit *)
-        (* We distinguish m negative, 0 or positive *)
+      specialize (hc (crit_bounded u l e)).
+      specialize (hc (crit_exists u l e)).
+      destruct hc as [ m hlub].
+      generalize hlub;intro hlub'.
+      destruct hlub as [Hm1 Hm2].
+      rename hlub' into hlub.
+      {
         destruct (Rle_or_lt m 0) as [[Hm|Hm]|Hm].
         { (* m < 0 *)
           exfalso.
-          apply (Rlt_not_le 0 m).
-          { assumption. }
-          {
-            unfold is_upper_bound in Hm1.
-            apply Hm1.
-            unfold fcrit1.
-            exists O.
-            constructor.
-          }
+          apply (crit_technic_5_neg u l e m).
+          exact hlub.
+          exact Hm.
         }
         { (* m = 0 *)
           subst m.
-          generalize crit_technic_3;intro Hs0.
-          specialize (Hs0 u l e).
-          specialize (Hs0 Hm1).
-          generalize crit_technic_1_fix; intro Hub.
-          specialize (Hub u l e Hs0).
-          clear -he H Hub.
-          destruct H as (_, H).
-          refine (False_ind _ (Rle_not_lt _ _ (H (l - e) _) _)).
+          exfalso.
+          apply (crit_technic_b u l e).
+          { exact he. }
+          { exact H. }
           {
-            intros x (n, H1).
-            now rewrite H1.
-          }
-          apply Rplus_lt_reg_l with (e - l).
-          now ring_simplify.
-        }
-        generalize Rlt_abs_half_1;intro H0.
-        destruct (pow_lt_1_zero (/2) H0 m Hm) as [N H4].
-        exists N.
-        apply Rnot_le_lt.
-        intros H5.
-        apply Rlt_not_le with (1 := H4 _ (le_refl _)).
-        rewrite Rabs_pos_eq.
-        {
-          apply Hm2.
-          intros x (n, H6).
-          rewrite cv_crit_equiv in H6.
-          rewrite <- H6. clear x H6.
-          generalize crit_technic_4;intro Hs.
-          specialize (Hs u l e hu).
-          specialize (Hs N H5).
-
-          destruct (le_or_lt N n) as [Hn|Hn].
-          {
-            rewrite le_plus_minus with (1 := Hn).
-            specialize (Hsum' N).
-            specialize (Hsum' (n-N)%nat).
-            destruct Hsum' as [A B].
-            apply Rle_trans with (  cv_crit_sum u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
-            exact B.
-            rewrite Hs.
-            rewrite Rplus_0_l.
-            pose (k := (N + (n - N))%nat).
-            fold k.
-            pose (p2N:=(/2)^N).
-            pose (p2k:=(/2)^k).
-            fold p2N. fold p2k.
-            left.
-            apply Rplus_lt_reg_l with (p2k - p2N).
-            unfold Rminus.
-            repeat (rewrite Rplus_assoc).
-            rewrite (Rplus_comm).
-            repeat (rewrite <- Rplus_assoc).
-            rewrite Rplus_opp_l.
-            rewrite Rplus_0_l.
-            rewrite Rplus_opp_l.
-            repeat (rewrite Rplus_assoc).
-            rewrite Rplus_opp_l.
-            rewrite Rplus_0_r.
-            unfold p2k.
-            apply Hi2pn.
-          }
-          apply Rle_trans with (cv_crit_sum u l e N).
-          {
-            rewrite le_plus_minus with (1 := Hn).
-            rewrite plus_Snm_nSm.
-            apply Hsum'.
-          }
-          {
-            rewrite Hs.
-            left.
-            apply pow_lt.
-            apply Rlt_0_half.
+            apply crit_technic_1.
+(*            apply crit_technic_1_fix. *)
+            intros n.
+            apply crit_technic_3.
+            exact Hm1.
           }
         }
-        left.
-        apply Hi2pn.
+        { (* m > 0 *)
+          clear - Hm Hm2 hu.
+          apply crit_technic_c with m.
+          { exact hu. }
+          { exact Hm. }
+          { exact Hm2. }
+        }
       }
   Qed.
-
 
   Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
   Proof.
     intros u hu l hul.
-    (* we know that u is growing and l is a least upper bound of u *)
-    (* we must show that u converges to l *)
     unfold Un_cv.
-    (* this means that for any positive e, there is a point after which the distance between (u n) and l
-       is always smaller that e *)
     intros e he.
-    (* We must find that point *)
+    unfold R_dist.
     generalize crit_technic_5;intro HE.
-    (* crit_technic_5 constructs that point with those hypotheses, we assume here it exists *)
     specialize (HE u l e hu hul he).
     destruct HE as [N hun].
     exists N.
-    (* n is a point after N *)
     intros n hnN.
-    (* we must show that the distance between (u n) and l is smaller than e *)
     unfold R_dist.
-    (* Because u is growing to l, the difference must be negative.
-       We use this to remove that absolute value. *)
     rewrite Rabs_left1.
-    2:{ (* We first prove that we can do that *)
-
-      (* First some rewriting *)
+    2:{
       unfold Rminus.
       apply Rplus_le_reg_r with l.
       rewrite Rplus_assoc.
       rewrite Rplus_opp_l.
       rewrite Rplus_0_l.
       rewrite Rplus_0_r.
-
-      (* This goal is part of the definition of being a least upper bound *)
       unfold is_lub in hul.
       apply proj1 in hul.
       unfold is_upper_bound in hul.
       apply hul.
-
-      (* the prerequisite is degenerate in this case, there's always a n such that u n = u n, it's n itself. *)
-      (* and there's a proof of that *)
       apply Un_in_EUn.
     }
-    { (* Now, the absolute value is removed *)
-      (* We go closer to hun with some rewriting *)
+    {
       apply Rgt_lt in hun.
       rewrite Ropp_minus_distr.
       apply Rplus_lt_reg_l with (-e).
@@ -943,12 +969,9 @@ Section sequence.
       rewrite Rplus_opp_l.
       rewrite Rplus_0_r.
       unfold Rminus in hun.
-
-      (* We use a transitivity to use hun *)
       apply Rlt_le_trans with (u N).
       { assumption. }
       {
-        (* The other part is a consequence of the fact that u is growing *)
         apply Rge_le.
         apply growing_prop.
         { assumption. }
