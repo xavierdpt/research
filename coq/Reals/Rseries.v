@@ -107,6 +107,24 @@ Section sequence.
       cv_crit_sum_r u l e (S n) r
   .
 
+  Lemma lt_disj : (forall n m, S m < S n -> S m < n \/ S m = n)%nat.
+  Proof.
+    intros n m h.
+    apply lt_le_S in h.
+    apply le_lt_or_eq in h.
+    destruct h as [ h | h ].
+    {
+      apply lt_S_n in h.
+      left. exact h.
+    }
+    {
+      apply eq_add_S in h.
+      right. exact h.
+    }
+  Qed.
+
+
+
   Remark Rlt_0_half : 0 < / 2.
   Proof.
     apply Rinv_0_lt_compat.
@@ -605,6 +623,187 @@ Section sequence.
     }
     Qed.
 
+  Lemma practice8 : forall u l e n,
+    cv_crit_sum_r u l e n 0 ->
+    forall m, (m <= n)%nat -> cv_crit_sum_r u l e m 0.
+  Proof.
+    intros u l e n hn m hmn.
+    apply le_lt_or_eq in hmn.
+    destruct hmn as [ hmn | hmn ].
+    2:{
+      subst m.
+      exact hn.
+    }
+    {
+      induction m as [ | m i ].
+      { constructor. }
+      {
+        apply crit_f.
+        2:{
+          apply i.
+          apply Nat.lt_succ_l.
+          exact hmn.
+        }
+        {
+          clear i.
+          generalize dependent m.
+          induction n as [ | n i ].
+          {
+            intros m hm.
+            inversion hm.
+          }
+          {
+            intros m hmn.
+            apply lt_disj in hmn.
+            destruct hmn as [ hmn | hmn ].
+            {
+              inversion hn;clear hn.
+              2:{
+                subst r n0.
+                apply i;clear i.
+                { exact H1. }
+                { exact hmn. }
+              }
+              {
+                subst n0.
+                apply crit_pos in H2.
+                exfalso.
+                apply Rlt_irrefl with 0.
+                pattern 0 at 2;rewrite <- H0.
+                rewrite tech_pow_Rmult.
+                apply Rle_lt_trans with r.
+                { exact H2. }
+                {
+                  pattern r at 1;rewrite <- Rplus_0_r.
+                  apply Rplus_lt_compat_l.
+                  apply pow_lt.
+                  exact Rlt_0_half.
+                }
+              }
+            }
+            {
+              subst n.
+              inversion hn;clear hn.
+              2:{
+                subst n r.
+                inversion H1;clear H1.
+                2:{
+                  subst m r.
+                  exact H2.
+                }
+                {
+                  subst m.
+                  apply crit_pos in H4.
+                  exfalso.
+                  apply Rlt_irrefl with 0.
+                  pattern 0 at 2;rewrite <- H2.
+                  rewrite tech_pow_Rmult.
+                  Search( _ <= _ -> _ < _ -> _ < _).
+                  apply Rle_lt_trans with r.
+                  { exact H4. }
+                  {
+                    pattern r at 1;rewrite <- Rplus_0_r.
+                    apply Rplus_lt_compat_l.
+                    apply pow_lt.
+                    exact Rlt_0_half.
+                  }
+                }
+              }
+              {
+                apply crit_pos in H2.
+                exfalso.
+                apply Rlt_irrefl with 0.
+                pattern 0 at 2;rewrite <- H0.
+                rewrite tech_pow_Rmult.
+                rewrite tech_pow_Rmult.
+                apply Rle_lt_trans with r.
+                { exact H2. }
+                {
+                  pattern r at 1;rewrite <- Rplus_0_r.
+                  apply Rplus_lt_compat_l.
+                  apply pow_lt.
+                  exact Rlt_0_half.
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  Qed.
+
+  Lemma sum_pow_neq_0: forall x y n, 0 <= x -> 0 < y -> x + y^n = 0 -> False.
+  Proof.
+    intros x y n hx hy heq.
+    apply Rlt_irrefl with 0.
+    pattern 0 at 2;rewrite <- heq.
+    apply Rle_lt_trans with x.
+    { exact hx. }
+    {
+      pattern x at 1;rewrite <- Rplus_0_r.
+      apply Rplus_lt_compat_l.
+      apply pow_lt.
+      exact hy.
+    }
+  Qed.
+
+  Lemma practice9 : forall u l e,
+    (forall n, cv_crit_sum_r u l e n 0) ->
+    (forall n, u n <= l - e).
+  Proof.
+    intros u l e h n.
+    specialize (h (S n)).
+    inversion h.
+    {
+      apply crit_pos in H2.
+      exfalso.
+      eapply sum_pow_neq_0.
+      { exact H2. }
+      { exact Rlt_0_half. }
+      {
+        rewrite tech_pow_Rmult in H0.
+        exact H0.
+      }
+    }
+    {
+      exact H0.
+    }
+  Qed.
+
+  Lemma practice10 : forall u l e x,
+    (exists n, cv_crit_sum_r u l e n x /\ x <> 0) ->
+    (exists n, l - e < u n).
+  Proof.
+    intros u l e x h.
+    destruct h as [ n h ].
+    destruct h as [ h hneq ].
+    induction n as[ | n i ].
+    {
+      inversion h; clear h.
+      subst x.
+      contradiction.
+    }
+    {
+      inversion h;clear h.
+      {
+        exists n. exact H0.
+      }
+      {
+        specialize (i H1);clear H1.
+        destruct i as [ n' h ].
+        exists n'. exact h.
+      }
+    }
+  Qed.
+
+  Lemma practice11 : forall u l e, fcrit1 u l e 0.
+  Proof.
+    intros u l e.
+    unfold fcrit1.
+    exists 0%nat.
+    constructor.
+  Qed.
+
   Lemma crit_technic_1 : forall (u : nat -> R) (l e : R),
     (forall n : nat, cv_crit_sum_r u l e n 0) ->
     forall n : nat, u n <= l - e.
@@ -884,16 +1083,52 @@ Section sequence.
   apply Hi2pn.
 Qed.
 
+  Lemma fcrit_lub : forall u l e, {x : R | is_lub (fcrit1 u l e) x} (*exists x, is_lub (fcrit1 u l e) x*).
+  Proof.
+    intros u l e.
+    apply completeness.
+    apply crit_bounded.
+    apply crit_exists.
+  Qed.
+
+  Lemma ex_ex : forall (T:Type) (P:T->Prop) (Q:{ t : T | P t }), exists (t:T), P t.
+  Proof.
+    intros T P h.
+    destruct h.
+    exists x.
+    exact p.
+  Qed.
+
+  Lemma ex_ex_inv : forall (T:Type) (P:T->Prop), (exists (t:T), P t) -> exists (Q:{ t : T | P t }), True.
+  Proof.
+    intros T P h.
+    destruct h as [ t pt].
+    exists (exist P t pt).
+    apply I.
+  Qed.
+
+  Lemma fcrit_lub_ex : forall u l e, exists x, is_lub (fcrit1 u l e) x.
+  Proof.
+    intros u l e.
+    apply ex_ex.
+    apply completeness.
+    { apply crit_bounded. }
+    {
+      exists 0.
+      unfold fcrit1.
+      exists 0%nat.
+      constructor.
+    }
+  Qed.
+
+
   Lemma crit_technic_5 : forall (u : nat -> R) (l e : R),
     Un_growing u -> is_lub (EUn u) l -> e > 0 ->
     exists N : nat, u N > l - e.
   Proof.
       intros u l e hu H  he.
-      generalize completeness;intro hc.
-      specialize (hc (fcrit1 u l e)).
-      specialize (hc (crit_bounded u l e)).
-      specialize (hc (crit_exists u l e)).
-      destruct hc as [ m hlub].
+      specialize (fcrit_lub_ex u l e);intro hlub_ex.
+      destruct hlub_ex as [ m hlub].
       generalize hlub;intro hlub'.
       destruct hlub as [Hm1 Hm2].
       rename hlub' into hlub.
