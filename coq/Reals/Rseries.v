@@ -931,6 +931,7 @@ Section sequence.
       }
   Qed.
 
+
   (* This lemma shows that 1 is an upper bound of fcrit1,
      i.e. any x which satisfies fcrit1 must be smaller than 1
   *)
@@ -959,53 +960,6 @@ Section sequence.
     }
   Qed.
 
-  Lemma crit_technic_5_neg : forall (u : nat -> R) (l e m : R),
-    is_lub (fcrit1 u l e) m ->
-    m < 0 ->
-    False.
-  Proof.
-    intros u l e m hub h.
-    destruct hub as [ hubl hubr ].
-    unfold is_upper_bound in hubl.
-    apply Rlt_not_le in h.
-    apply h.
-    apply hubl.
-    unfold fcrit1.
-    exists 0%nat.
-    constructor.
-  Qed.
-
-  Lemma crit_technic_b : forall (u : nat -> R) (l e : R),
-    e > 0 ->
-    is_lub (EUn u) l ->
-    (forall n : nat, u n <= l - e) ->
-    False.
-  Proof.
-    intros u l e he hlub h.
-    unfold is_lub in hlub.
-    unfold is_upper_bound in hlub.
-    unfold EUn in hlub.
-    destruct hlub as [hlubl hlubr].
-    specialize (hlubr (l-e)).
-    apply (Rle_not_lt (l-e) l).
-    2:{
-      pattern l at 2;rewrite <- Rplus_0_r.
-      unfold Rminus.
-      apply Rplus_lt_compat_l.
-      rewrite <- Ropp_0.
-      apply Ropp_lt_contravar.
-      apply Rgt_lt in he.
-      exact he.
-    }
-    {
-      apply hlubr.
-      intros x hex.
-      destruct hex as [n eq].
-      subst x.
-      apply h.
-    }
-  Qed.
-
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
     0 < m ->
@@ -1025,11 +979,9 @@ Section sequence.
       intros x (n, H6).
       rewrite cv_crit_equiv in H6.
       rewrite <- H6. clear x H6.
-
       generalize crit_technic_4_fix;intro Hs.
       specialize (Hs u l e hu).
       specialize (Hs N H5).
-
       destruct (le_or_lt N n) as [Hn|Hn].
       {
         rewrite le_plus_minus with (1 := Hn).
@@ -1101,13 +1053,6 @@ Qed.
     }
   Qed.
 
-  Lemma practice18: forall u l e m, is_lub (fcrit1 u l e) m -> is_upper_bound (fcrit1 u l e) m.
-  Proof.
-    intros u l e m h.
-    destruct h.
-    assumption.
-  Qed.
-
   Lemma crit_flat : forall u l e, is_upper_bound (fcrit1 u l e) 0 -> forall n, cv_crit_sum_r u l e n 0.
   Proof.
     intros u l e h.
@@ -1132,6 +1077,7 @@ Qed.
       assumption.
     }
   Qed.
+
 
   Lemma crit_lub_pos : forall u l e m,
     is_lub (EUn u) l ->
@@ -1187,39 +1133,28 @@ Qed.
     { exact hm. }
   Qed.
 
-  Lemma crit_technic_5 : forall (u : nat -> R) (l e : R),
-    Un_growing u -> is_lub (EUn u) l -> e > 0 ->
-    exists N : nat, u N > l - e.
+  Lemma Un_cv_crit_lub : forall (U : nat -> R) (l:R), Un_growing U -> is_lub (EUn U) l -> Un_cv U l.
   Proof.
-      intros u l e hu H  he.
-      specialize (fcrit_lub_ex u l e);intro hlub_ex.
-      destruct hlub_ex as [ m hlub].
-      generalize hlub;intro hlub'.
-      destruct hlub as [Hm1 Hm2].
-      rename hlub' into hlub.
-
-      assert (hm: 0<m).
-      {
-        apply (crit_lub_pos u l e).
-        { exact H. }
-        { exact he. }
-        { exact hlub. }
-      }
-
-      apply crit_technic_c with m.
-      { exact hu. }
-      { exact hm. }
-      { exact Hm2. }
-  Qed.
-
-  Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
-  Proof.
-    intros u hu l hul.
+    intros u l hu hul.
     unfold Un_cv.
     intros e he.
     unfold R_dist.
-    generalize crit_technic_5;intro HE.
-    specialize (HE u l e hu hul he).
+    assert(HE:exists N : nat, u N > l - e).
+    {
+      specialize (fcrit_lub_ex u l e);intro hlub_ex.
+      destruct hlub_ex as [ m hlub].
+      assert (hm: 0<m).
+      {
+        apply (crit_lub_pos u l e).
+        { exact hul. }
+        { exact he. }
+        { exact hlub. }
+      }
+      apply crit_technic_c with m.
+      { exact hu. }
+      { exact hm. }
+      { apply hlub. }
+    }
     destruct HE as [N hun].
     exists N.
     intros n hnN.
