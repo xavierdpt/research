@@ -931,6 +931,9 @@ Section sequence.
       }
   Qed.
 
+  (* This lemma shows that 1 is an upper bound of fcrit1,
+     i.e. any x which satisfies fcrit1 must be smaller than 1
+  *)
   Lemma crit_bounded : forall u l e, bound (fcrit1 u l e).
   Proof.
     intros u l e.
@@ -942,11 +945,8 @@ Section sequence.
     destruct h as [n h].
     apply Rle_trans with (1-(/2)^n).
     {
-      generalize crit_bound_O;intro cb.
-      specialize (cb u l e n x).
-      specialize (cb h).
-      apply proj2 in cb.
-      exact cb.
+      apply (crit_bound_O u l e).
+      exact h.
     }
     {
       pattern 1 at 2;rewrite <- Rplus_0_r.
@@ -957,15 +957,6 @@ Section sequence.
       apply pow_lt.
       exact Rlt_0_half.
     }
-  Qed.
-
-  Lemma crit_exists : forall u l e, exists x : R, fcrit1 u l e x.
-  Proof.
-    intros u l e.
-    exists 0.
-    unfold fcrit1.
-    exists 0%nat.
-    constructor.
   Qed.
 
   Lemma crit_technic_5_neg : forall (u : nat -> R) (l e m : R),
@@ -1083,14 +1074,6 @@ Section sequence.
   apply Hi2pn.
 Qed.
 
-  Lemma fcrit_lub : forall u l e, {x : R | is_lub (fcrit1 u l e) x} (*exists x, is_lub (fcrit1 u l e) x*).
-  Proof.
-    intros u l e.
-    apply completeness.
-    apply crit_bounded.
-    apply crit_exists.
-  Qed.
-
   Lemma ex_ex : forall (T:Type) (P:T->Prop) (Q:{ t : T | P t }), exists (t:T), P t.
   Proof.
     intros T P h.
@@ -1099,17 +1082,14 @@ Qed.
     exact p.
   Qed.
 
-  Lemma ex_ex_inv : forall (T:Type) (P:T->Prop), (exists (t:T), P t) -> exists (Q:{ t : T | P t }), True.
-  Proof.
-    intros T P h.
-    destruct h as [ t pt].
-    exists (exist P t pt).
-    apply I.
-  Qed.
 
+  (* This lemma show that there is a least upper bound of fcrit1 *)
   Lemma fcrit_lub_ex : forall u l e, exists x, is_lub (fcrit1 u l e) x.
   Proof.
     intros u l e.
+    (* Here, we don't really construct the least upper bound *)
+    (* Instead, we use the completeness axiom which states that if fcrit1 is bounded and satisfied for
+       at least one number, then the least upper bound exists *)
     apply ex_ex.
     apply completeness.
     { apply crit_bounded. }
@@ -1121,6 +1101,91 @@ Qed.
     }
   Qed.
 
+  Lemma practice18: forall u l e m, is_lub (fcrit1 u l e) m -> is_upper_bound (fcrit1 u l e) m.
+  Proof.
+    intros u l e m h.
+    destruct h.
+    assumption.
+  Qed.
+
+  Lemma crit_flat : forall u l e, is_upper_bound (fcrit1 u l e) 0 -> forall n, cv_crit_sum_r u l e n 0.
+  Proof.
+    intros u l e h.
+    unfold is_upper_bound in h.
+    intro n; destruct n.
+    { constructor. }
+    {
+      destruct (crit_exist u l e (S n)).
+      specialize (h x).
+      unfold fcrit1 in h.
+      assert(hex:exists n : nat, cv_crit_sum_r u l e n x).
+      {
+        exists (S n). assumption.
+      }
+      specialize (h hex);clear hex.
+      assert(x=0).
+      {
+        apply crit_pos in H.
+        apply Rle_antisym;assumption.
+      }
+      subst x.
+      assumption.
+    }
+  Qed.
+
+  Lemma crit_lub_pos : forall u l e m,
+    is_lub (EUn u) l ->
+    e > 0 ->
+    is_lub (fcrit1 u l e) m ->
+    m > 0.
+  Proof.
+    intros u l e m hlub he h.
+    destruct h as [hl hr].
+    destruct (Rtotal_order m 0) as [ hm | [ hm | hm ] ].
+    { (* m < 0 *)
+      exfalso. (* We proceed by contradiction *)
+      unfold is_upper_bound in hl.
+      (* It is not the case the 0 <= m *)
+      apply Rlt_not_le in hm.
+      (* Therefore, if we can show 0 <= m, we have a contradiction *)
+      apply hm.
+      (* hl states that m must be an upper bound of fcrit1 *)
+      (* i.e. if fcrit1 holds for 0, the m must be greater than 0 *)
+      apply hl.
+      (* And since fcrit1 always starts at 0, it is always the case for n=0 *)
+      unfold fcrit1.
+      exists 0%nat.
+      constructor.
+    }
+    { (* m = 0 *)
+      subst m.
+      exfalso.
+      unfold is_lub in hlub.
+      destruct hlub as [hlubl hlubr].
+      specialize (hlubr (l-e)).
+      apply (Rle_not_lt (l-e) l).
+      2:{
+        pattern l at 2;rewrite <- Rplus_0_r.
+        unfold Rminus.
+        apply Rplus_lt_compat_l.
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        apply Rgt_lt in he.
+        exact he.
+      }
+      {
+        apply hlubr.
+        intros x hex.
+        destruct hex as [n eq].
+        subst x.
+        apply crit_technic_1.
+        intro n'.
+        apply crit_flat.
+        exact hl.
+      }
+    }
+    { exact hm. }
+  Qed.
 
   Lemma crit_technic_5 : forall (u : nat -> R) (l e : R),
     Un_growing u -> is_lub (EUn u) l -> e > 0 ->
@@ -1132,36 +1197,19 @@ Qed.
       generalize hlub;intro hlub'.
       destruct hlub as [Hm1 Hm2].
       rename hlub' into hlub.
+
+      assert (hm: 0<m).
       {
-        destruct (Rle_or_lt m 0) as [[Hm|Hm]|Hm].
-        { (* m < 0 *)
-          exfalso.
-          apply (crit_technic_5_neg u l e m).
-          exact hlub.
-          exact Hm.
-        }
-        { (* m = 0 *)
-          subst m.
-          exfalso.
-          apply (crit_technic_b u l e).
-          { exact he. }
-          { exact H. }
-          {
-            apply crit_technic_1.
-(*            apply crit_technic_1_fix. *)
-            intros n.
-            apply crit_technic_3.
-            exact Hm1.
-          }
-        }
-        { (* m > 0 *)
-          clear - Hm Hm2 hu.
-          apply crit_technic_c with m.
-          { exact hu. }
-          { exact Hm. }
-          { exact Hm2. }
-        }
+        apply (crit_lub_pos u l e).
+        { exact H. }
+        { exact he. }
+        { exact hlub. }
       }
+
+      apply crit_technic_c with m.
+      { exact hu. }
+      { exact hm. }
+      { exact Hm2. }
   Qed.
 
   Lemma Un_cv_crit_lub : forall (U : nat -> R), Un_growing U -> forall l, is_lub (EUn U) l -> Un_cv U l.
