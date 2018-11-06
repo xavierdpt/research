@@ -960,6 +960,45 @@ Section sequence.
     }
   Qed.
 
+  Lemma crit_before_0 : forall u l e N n,
+    Un_growing u ->
+    u N <= l - e -> (n <= N)%nat ->
+    cv_crit_sum_r u l e n 0.
+  Proof.
+    intros u l e N n hg hN hn.
+    generalize dependent n.
+    intro n;induction n as [ | n i ].
+    {
+      intros hn.
+      constructor.
+    }
+    {
+      intros hn.
+      apply crit_f.
+      {
+        apply Rle_trans with (u N).
+        {
+          apply Rge_le.
+          apply growing_prop.
+          { exact hg. }
+          {
+            unfold ge.
+            apply le_trans with (S n).
+            { apply Nat.le_succ_diag_r. }
+            { exact hn. }
+          }
+        }
+        { exact hN. }
+      }
+      {
+        apply i.
+        apply le_trans with (S n).
+        { apply Nat.le_succ_diag_r. }
+        { exact hn. }
+      }
+    }
+  Qed.
+
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
     0 < m ->
@@ -977,6 +1016,74 @@ Section sequence.
     {
       apply Hm2.
       intros x (n, H6).
+
+(* Begin new stuff *)
+(*
+      destruct (le_or_lt N n) as [Hn|Hn].
+      {
+        clear H4.
+        induction N as [ | N i].
+        {
+          simpl.
+          specialize (crit_bound_O u l e n x H6);intro cb.
+          apply Rle_trans with (1 - (/ 2) ^ n).
+          {
+            apply (crit_bound_O u l e).
+            exact H6.
+          }
+          {
+            pattern 1 at 2;rewrite <- Rplus_0_r.
+            unfold Rminus.
+            apply Rplus_le_compat_l.
+            rewrite <- Ropp_0.
+            apply Ropp_le_contravar.
+            apply pow_le.
+            left.
+            exact Rlt_0_half.
+          }
+        }
+        {
+          assert (hx:x <= (/ 2) ^N).
+          {
+            apply i.
+            {
+              apply Rle_trans with (u (S N)).
+              { apply hu. }
+              { exact H5. }
+            }
+            {
+              apply le_trans with (S N).
+              { apply Nat.le_succ_diag_r. }
+              { exact Hn. }
+            }
+          }
+          admit.
+        }
+      }
+      {
+        assert (x = 0).
+        {
+          apply (cv_crit_sum_r_inj u l e n).
+          { assumption. }
+          {
+            apply (crit_before_0 u l e N).
+            { exact hu. }
+            { exact H5. }
+            {
+              apply Nat.lt_le_incl.
+              exact Hn.
+            }
+          }
+        }
+        subst x.
+        apply pow_le.
+        left.
+        exact Rlt_0_half.
+      }
+*)
+(* End new stuff *)
+
+
       rewrite cv_crit_equiv in H6.
       rewrite <- H6. clear x H6.
       generalize crit_technic_4_fix;intro Hs.
