@@ -5,6 +5,79 @@ Local Open Scope R_scope.
 
 Implicit Type r : R.
 
+Remark Rlt_0_half : 0 < / 2.
+Proof.
+  apply Rinv_0_lt_compat.
+  apply Rlt_0_2.
+Qed.
+
+Remark Rlt_half_1 : / 2 < 1.
+Proof.
+  rewrite <- Rinv_1.
+  apply Rinv_lt_contravar.
+  rewrite Rmult_1_l. apply Rlt_0_2.
+  pattern 2;rewrite <- Rmult_1_r. rewrite double.
+  pattern 1 at 1;rewrite <- Rplus_0_r. apply Rplus_lt_compat_l.
+  apply Rlt_0_1.
+Qed.
+
+Remark half_half :/ 2 + / 2 = 1.
+Proof.
+  pattern (/ 2);rewrite <- Rmult_1_r.
+  rewrite <- Rmult_plus_distr_l.
+  rewrite <- double.
+  rewrite Rmult_1_r.
+  rewrite Rinv_l.
+  reflexivity.
+  intro eq.
+  apply Rlt_irrefl with 0.
+  pattern 0 at 2;rewrite <- eq.
+  apply Rlt_0_2.
+Qed.
+
+Lemma Rlt_irrefl_le : forall a b, a < b -> b <= a -> False.
+Proof.
+  intros a b hab hba.
+  destruct hba.
+  { apply Rlt_irrefl with a. apply Rlt_trans with b;assumption. }
+  { subst b. apply Rlt_irrefl with a. exact hab. }
+Qed.
+
+Lemma ex_ex : forall (T:Type) (P:T->Prop) (Q:{ t : T | P t }), exists (t:T), P t.
+Proof.
+  intros T P h.
+  destruct h.
+  exists x.
+  exact p.
+Qed.
+
+Lemma ex_ex_inv : forall (T:Type) (P:T->Prop), (exists (t:T), P t) -> exists (Q:{ t : T | P t }), True.
+Proof.
+  intros T P h.
+  destruct h as [ t pt].
+  exists (exist P t pt).
+  apply I.
+Qed.
+
+Lemma exists_fun : forall {A B : Type} (P:A->B->Prop), (forall a, {b | P a b}) -> exists f, forall a, P a (f a).
+Proof.
+  intros A B P h.
+  exists (fun a => match (h a) with exist _ b _ => b end).
+  intros a.
+  destruct (h a).
+  exact p.
+Qed.
+
+Lemma exists_fun' : forall {A B : Type} (P:A->B->Prop), (forall a, {b | P a b}) -> { f | forall a, P a (f a) }.
+Proof.
+  intros A B P h.
+  exists (fun a => match (h a) with exist _ b _ => b end).
+  intros a.
+  destruct (h a).
+  exact p.
+Qed.
+
+
 Section sequence.
 
   Fixpoint Rmax_N (U:nat->R) (n:nat) : R :=
@@ -107,6 +180,176 @@ Section sequence.
       cv_crit_sum_r u l e (S n) r
   .
 
+  Lemma crit_exist : forall u l e n, exists x, cv_crit_sum_r u l e n x.
+  Proof.
+    intros u l e n.
+    induction n as [ | n i ].
+    { exists 0. constructor. }
+    {
+      destruct i as [ x i ].
+      destruct (Rtotal_order (u n) (l-e)) as [ o | [ o | o ] ].
+      {
+        exists x. apply crit_f.
+        { left. exact o. }
+        { exact i. }
+      }
+      {
+        exists x. apply crit_f.
+        { right. exact o. }
+        { exact i. }
+      }
+      {
+        exists ( x + (/ 2) ^ S n).
+        apply crit_t.
+        { exact o. }
+        { exact i. }
+      }
+    }
+  Qed.
+
+  Lemma crit_exist' : forall u l e n, {x | cv_crit_sum_r u l e n x}.
+  Proof.
+    intros u l e n.
+    induction n as [ | n i ].
+    { exists 0. constructor. }
+    {
+      destruct i as [ x i ].
+      generalize (total_order_T (u n) (l-e));intro tot.
+      destruct tot as [ [ o | o ] | o ].
+      {
+        exists x. apply crit_f.
+        { left. exact o. }
+        { exact i. }
+      }
+      {
+        exists x. apply crit_f.
+        { right. exact o. }
+        { exact i. }
+      }
+      {
+        exists ( x + (/ 2) ^ S n).
+        apply crit_t.
+        { exact o. }
+        { exact i. }
+      }
+    }
+  Qed.
+
+  Lemma crit_inj : forall (u : nat -> R) (l e : R) (n:nat) (r r' : R),
+    cv_crit_sum_r u l e n r ->
+    cv_crit_sum_r u l e n r' ->
+    r = r' .
+  Proof.
+    intros u l e n r r' hr.
+    generalize dependent r'.
+    induction hr.
+    { intros r' hr'. inversion hr'. reflexivity. }
+    {
+      intros r' hr'. inversion hr'.
+      {
+        subst n0.
+        apply Rplus_eq_compat_r.
+        apply IHhr.
+        assumption.
+      }
+      { exfalso. eapply Rlt_irrefl_le. apply H. apply H1. }
+    }
+    {
+      intros r' hr'.
+      inversion hr'.
+      { exfalso. eapply Rlt_irrefl_le. apply H1. apply H. }
+      {
+        apply IHhr.
+        assumption.
+      }
+    }
+  Qed.
+
+  Lemma crit_pos : forall u l e n x, cv_crit_sum_r u l e n x -> 0 <= x.
+  Proof.
+    intros u l e n x h.
+    generalize dependent x.
+    induction n as [ | n i ].
+    { intros x h. inversion h. subst x. right. reflexivity. }
+    {
+      intros x h.
+      inversion h as [ | n' x' o h' n'eq x'eq | n' x' o h' n'eq x'eq ];clear h;rename h' into h.
+      {
+        subst x n'; rename x' into x.
+        apply Rle_trans with x.
+        { apply i. exact h. }
+        {
+          pattern x at 1;rewrite <- Rplus_0_r.
+          apply Rplus_le_compat_l.
+          apply pow_le.
+          left.
+          exact Rlt_0_half.
+        }
+      }
+      { subst x' n'. apply i. exact h. }
+    }
+  Qed.
+
+  Lemma toto_g_inv : forall {A B : Type} (P:A->B->Prop),
+    (exists f, forall a, P a (f a)) ->
+    forall a, exists b, P a b.
+  Proof.
+    intros A B P h.
+    destruct h as [f h].
+    intros a.
+    exists (f a).
+    apply h.
+    Show Proof.
+  Qed.
+
+  Lemma crit_fun : forall u l e, exists f : nat -> R, forall n, cv_crit_sum_r u l e n (f n).
+  Proof.
+    intros u l e.
+    apply exists_fun.
+    intros a.
+    apply crit_exist'.
+  Qed.
+
+  Lemma crit_fun' : forall u l e, { f : nat -> R | forall n, cv_crit_sum_r u l e n (f n) }.
+  Proof.
+    intros u l e.
+    apply exists_fun'.
+    intros a.
+    apply crit_exist'.
+  Qed.
+
+  Lemma growing_crit : forall u l e f,
+    (forall n, cv_crit_sum_r u l e n (f n)) -> Un_growing f.
+  Proof.
+    intros u l e f h.
+    unfold Un_growing.
+    intro n.
+
+    generalize (h (S n));intro hsn.
+    generalize (h n);intro hn.
+    inversion hsn;apply crit_pos in hsn.
+    {
+      assert(eq:r = f n).
+      {
+        apply (crit_inj u l e n);assumption.
+      }
+      subst r.
+      pattern (f n) at 1;rewrite <- Rplus_0_r.
+      apply Rplus_le_compat_l.
+      rewrite tech_pow_Rmult.
+      apply pow_le.
+      left.
+      exact Rlt_0_half.
+    }
+    {
+      assert(eq:f n = f (S n)).
+      {
+        apply (crit_inj u l e n);assumption.
+      }
+      rewrite eq. right. reflexivity.
+    }
+  Qed.
+
   Lemma lt_disj : (forall n m, S m < S n -> S m < n \/ S m = n)%nat.
   Proof.
     intros n m h.
@@ -125,35 +368,7 @@ Section sequence.
 
 
 
-  Remark Rlt_0_half : 0 < / 2.
-  Proof.
-    apply Rinv_0_lt_compat.
-    apply Rlt_0_2.
-  Qed.
 
-  Remark Rlt_half_1 : / 2 < 1.
-  Proof.
-    rewrite <- Rinv_1.
-    apply Rinv_lt_contravar.
-    rewrite Rmult_1_l. apply Rlt_0_2.
-    pattern 2;rewrite <- Rmult_1_r. rewrite double.
-    pattern 1 at 1;rewrite <- Rplus_0_r. apply Rplus_lt_compat_l.
-    apply Rlt_0_1.
-  Qed.
-
-  Remark half_half :/ 2 + / 2 = 1.
-  Proof.
-    pattern (/ 2);rewrite <- Rmult_1_r.
-    rewrite <- Rmult_plus_distr_l.
-    rewrite <- double.
-    rewrite Rmult_1_r.
-    rewrite Rinv_l.
-    reflexivity.
-    intro eq.
-    apply Rlt_irrefl with 0.
-    pattern 0 at 2;rewrite <- eq.
-    apply Rlt_0_2.
-  Qed.
 
   Lemma practice1 : forall u l e,  cv_crit_sum_r u l e 0 0.
   Proof.
@@ -360,47 +575,6 @@ Section sequence.
   Qed.
 
 
-  Lemma cv_crit_sum_r_inj : forall (u : nat -> R) (l e : R) (n:nat) (r r' : R),
-    cv_crit_sum_r u l e n r ->
-    cv_crit_sum_r u l e n r' ->
-    r = r' .
-  Proof.
-    intros u l e n r r' hr.
-    generalize dependent r'.
-    induction hr.
-    {
-      intros r' hr'. inversion hr'. reflexivity.
-    }
-    {
-      intros r' hr'. inversion hr'.
-      {
-        subst n0.
-        apply Rplus_eq_compat_r.
-        apply IHhr.
-        assumption.
-      }
-      {
-        exfalso.
-        destruct H1.
-        apply Rlt_irrefl with (u n). apply Rlt_trans with (l-e);assumption.
-        rewrite H1 in H. apply Rlt_irrefl in H. contradiction.
-      }
-    }
-    {
-      intros r' hr'.
-      inversion hr'.
-      {
-        exfalso.
-        destruct H.
-        apply Rlt_irrefl with (u n). apply Rlt_trans with (l-e);assumption.
-        rewrite H in H1. apply Rlt_irrefl in H1. contradiction.
-      }
-      {
-        apply IHhr.
-        assumption.
-      }
-    }
-  Qed.
 
   Lemma crit_Sn : forall u l e n y,
     cv_crit_sum_r u l e (S n) y ->
@@ -463,13 +637,13 @@ Section sequence.
             split.
             {
               right.
-              apply (cv_crit_sum_r_inj u l e (S n)).
+              apply (crit_inj u l e (S n)).
               assumption.
               assumption.
             }
             {
               right.
-              apply (cv_crit_sum_r_inj u l e (S n)).
+              apply (crit_inj u l e (S n)).
               assumption.
               assumption.
             }
@@ -493,8 +667,8 @@ Section sequence.
           }
           {
             subst y. subst n0. split.
-            { right. apply (cv_crit_sum_r_inj u l e (S n)). assumption. assumption. }
-            { right. apply (cv_crit_sum_r_inj u l e (S n)). assumption. assumption. }
+            { right. apply (crit_inj u l e (S n)). assumption. assumption. }
+            { right. apply (crit_inj u l e (S n)). assumption. assumption. }
           }
         }
       }
@@ -561,22 +735,7 @@ Section sequence.
     - simpl. assumption.
   Qed.
 
-  Lemma crit_exist : forall u l e n, exists x, cv_crit_sum_r u l e n x.
-  Proof.
-    intros u l e n.
-    induction n as [ | n i ].
-    {
-      exists 0. constructor.
-    }
-    {
-      destruct i as [ x i ].
-      destruct (Rtotal_order (u n) (l-e)).
-      exists x. apply crit_f. left. assumption. assumption.
-      destruct H.
-      exists x. apply crit_f. right. assumption. assumption.
-      exists (x+ (/ 2) ^ S n). apply crit_t. assumption. assumption.
-    }
-  Qed.
+
 
   Lemma youpi : forall (u : nat -> R) (l e : R),
     is_upper_bound (fun x : R => exists n : nat, cv_crit_sum_r u l e n x) 0 ->
@@ -598,30 +757,7 @@ Section sequence.
 
   Definition fcrit1 u l e x := exists n : nat, cv_crit_sum_r u l e n x.
 
-  Lemma crit_pos : forall u l e n x, cv_crit_sum_r u l e n x -> 0 <= x.
-  Proof.
-    intros u l e n x h.
-    generalize dependent x.
-    induction n as [ | n i ].
-    { intros x h. inversion h. subst x. right. reflexivity. }
-    {
-      intros x h.
-      inversion h;clear h.
-      {
-        subst x n0.
-        apply Rle_trans with r.
-        { apply i. assumption. }
-        {
-          pattern r at 1;rewrite <- Rplus_0_r.
-          apply Rplus_le_compat_l.
-          apply pow_le.
-          left.
-          exact Rlt_0_half.
-        }
-      }
-      { subst x n0. apply i. assumption. }
-    }
-    Qed.
+
 
   Lemma practice8 : forall u l e n,
     cv_crit_sum_r u l e n 0 ->
@@ -1133,13 +1269,6 @@ Section sequence.
   apply Hi2pn.
 Qed.
 
-  Lemma ex_ex : forall (T:Type) (P:T->Prop) (Q:{ t : T | P t }), exists (t:T), P t.
-  Proof.
-    intros T P h.
-    destruct h.
-    exists x.
-    exact p.
-  Qed.
 
 
   (* This lemma show that there is a least upper bound of fcrit1 *)
