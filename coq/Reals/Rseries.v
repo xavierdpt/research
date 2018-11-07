@@ -290,18 +290,6 @@ Section sequence.
     }
   Qed.
 
-  Lemma toto_g_inv : forall {A B : Type} (P:A->B->Prop),
-    (exists f, forall a, P a (f a)) ->
-    forall a, exists b, P a b.
-  Proof.
-    intros A B P h.
-    destruct h as [f h].
-    intros a.
-    exists (f a).
-    apply h.
-    Show Proof.
-  Qed.
-
   Lemma crit_fun : forall u l e, exists f : nat -> R, forall n, cv_crit_sum_r u l e n (f n).
   Proof.
     intros u l e.
@@ -350,6 +338,10 @@ Section sequence.
     }
   Qed.
 
+  Lemma growing_flat : forall u N n, Un_growing u -> (forall n, 0 <= u n) -> u N = 0 -> (n <= N)%nat -> u n = 0.
+  Proof.
+  Admitted.
+
   Lemma lt_disj : (forall n m, S m < S n -> S m < n \/ S m = n)%nat.
   Proof.
     intros n m h.
@@ -364,16 +356,6 @@ Section sequence.
       apply eq_add_S in h.
       right. exact h.
     }
-  Qed.
-
-
-
-
-
-  Lemma practice1 : forall u l e,  cv_crit_sum_r u l e 0 0.
-  Proof.
-    intros.
-    constructor.
   Qed.
 
   (* crit depends on l-e. We show the order of crit_sum depends on the size of l-e *)
@@ -574,8 +556,6 @@ Section sequence.
       }
   Qed.
 
-
-
   Lemma crit_Sn : forall u l e n y,
     cv_crit_sum_r u l e (S n) y ->
     (u n <= l - e /\ cv_crit_sum_r u l e n y) \/ (l - e < u n /\ cv_crit_sum_r u l e n (y - (/ 2) ^ (S n))).
@@ -593,7 +573,7 @@ Section sequence.
   Qed.
 
 
-
+  (* TODO : remove *)
   Lemma crit_bound : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
     cv_crit_sum_r u l e m x ->
     cv_crit_sum_r u l e (m + n) y ->
@@ -708,6 +688,112 @@ Section sequence.
         specialize (i x y m hx hy).
         destruct i.
         split. assumption.
+        apply Rle_trans with (x + (/ 2) ^ m - (/ 2) ^ (m + n)).
+        assumption.
+        unfold Rminus. apply Rplus_le_compat_l.
+        apply Ropp_le_contravar.
+        rewrite <- plus_n_Sm. simpl.
+        pattern ((/ 2) ^ (m + n)) at 2;rewrite <- Rmult_1_l.
+        apply Rmult_le_compat_r.
+        apply pow_le.
+        left. apply Rlt_0_half.
+        left. apply Rlt_half_1.
+      }
+    }
+  Qed.
+
+  Lemma crit_bound_l : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
+    cv_crit_sum_r u l e m x ->
+    cv_crit_sum_r u l e (m + n) y ->
+    x <= y.
+  Proof.
+    intros u l e m n x y hx hy.
+    generalize dependent m.
+    generalize dependent y.
+    generalize dependent x.
+    induction n as [ | n i ].
+    {
+      intros x y m hx hy.
+      rewrite plus_comm in hy.
+      simpl in hy.
+      assert (x = y).
+      { apply (crit_inj u l e m); assumption. }
+      subst y. right. reflexivity.
+    }
+    {
+      intros x y m hx hy.
+      rewrite <- plus_n_Sm in hy.
+      inversion hy;clear hy.
+      {
+        subst n0 y. rename r into y. rename H1 into hy.
+        apply Rle_trans with y.
+        apply (i _ _ m).
+        exact hx.
+        exact hy.
+        pattern y at 1;rewrite<- Rplus_0_r.
+        apply Rplus_le_compat_l.
+        apply pow_le.
+        left.
+        exact Rlt_0_half.
+      }
+      {
+        subst r n0. rename H1 into hy.
+        apply (i _ _ m).
+        exact hx.
+        exact hy.
+      }
+    }
+  Qed.
+
+  Lemma crit_bound_r : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
+    cv_crit_sum_r u l e m x ->
+    cv_crit_sum_r u l e (m + n) y ->
+    y <= x + (/ 2) ^ m - (/ 2) ^ (m + n).
+  Proof.
+    intros u l e m n x y hx hy.
+    generalize dependent m.
+    generalize dependent y.
+    generalize dependent x.
+    induction n as [ | n i ].
+    {
+      intros x y m hx hy.
+      rewrite plus_comm in hy.
+      simpl in hy.
+      assert (eq:x = y).
+      { apply (crit_inj u l e m);assumption. }
+      subst y.
+      rewrite plus_comm.
+      simpl.
+      unfold Rminus.
+      rewrite Rplus_assoc.
+      rewrite Rplus_opp_r.
+      rewrite Rplus_0_r.
+      right. reflexivity.
+    }
+    {
+      intros x y m hx hy.
+      rewrite <- plus_n_Sm in hy.
+      inversion hy;clear hy.
+      {
+        subst n0 y; rename r into y;rename H1 into hy.
+        specialize (i x y m hx hy).
+        {
+          simpl.
+          apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
+          rewrite Rplus_assoc. rewrite Rplus_opp_r. rewrite Rplus_0_r.
+          rewrite <- plus_n_Sm. simpl.
+          unfold Rminus.
+          rewrite Rplus_assoc.
+          rewrite <- Ropp_plus_distr.
+          rewrite <- Rmult_plus_distr_r.
+          rewrite half_half.
+          rewrite Rmult_1_l.
+          assumption.
+        }
+      }
+      {
+        subst y n0. rename r into y. rename H1 into hy.
+        specialize (i x y m hx hy).
         apply Rle_trans with (x + (/ 2) ^ m - (/ 2) ^ (m + n)).
         assumption.
         unfold Rminus. apply Rplus_le_compat_l.
