@@ -157,6 +157,20 @@ Proof.
   }
 Qed.
 
+Lemma sum_pow_neq_0: forall x y n, 0 <= x -> 0 < y -> x + y^n = 0 -> False.
+Proof.
+  intros x y n hx hy heq.
+  apply Rlt_irrefl with 0.
+  pattern 0 at 2;rewrite <- heq.
+  apply Rle_lt_trans with x.
+  { exact hx. }
+  {
+    pattern x at 1;rewrite <- Rplus_0_r.
+    apply Rplus_lt_compat_l.
+    apply pow_lt.
+    exact hy.
+  }
+Qed.
 
 Section sequence.
 
@@ -625,6 +639,7 @@ Section sequence.
     }
   Qed.
 
+(*
   Lemma crit_Sn : forall u l e n y,
     cv_crit_sum_r u l e (S n) y ->
     (u n <= l - e /\ cv_crit_sum_r u l e n y) \/ (l - e < u n /\ cv_crit_sum_r u l e n (y - (/ 2) ^ (S n))).
@@ -640,44 +655,43 @@ Section sequence.
     }
     { subst n0 r. left. split;assumption. }
   Qed.
+*)
 
-  Lemma crit_bound_O : forall u l e n x, cv_crit_sum_r u l e n x ->  0 <= x <= 1 - (/2)^n.
+  Lemma crit_bound_O_l : forall u l e n, 0 <= s_crit u l e n.
   Proof.
-    intros u l e n x h.
-    generalize (crit_bound u l e 0 n 0 x); intro cb.
-    pattern 1;rewrite <- Rplus_0_l.
-    rewrite <- pow_O with (/ 2).
-    rewrite plus_n_O with n.
-    rewrite plus_comm.
-    apply cb.
-    - constructor.
-    - simpl. assumption.
+    intros u l e n.
+    specialize (crit_bound_l u l e 0 n);intro h.
+    simpl in h.
+    unfold s_crit at 1 in h.
+    simpl in h.
+    exact h.
   Qed.
 
+  Lemma crit_bound_O_r : forall u l e n, s_crit u l e n <= 1 - (/2)^n.
+  Proof.
+    intros u l e n.
+    specialize (crit_bound_r u l e 0 n);intro h.
+    simpl in h.
+    unfold s_crit at 2 in h.
+    simpl in h.
+    rewrite Rplus_0_l in h.
+    exact h.
+  Qed.
 
+  Definition crit_exist u l e x := exists n : nat, s_crit u l e n  = x.
 
-  Lemma youpi : forall (u : nat -> R) (l e : R),
-    is_upper_bound (fun x : R => exists n : nat, cv_crit_sum_r u l e n x) 0 ->
-    forall n : nat, cv_crit_sum_r u l e n 0.
+  Lemma crit_technic_3 : forall (u : nat -> R) (l e : R),
+    is_upper_bound (crit_exist u l e) 0 ->
+    forall n : nat, s_crit u l e n = 0.
   Proof.
     intros u l e h n.
-    destruct (crit_exist u l e n).
-    assert (eq:x = 0).
-    {
-      apply Rle_antisym.
-      unfold is_upper_bound in h. apply h.
-      exists n. assumption.
-      apply (crit_bound_O u l e n x).
-      assumption.
-    }
-    subst x.
-    assumption.
+    unfold is_upper_bound in h.
+    apply Rle_antisym.
+    { apply h. unfold crit_exist. exists n. reflexivity. }
+    { apply crit_bound_O_l. }
   Qed.
 
-  Definition fcrit1 u l e x := exists n : nat, cv_crit_sum_r u l e n x.
-
-
-
+(*
   Lemma practice8 : forall u l e n,
     cv_crit_sum_r u l e n 0 ->
     forall m, (m <= n)%nat -> cv_crit_sum_r u l e m 0.
@@ -786,21 +800,9 @@ Section sequence.
       }
     }
   Qed.
+*)
 
-  Lemma sum_pow_neq_0: forall x y n, 0 <= x -> 0 < y -> x + y^n = 0 -> False.
-  Proof.
-    intros x y n hx hy heq.
-    apply Rlt_irrefl with 0.
-    pattern 0 at 2;rewrite <- heq.
-    apply Rle_lt_trans with x.
-    { exact hx. }
-    {
-      pattern x at 1;rewrite <- Rplus_0_r.
-      apply Rplus_lt_compat_l.
-      apply pow_lt.
-      exact hy.
-    }
-  Qed.
+(*
 
   Lemma practice9 : forall u l e,
     (forall n, cv_crit_sum_r u l e n 0) ->
@@ -858,51 +860,60 @@ Section sequence.
     exists 0%nat.
     constructor.
   Qed.
+*)
+
+  Lemma crit_0 : forall u l e n,  crit u l e (S n) = 0 -> u n <= l - e.
+  Proof.
+    intros u l e n h.
+    simpl in h.
+    unfold crit_test in h.
+    destruct (Rle_lt_dec (u n) (l - e)).
+    { assumption. }
+    {
+      exfalso. apply Rlt_irrefl with 0.
+      pattern 0 at 2;rewrite <- h.
+      rewrite tech_pow_Rmult.
+      apply pow_lt.
+      exact Rlt_0_half.
+    }
+  Qed.
+
+  Lemma crit_0_inv : forall u l e n,  u n <= l - e -> crit u l e (S n) = 0.
+  Proof.
+    intros u l e n h.
+    simpl.
+    unfold crit_test.
+    destruct (Rle_lt_dec (u n) (l - e)).
+    { reflexivity. }
+    { exfalso. eapply Rlt_irrefl_le. exact r. exact h. }
+  Qed.
 
   Lemma crit_technic_1 : forall (u : nat -> R) (l e : R),
-    (forall n : nat, cv_crit_sum_r u l e n 0) ->
+    (forall n : nat, s_crit u l e n = 0) ->
     forall n : nat, u n <= l - e.
   Proof.
     intros u l e h n.
-    specialize (h (S n)).
-    inversion h;clear h.
+    induction n as [ | n i ].
     {
-      subst n0.
-      rename H0 into eq.
-      apply (Rplus_eq_compat_r (-(/ 2 * (/ 2) ^ n))) in eq.
-      rewrite Rplus_assoc in eq.
-      rewrite Rplus_opp_r in eq.
-      rewrite Rplus_0_r in eq.
-      rewrite Rplus_0_l in eq.
-      subst r.
-      rename H2 into h.
-      apply crit_pos in h.
-      exfalso. clear -h.
-      destruct h.
-      {
-        apply Rlt_irrefl with 0.
-        apply Rlt_trans with (- (/ 2 * (/ 2) ^ n)).
-        { assumption. }
-        {
-          rewrite <- Ropp_0.
-          apply Ropp_lt_contravar.
-          rewrite tech_pow_Rmult.
-          apply pow_lt.
-          exact Rlt_0_half.
-        }
-      }
-      {
-        apply Rlt_irrefl with 0.
-        pattern 0 at 1;rewrite H.
-        rewrite <- Ropp_0.
-        apply Ropp_lt_contravar.
-        rewrite tech_pow_Rmult.
-        apply pow_lt.
-        exact Rlt_0_half.
-      }
+      specialize (h 1%nat).
+      unfold s_crit in h.
+      unfold serie in h.
+      rewrite Rplus_0_r in h.
+      apply crit_0 in h.
+      exact h.
     }
-    { assumption. }
-    Qed.
+    {
+      generalize h;intro hsn;specialize (hsn (S n)).
+      generalize h;intro hssn;specialize (hssn (S (S n))).
+      unfold s_crit in hssn.
+      rewrite serie_Sn in hssn.
+      fold (s_crit u l e (S n)) in hssn.
+      rewrite hsn in hssn.
+      rewrite Rplus_0_l in hssn.
+      apply crit_0 in hssn.
+      exact hssn.
+    }
+  Qed.
 
   Lemma crit_technic_2: forall (u : nat -> R) (l e : R),
     Un_growing u ->
@@ -926,93 +937,45 @@ Section sequence.
       apply Rlt_0_half.
   Qed.
 
-  Lemma crit_technic_3 : forall (u : nat -> R) (l e : R),
-    is_upper_bound (fcrit1 u l e) 0 ->
-    forall n : nat, cv_crit_sum_r u l e n 0.
-  Proof.
-    intros u l e h.
-    generalize youpi;intro youpi.
-    specialize (youpi u l e). intro n.
-    unfold is_upper_bound in h.
-    apply youpi.
-    unfold is_upper_bound.
-    intros iti oto.
-    destruct oto as [ zim zam ].
-    apply h.
-    exists zim. assumption.
-  Qed.
-
-
-  Lemma crit_technic_4_fix : forall (u : nat -> R) (l e : R), Un_growing u -> forall  (N : nat), u N <= l - e -> cv_crit_sum u l e N = 0.
+  Lemma crit_technic_4 : forall (u : nat -> R) (l e : R), Un_growing u -> forall  (N : nat), u N <= l - e -> s_crit u l e N = 0.
   Proof.
       intros.
-      induction N.
-      { easy. }
+      induction N as [ | N i ].
+      { unfold s_crit. simpl. reflexivity. }
       {
         simpl.
-        generalize crit_technic_2;intro H6.
-        specialize (H6 u l e H).
-        specialize (H6 N).
-        specialize (H6 H0).
-        rewrite (IHN H6), Rplus_0_l.
-        unfold cv_crit_test.
-        destruct Rle_lt_dec as [Hle|Hlt].
+        unfold s_crit.
+        rewrite serie_Sn.
+        fold (s_crit u l e N).
+        rewrite i.
         {
-          apply eq_refl.
+          rewrite Rplus_0_l.
+          apply crit_0_inv.
+          apply crit_technic_2.
+          { exact H. }
+          { exact H0. }
         }
-        now elim Rlt_not_le with (1 := Hlt).
+        {
+          apply Rle_trans with (u (S N)).
+          { apply H. }
+          { exact H0. }
+        }
       }
   Qed.
 
-
-  Lemma crit_technic_4 : forall (u : nat -> R) (l e : R),
-    Un_growing u ->
-    forall  (N : nat), u N <= l - e ->
-    cv_crit_sum_r u l e N 0.
-  Proof.
-      intros.
-      induction N.
-      { constructor. }
-      {
-        simpl.
-        generalize crit_technic_2;intro H6.
-        specialize (H6 u l e H).
-        specialize (H6 N).
-        specialize (H6 H0).
-        apply crit_f.
-        exact H6.
-        apply IHN.
-        exact H6.
-      }
-  Qed.
-
-
-  (* This lemma shows that 1 is an upper bound of fcrit1,
-     i.e. any x which satisfies fcrit1 must be smaller than 1
-  *)
-  Lemma crit_bounded : forall u l e, bound (fcrit1 u l e).
+  Lemma crit_bounded : forall u l e, bound (crit_exist u l e).
   Proof.
     intros u l e.
     unfold bound.
     exists 1.
     unfold is_upper_bound.
     intros x h.
-    unfold fcrit1 in h.
+    unfold crit_exist in h.
     destruct h as [n h].
-    apply Rle_trans with (1-(/2)^n).
-    {
-      apply (crit_bound_O u l e).
-      exact h.
-    }
-    {
-      pattern 1 at 2;rewrite <- Rplus_0_r.
-      apply Rplus_le_compat_l.
-      rewrite <- Ropp_0.
-      apply Ropp_le_contravar.
-      left.
-      apply pow_lt.
-      exact Rlt_0_half.
-    }
+    rewrite <- h;clear h.
+    Search (_ <= 1).
+    apply s_half_pow_lt_1_partial.
+    apply crit_partial.
   Qed.
 
   Lemma crit_before_0 : forall u l e N n,
