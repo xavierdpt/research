@@ -238,8 +238,6 @@ Section sequence.
     }
   Qed.
 
-  (* stopped here *)
-
   Remark Hi2pn: forall n, 0 < (/ 2)^n.
   Proof.
     intros n.
@@ -639,25 +637,7 @@ Section sequence.
     }
   Qed.
 
-(*
-  Lemma crit_Sn : forall u l e n y,
-    cv_crit_sum_r u l e (S n) y ->
-    (u n <= l - e /\ cv_crit_sum_r u l e n y) \/ (l - e < u n /\ cv_crit_sum_r u l e n (y - (/ 2) ^ (S n))).
-  Proof.
-    intros u l e n y hy.
-    inversion hy;clear hy.
-    { subst y n0.
-      right. split. assumption.
-      unfold Rminus. rewrite Rplus_assoc.
-      rewrite Rplus_opp_r.
-      rewrite Rplus_0_r.
-      assumption.
-    }
-    { subst n0 r. left. split;assumption. }
-  Qed.
-*)
-
-  Lemma crit_bound_O_l : forall u l e n, 0 <= s_crit u l e n.
+  Lemma s_crit_pos : forall u l e n, 0 <= s_crit u l e n.
   Proof.
     intros u l e n.
     specialize (crit_bound_l u l e 0 n);intro h.
@@ -688,179 +668,8 @@ Section sequence.
     unfold is_upper_bound in h.
     apply Rle_antisym.
     { apply h. unfold crit_exist. exists n. reflexivity. }
-    { apply crit_bound_O_l. }
+    { apply s_crit_pos. }
   Qed.
-
-(*
-  Lemma practice8 : forall u l e n,
-    cv_crit_sum_r u l e n 0 ->
-    forall m, (m <= n)%nat -> cv_crit_sum_r u l e m 0.
-  Proof.
-    intros u l e n hn m hmn.
-    apply le_lt_or_eq in hmn.
-    destruct hmn as [ hmn | hmn ].
-    2:{
-      subst m.
-      exact hn.
-    }
-    {
-      induction m as [ | m i ].
-      { constructor. }
-      {
-        apply crit_f.
-        2:{
-          apply i.
-          apply Nat.lt_succ_l.
-          exact hmn.
-        }
-        {
-          clear i.
-          generalize dependent m.
-          induction n as [ | n i ].
-          {
-            intros m hm.
-            inversion hm.
-          }
-          {
-            intros m hmn.
-            apply lt_disj in hmn.
-            destruct hmn as [ hmn | hmn ].
-            {
-              inversion hn;clear hn.
-              2:{
-                subst r n0.
-                apply i;clear i.
-                { exact H1. }
-                { exact hmn. }
-              }
-              {
-                subst n0.
-                apply crit_pos in H2.
-                exfalso.
-                apply Rlt_irrefl with 0.
-                pattern 0 at 2;rewrite <- H0.
-                rewrite tech_pow_Rmult.
-                apply Rle_lt_trans with r.
-                { exact H2. }
-                {
-                  pattern r at 1;rewrite <- Rplus_0_r.
-                  apply Rplus_lt_compat_l.
-                  apply pow_lt.
-                  exact Rlt_0_half.
-                }
-              }
-            }
-            {
-              subst n.
-              inversion hn;clear hn.
-              2:{
-                subst n r.
-                inversion H1;clear H1.
-                2:{
-                  subst m r.
-                  exact H2.
-                }
-                {
-                  subst m.
-                  apply crit_pos in H4.
-                  exfalso.
-                  apply Rlt_irrefl with 0.
-                  pattern 0 at 2;rewrite <- H2.
-                  rewrite tech_pow_Rmult.
-                  Search( _ <= _ -> _ < _ -> _ < _).
-                  apply Rle_lt_trans with r.
-                  { exact H4. }
-                  {
-                    pattern r at 1;rewrite <- Rplus_0_r.
-                    apply Rplus_lt_compat_l.
-                    apply pow_lt.
-                    exact Rlt_0_half.
-                  }
-                }
-              }
-              {
-                apply crit_pos in H2.
-                exfalso.
-                apply Rlt_irrefl with 0.
-                pattern 0 at 2;rewrite <- H0.
-                rewrite tech_pow_Rmult.
-                rewrite tech_pow_Rmult.
-                apply Rle_lt_trans with r.
-                { exact H2. }
-                {
-                  pattern r at 1;rewrite <- Rplus_0_r.
-                  apply Rplus_lt_compat_l.
-                  apply pow_lt.
-                  exact Rlt_0_half.
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  Qed.
-*)
-
-(*
-
-  Lemma practice9 : forall u l e,
-    (forall n, cv_crit_sum_r u l e n 0) ->
-    (forall n, u n <= l - e).
-  Proof.
-    intros u l e h n.
-    specialize (h (S n)).
-    inversion h.
-    {
-      apply crit_pos in H2.
-      exfalso.
-      eapply sum_pow_neq_0.
-      { exact H2. }
-      { exact Rlt_0_half. }
-      {
-        rewrite tech_pow_Rmult in H0.
-        exact H0.
-      }
-    }
-    {
-      exact H0.
-    }
-  Qed.
-
-  Lemma practice10 : forall u l e x,
-    (exists n, cv_crit_sum_r u l e n x /\ x <> 0) ->
-    (exists n, l - e < u n).
-  Proof.
-    intros u l e x h.
-    destruct h as [ n h ].
-    destruct h as [ h hneq ].
-    induction n as[ | n i ].
-    {
-      inversion h; clear h.
-      subst x.
-      contradiction.
-    }
-    {
-      inversion h;clear h.
-      {
-        exists n. exact H0.
-      }
-      {
-        specialize (i H1);clear H1.
-        destruct i as [ n' h ].
-        exists n'. exact h.
-      }
-    }
-  Qed.
-
-  Lemma practice11 : forall u l e, fcrit1 u l e 0.
-  Proof.
-    intros u l e.
-    unfold fcrit1.
-    exists 0%nat.
-    constructor.
-  Qed.
-*)
 
   Lemma crit_0 : forall u l e n,  crit u l e (S n) = 0 -> u n <= l - e.
   Proof.
@@ -1018,6 +827,18 @@ Section sequence.
     }
   Qed.
 
+  Lemma tata : forall m : R, 0 < m -> exists N : nat, forall n : nat, (n >= N)%nat -> Rabs ((/ 2) ^ n) < m.
+  Proof.
+    intros m h.
+    apply pow_lt_1_zero.
+    {
+      rewrite Rabs_right.
+      { exact Rlt_half_1. }
+      { apply Rle_ge. left. exact Rlt_0_half. }
+    }
+    { exact h. }
+  Qed.
+
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
     0 < m ->
@@ -1025,64 +846,74 @@ Section sequence.
     exists N : nat, u N > l - e.
   Proof.
     intros u l e m hu Hm Hm2.
-    generalize Rlt_abs_half_1;intro H0.
-    generalize pow_lt_1_zero; intro pz;
-    specialize (pz (/ 2) H0 m Hm).
-    destruct pz as [N H4].
+    destruct (tata m) as [N H4].
+    { exact Hm. }
     exists N.
     apply Rnot_le_lt.
-    intros H5.
-    apply Rlt_not_le with (1 := H4 _ (le_refl _)).
-    rewrite Rabs_pos_eq.
+    intro h.
+    apply (Rlt_not_le m (Rabs ((/ 2) ^ N))).
     {
-      apply Hm2.
-      intros x (n, H6).
-      rewrite <- H6. clear x H6.
-      generalize crit_technic_4;intro Hs.
-      specialize (Hs u l e hu).
-      specialize (Hs N H5).
-      destruct (le_or_lt N n) as [Hn|Hn].
-      {
-        rewrite le_plus_minus with (1 := Hn).
-        apply Rle_trans with (  s_crit u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
-        apply (crit_bound_r u l e).
-        rewrite Hs.
-        rewrite Rplus_0_l.
-        pose (k := (N + (n - N))%nat).
-        fold k.
-        pose (p2N:=(/2)^N).
-        pose (p2k:=(/2)^k).
-        fold p2N. fold p2k.
-        left.
-        apply Rplus_lt_reg_l with (p2k - p2N).
-        unfold Rminus.
-        repeat (rewrite Rplus_assoc).
-        rewrite (Rplus_comm).
-        repeat (rewrite <- Rplus_assoc).
-        rewrite Rplus_opp_l.
-        rewrite Rplus_0_l.
-        rewrite Rplus_opp_l.
-        repeat (rewrite Rplus_assoc).
-        rewrite Rplus_opp_l.
-        rewrite Rplus_0_r.
-        unfold p2k.
-        apply Hi2pn.
-      }
-      apply Rle_trans with (s_crit u l e N).
-      {
-        rewrite le_plus_minus with (1 := Hn).
-        rewrite plus_Snm_nSm.
-        apply (crit_bound_l u l e).
-      }
-      {
-        rewrite Hs.
-        left.
-        apply pow_lt.
-        apply Rlt_0_half.
-      }
+      apply H4.
+      constructor.
     }
-  left.
-  apply Hi2pn.
+    {
+      rewrite Rabs_pos_eq.
+      {
+        apply Hm2.
+        unfold is_upper_bound.
+        intros x he.
+        destruct he as [n H6].
+        subst x.
+        generalize crit_technic_4;intro Hs.
+        specialize (Hs u l e hu).
+        specialize (Hs N h).
+        destruct (le_or_lt N n) as [Hn|Hn].
+        {
+          rewrite (le_plus_minus N n).
+          2:exact Hn.
+          apply Rle_trans with (  s_crit u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
+          apply (crit_bound_r u l e).
+          rewrite Hs.
+          rewrite Rplus_0_l.
+          pose (k := (N + (n - N))%nat).
+          fold k.
+          pose (p2N:=(/2)^N).
+          pose (p2k:=(/2)^k).
+          fold p2N. fold p2k.
+          left.
+          apply Rplus_lt_reg_l with (p2k - p2N).
+          unfold Rminus.
+          repeat (rewrite Rplus_assoc).
+          rewrite (Rplus_comm).
+          repeat (rewrite <- Rplus_assoc).
+          rewrite Rplus_opp_l.
+          rewrite Rplus_0_l.
+          rewrite Rplus_opp_l.
+          repeat (rewrite Rplus_assoc).
+          rewrite Rplus_opp_l.
+          rewrite Rplus_0_r.
+          unfold p2k.
+          apply Hi2pn.
+        }
+        apply Rle_trans with (s_crit u l e N).
+        {
+          rewrite (le_plus_minus N n).
+          2:{
+            Search ( _ < _ -> _ <= _)%nat.
+            apply 
+          rewrite le_plus_minus with (1 := Hn).
+          rewrite plus_Snm_nSm.
+          apply (crit_bound_l u l e).
+        }
+        {
+          rewrite Hs.
+          left.
+          apply pow_lt.
+          apply Rlt_0_half.
+        }
+      }
+    left.
+    apply Hi2pn.
 Qed.
 
   (* This lemma show that there is a least upper bound of fcrit1 *)
