@@ -973,7 +973,6 @@ Section sequence.
     unfold crit_exist in h.
     destruct h as [n h].
     rewrite <- h;clear h.
-    Search (_ <= 1).
     apply s_half_pow_lt_1_partial.
     apply crit_partial.
   Qed.
@@ -981,19 +980,24 @@ Section sequence.
   Lemma crit_before_0 : forall u l e N n,
     Un_growing u ->
     u N <= l - e -> (n <= N)%nat ->
-    cv_crit_sum_r u l e n 0.
+    s_crit u l e n = 0.
   Proof.
     intros u l e N n hg hN hn.
     generalize dependent n.
     intro n;induction n as [ | n i ].
     {
       intros hn.
-      constructor.
+      unfold s_crit. simpl. reflexivity.
     }
     {
       intros hn.
-      apply crit_f.
+      unfold s_crit.
+      rewrite serie_Sn.
+      fold (s_crit u l e n).
+      rewrite i.
       {
+        rewrite Rplus_0_l.
+        apply crit_rewrite_l.
         apply Rle_trans with (u N).
         {
           apply Rge_le.
@@ -1002,30 +1006,29 @@ Section sequence.
           {
             unfold ge.
             apply le_trans with (S n).
-            { apply Nat.le_succ_diag_r. }
+            { constructor. constructor. }
             { exact hn. }
           }
         }
         { exact hN. }
       }
-      {
-        apply i.
-        apply le_trans with (S n).
-        { apply Nat.le_succ_diag_r. }
-        { exact hn. }
-      }
+      apply le_trans with (S n).
+      { constructor. constructor. }
+      { exact hn. }
     }
   Qed.
 
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
     0 < m ->
-    (forall b : R, is_upper_bound (fcrit1 u l e) b -> m <= b) ->
+    (forall b : R, is_upper_bound (crit_exist u l e) b -> m <= b) ->
     exists N : nat, u N > l - e.
   Proof.
     intros u l e m hu Hm Hm2.
     generalize Rlt_abs_half_1;intro H0.
-    destruct (pow_lt_1_zero (/2) H0 m Hm) as [N H4].
+    generalize pow_lt_1_zero; intro pz;
+    specialize (pz (/ 2) H0 m Hm).
+    destruct pz as [N H4].
     exists N.
     apply Rnot_le_lt.
     intros H5.
@@ -1034,84 +1037,15 @@ Section sequence.
     {
       apply Hm2.
       intros x (n, H6).
-
-(* Begin new stuff *)
-(*
-      destruct (le_or_lt N n) as [Hn|Hn].
-      {
-        clear H4.
-        induction N as [ | N i].
-        {
-          simpl.
-          specialize (crit_bound_O u l e n x H6);intro cb.
-          apply Rle_trans with (1 - (/ 2) ^ n).
-          {
-            apply (crit_bound_O u l e).
-            exact H6.
-          }
-          {
-            pattern 1 at 2;rewrite <- Rplus_0_r.
-            unfold Rminus.
-            apply Rplus_le_compat_l.
-            rewrite <- Ropp_0.
-            apply Ropp_le_contravar.
-            apply pow_le.
-            left.
-            exact Rlt_0_half.
-          }
-        }
-        {
-          assert (hx:x <= (/ 2) ^N).
-          {
-            apply i.
-            {
-              apply Rle_trans with (u (S N)).
-              { apply hu. }
-              { exact H5. }
-            }
-            {
-              apply le_trans with (S N).
-              { apply Nat.le_succ_diag_r. }
-              { exact Hn. }
-            }
-          }
-          admit.
-        }
-      }
-      {
-        assert (x = 0).
-        {
-          apply (cv_crit_sum_r_inj u l e n).
-          { assumption. }
-          {
-            apply (crit_before_0 u l e N).
-            { exact hu. }
-            { exact H5. }
-            {
-              apply Nat.lt_le_incl.
-              exact Hn.
-            }
-          }
-        }
-        subst x.
-        apply pow_le.
-        left.
-        exact Rlt_0_half.
-      }
-*)
-(* End new stuff *)
-
-
-      rewrite cv_crit_equiv in H6.
       rewrite <- H6. clear x H6.
-      generalize crit_technic_4_fix;intro Hs.
+      generalize crit_technic_4;intro Hs.
       specialize (Hs u l e hu).
       specialize (Hs N H5).
       destruct (le_or_lt N n) as [Hn|Hn].
       {
         rewrite le_plus_minus with (1 := Hn).
-        apply Rle_trans with (  cv_crit_sum u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
-        apply (crit_bound_fix u l e).
+        apply Rle_trans with (  s_crit u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
+        apply (crit_bound_r u l e).
         rewrite Hs.
         rewrite Rplus_0_l.
         pose (k := (N + (n - N))%nat).
@@ -1134,11 +1068,11 @@ Section sequence.
         unfold p2k.
         apply Hi2pn.
       }
-      apply Rle_trans with (cv_crit_sum u l e N).
+      apply Rle_trans with (s_crit u l e N).
       {
         rewrite le_plus_minus with (1 := Hn).
         rewrite plus_Snm_nSm.
-        apply (crit_bound_fix u l e).
+        apply (crit_bound_l u l e).
       }
       {
         rewrite Hs.
@@ -1151,10 +1085,8 @@ Section sequence.
   apply Hi2pn.
 Qed.
 
-
-
   (* This lemma show that there is a least upper bound of fcrit1 *)
-  Lemma fcrit_lub_ex : forall u l e, exists x, is_lub (fcrit1 u l e) x.
+  Lemma fcrit_lub_ex : forall u l e, exists x, is_lub (crit_exist u l e) x.
   Proof.
     intros u l e.
     (* Here, we don't really construct the least upper bound *)
@@ -1165,61 +1097,40 @@ Qed.
     { apply crit_bounded. }
     {
       exists 0.
-      unfold fcrit1.
+      unfold crit_exist.
       exists 0%nat.
       constructor.
     }
   Qed.
 
-  Lemma crit_flat : forall u l e, is_upper_bound (fcrit1 u l e) 0 -> forall n, cv_crit_sum_r u l e n 0.
+  Lemma crit_flat : forall u l e, is_upper_bound (crit_exist u l e) 0 -> forall n, s_crit u l e n = 0.
   Proof.
-    intros u l e h.
+    intros u l e h n.
     unfold is_upper_bound in h.
-    intro n; destruct n.
-    { constructor. }
-    {
-      destruct (crit_exist u l e (S n)).
-      specialize (h x).
-      unfold fcrit1 in h.
-      assert(hex:exists n : nat, cv_crit_sum_r u l e n x).
-      {
-        exists (S n). assumption.
-      }
-      specialize (h hex);clear hex.
-      assert(x=0).
-      {
-        apply crit_pos in H.
-        apply Rle_antisym;assumption.
-      }
-      subst x.
-      assumption.
-    }
+    apply Rle_antisym.
+    { apply h. exists n. reflexivity. }
+    { apply crit_bound_O_l. }
   Qed.
-
 
   Lemma crit_lub_pos : forall u l e m,
     is_lub (EUn u) l ->
     e > 0 ->
-    is_lub (fcrit1 u l e) m ->
+    is_lub (crit_exist u l e) m ->
     m > 0.
   Proof.
     intros u l e m hlub he h.
     destruct h as [hl hr].
     destruct (Rtotal_order m 0) as [ hm | [ hm | hm ] ].
     { (* m < 0 *)
-      exfalso. (* We proceed by contradiction *)
+      exfalso.
       unfold is_upper_bound in hl.
-      (* It is not the case the 0 <= m *)
       apply Rlt_not_le in hm.
-      (* Therefore, if we can show 0 <= m, we have a contradiction *)
       apply hm.
-      (* hl states that m must be an upper bound of fcrit1 *)
-      (* i.e. if fcrit1 holds for 0, the m must be greater than 0 *)
       apply hl.
-      (* And since fcrit1 always starts at 0, it is always the case for n=0 *)
-      unfold fcrit1.
       exists 0%nat.
-      constructor.
+      unfold s_crit.
+      simpl.
+      reflexivity.
     }
     { (* m = 0 *)
       subst m.
