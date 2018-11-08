@@ -77,6 +77,86 @@ Proof.
   exact p.
 Qed.
 
+Lemma Rplus_le_compat_0_l : forall u v, 0 <= v -> u <= u + v.
+Proof.
+  intros u v h.
+  pattern u at 1;rewrite <- Rplus_0_r.
+  apply Rplus_le_compat_l.
+  exact h.
+Qed.
+
+Lemma Rplus_le_compat_0_r : forall u v, 0 <= v -> u <= v + u.
+Proof.
+  intros u v h.
+  rewrite Rplus_comm.
+  apply Rplus_le_compat_0_l.
+  exact h.
+Qed.
+
+Lemma Rplus_lt_compat_l_minus : forall u v w, v < w - u -> u + v < w.
+Proof.
+  intros u v w h.
+  apply Rplus_lt_reg_l with (-u).
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  rewrite Rplus_comm.
+  fold (w-u).
+  exact h.
+Qed.
+
+Lemma Rplus_lt_compat_r_minus : forall u v w, u < w - v -> u + v < w.
+Proof.
+  intros u v w h.
+  rewrite Rplus_comm.
+  apply Rplus_lt_compat_l_minus.
+  exact h.
+Qed.
+
+Lemma Rplus_le_compat_l_minus : forall u v w, v <= w - u -> u + v <= w.
+Proof.
+  intros u v w h.
+  apply Rplus_le_reg_l with (-u).
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  rewrite Rplus_comm.
+  fold (w-u).
+  exact h.
+Qed.
+
+Lemma Rplus_le_compat_r_minus : forall u v w, u <= w - v -> u + v <= w.
+Proof.
+  intros u v w h.
+  rewrite Rplus_comm.
+  apply Rplus_le_compat_l_minus.
+  exact h.
+Qed.
+
+Lemma Rminus_diag : forall r, r-r=0.
+Proof.
+  intro r.
+  unfold Rminus.
+  rewrite Rplus_opp_r.
+  reflexivity.
+Qed.
+
+Lemma lt_disj : (forall n m, S m < S n -> S m < n \/ S m = n)%nat.
+Proof.
+  intros n m h.
+  apply lt_le_S in h.
+  apply le_lt_or_eq in h.
+  destruct h as [ h | h ].
+  {
+    apply lt_S_n in h.
+    left. exact h.
+  }
+  {
+    apply eq_add_S in h.
+    right. exact h.
+  }
+Qed.
+
 
 Section sequence.
 
@@ -155,405 +235,394 @@ Section sequence.
     constructor.
   Qed.
 
+  Definition Un_partial (u u':nat->R) := forall n, u n = 0 \/ u n = u' n.
 
-  (* This is the old crit test *)
-  Definition cv_crit_test (u : nat->R ) (l e : R) (n:nat) := if Rle_lt_dec (u n) (l - e) then false else true.
+  Definition pos (u:nat->R) := forall n, 0 <= u n.
 
-  (* And the old crit sum as a fixpoint *)
-  Fixpoint cv_crit_sum (u : nat->R ) (l e : R) (n:nat) := match n with
-    | O => 0
-    | S n' => cv_crit_sum u l e n' +
-      if cv_crit_test u l e n' then (/ 2)^n else 0
-    end.
-
-
-  (* This is an equivalent inductive relation  for crit sum and test *)
-  Inductive cv_crit_sum_r (u : nat->R ) (l e : R) : nat -> R -> Prop :=
-  | crit_O : cv_crit_sum_r u l e 0%nat 0
-  | crit_t : forall (n:nat) (r:R),
-      (l - e < u n) ->
-      cv_crit_sum_r u l e n r ->
-      cv_crit_sum_r u l e (S n) ( r + (/ 2)^(S n))
-  | crit_f : forall (n:nat) (r:R),
-      ( u n <= l - e) ->
-      cv_crit_sum_r u l e n r ->
-      cv_crit_sum_r u l e (S n) r
-  .
-
-  Lemma crit_exist : forall u l e n, exists x, cv_crit_sum_r u l e n x.
+  Lemma posn : forall u n, pos u -> 0 <= u n.
   Proof.
-    intros u l e n.
+    intros u n hpos.
+    apply hpos.
+  Qed.
+
+  Lemma pos_partial : forall u u', pos u' -> Un_partial u u' -> pos u.
+  Proof.
+    intros u u' hpo hpa.
+    unfold pos in hpo.
+    unfold Un_partial in hpa.
+    unfold pos.
+    intro n.
+    destruct (hpa n) as [ h | h ].
+    rewrite h. right. reflexivity.
+    rewrite h. apply hpo.
+  Qed.
+
+  Lemma partial_le : forall u u' n, Un_partial u u' -> pos u' -> u n <= u' n.
+  Proof.
+    intros u u' n h hp.
+    unfold Un_partial in h.
+    destruct (h n) as [ h' | h' ].
+    { rewrite h'. apply hp. }
+    { rewrite h'. right. reflexivity. }
+  Qed.
+
+
+  Definition u_half_pow (n:nat) := (/ 2)^n.
+
+  Lemma u_half_pow_pos : pos u_half_pow.
+  Proof.
+    unfold pos.
+    intro n.
+    unfold u_half_pow.
+    apply pow_le.
+    left.
+    exact Rlt_0_half.
+  Qed.
+
+  Fixpoint serie(u:nat->R) (n:nat) := match n with
+  | O => 0
+  | S n' => u n + (serie u n')
+  end.
+
+  Definition s_half_pow := serie u_half_pow.
+
+  Lemma serie_Sn : forall u n, (serie u) (S n) = serie u n + u (S n).
+  Proof.
+    intros u n.
+    simpl.
+    rewrite Rplus_comm.
+    reflexivity.
+  Qed.
+
+  Lemma s_partial_le : forall u u' n, Un_partial u u' -> pos u' -> serie u n <= serie u' n.
+  Proof.
+    intros u u' n h hp.
+    unfold Un_partial in h.
     induction n as [ | n i ].
-    { exists 0. constructor. }
     {
-      destruct i as [ x i ].
-      destruct (Rtotal_order (u n) (l-e)) as [ o | [ o | o ] ].
+      simpl. right. reflexivity.
+    }
+    {
+      destruct (h (S n)) as [ h' | h' ].
       {
-        exists x. apply crit_f.
-        { left. exact o. }
+        rewrite serie_Sn.
+        rewrite serie_Sn.
+        rewrite h'.
+        apply Rplus_le_compat.
         { exact i. }
+        { apply hp. }
       }
       {
-        exists x. apply crit_f.
-        { right. exact o. }
-        { exact i. }
-      }
-      {
-        exists ( x + (/ 2) ^ S n).
-        apply crit_t.
-        { exact o. }
-        { exact i. }
+        rewrite serie_Sn.
+        rewrite serie_Sn.
+        rewrite h'.
+        apply Rplus_le_compat_r.
+        exact i.
       }
     }
   Qed.
 
-  Lemma crit_exist' : forall u l e n, {x | cv_crit_sum_r u l e n x}.
+  Lemma growing_s_half_pow : Un_growing s_half_pow.
   Proof.
-    intros u l e n.
-    induction n as [ | n i ].
-    { exists 0. constructor. }
-    {
-      destruct i as [ x i ].
-      generalize (total_order_T (u n) (l-e));intro tot.
-      destruct tot as [ [ o | o ] | o ].
-      {
-        exists x. apply crit_f.
-        { left. exact o. }
-        { exact i. }
-      }
-      {
-        exists x. apply crit_f.
-        { right. exact o. }
-        { exact i. }
-      }
-      {
-        exists ( x + (/ 2) ^ S n).
-        apply crit_t.
-        { exact o. }
-        { exact i. }
-      }
-    }
-  Qed.
-
-  Lemma crit_inj : forall (u : nat -> R) (l e : R) (n:nat) (r r' : R),
-    cv_crit_sum_r u l e n r ->
-    cv_crit_sum_r u l e n r' ->
-    r = r' .
-  Proof.
-    intros u l e n r r' hr.
-    generalize dependent r'.
-    induction hr.
-    { intros r' hr'. inversion hr'. reflexivity. }
-    {
-      intros r' hr'. inversion hr'.
-      {
-        subst n0.
-        apply Rplus_eq_compat_r.
-        apply IHhr.
-        assumption.
-      }
-      { exfalso. eapply Rlt_irrefl_le. apply H. apply H1. }
-    }
-    {
-      intros r' hr'.
-      inversion hr'.
-      { exfalso. eapply Rlt_irrefl_le. apply H1. apply H. }
-      {
-        apply IHhr.
-        assumption.
-      }
-    }
-  Qed.
-
-  Lemma crit_pos : forall u l e n x, cv_crit_sum_r u l e n x -> 0 <= x.
-  Proof.
-    intros u l e n x h.
-    generalize dependent x.
-    induction n as [ | n i ].
-    { intros x h. inversion h. subst x. right. reflexivity. }
-    {
-      intros x h.
-      inversion h as [ | n' x' o h' n'eq x'eq | n' x' o h' n'eq x'eq ];clear h;rename h' into h.
-      {
-        subst x n'; rename x' into x.
-        apply Rle_trans with x.
-        { apply i. exact h. }
-        {
-          pattern x at 1;rewrite <- Rplus_0_r.
-          apply Rplus_le_compat_l.
-          apply pow_le.
-          left.
-          exact Rlt_0_half.
-        }
-      }
-      { subst x' n'. apply i. exact h. }
-    }
-  Qed.
-
-  Lemma crit_fun : forall u l e, exists f : nat -> R, forall n, cv_crit_sum_r u l e n (f n).
-  Proof.
-    intros u l e.
-    apply exists_fun.
-    intros a.
-    apply crit_exist'.
-  Qed.
-
-  Lemma crit_fun' : forall u l e, { f : nat -> R | forall n, cv_crit_sum_r u l e n (f n) }.
-  Proof.
-    intros u l e.
-    apply exists_fun'.
-    intros a.
-    apply crit_exist'.
-  Qed.
-
-  Lemma growing_crit : forall u l e f,
-    (forall n, cv_crit_sum_r u l e n (f n)) -> Un_growing f.
-  Proof.
-    intros u l e f h.
     unfold Un_growing.
     intro n.
+    unfold s_half_pow.
+    simpl.
+    apply Rplus_le_compat_0_r.
+    unfold u_half_pow.
+    apply pow_le.
+    left.
+    exact Rlt_0_half.
+  Qed.
 
-    generalize (h (S n));intro hsn.
-    generalize (h n);intro hn.
-    inversion hsn;apply crit_pos in hsn.
+  Lemma s_half_pow_pos : forall n,  0 <= s_half_pow n.
+  Proof.
+    intro n.
+    unfold s_half_pow.
+    induction n as [ | n i ].
+    { simpl. right. reflexivity. }
     {
-      assert(eq:r = f n).
+      simpl.
+      apply Rle_trans with (serie u_half_pow n).
+      { exact i. }
       {
-        apply (crit_inj u l e n);assumption.
+        apply Rplus_le_compat_0_r.
+        unfold u_half_pow.
+        apply pow_le.
+        left.
+        exact Rlt_0_half.
       }
-      subst r.
-      pattern (f n) at 1;rewrite <- Rplus_0_r.
+    }
+  Qed.
+
+  Lemma s_half_pow_le_n : forall n,  s_half_pow n <= 1 - (/ 2) ^ n.
+  Proof.
+    intro n.
+    unfold s_half_pow.
+    induction n as [ | n i ].
+    {
+      simpl.
+      rewrite Rminus_diag.
+      right.
+      reflexivity.
+    }
+    {
+      simpl.
+      unfold u_half_pow at 1. 
+      apply Rplus_le_compat_l_minus.
+      simpl.
+      pose (hsn:=(/2)^n).
+      fold hsn.
+      fold hsn in i.
+      unfold Rminus.
+      rewrite Ropp_mult_distr_r.
+      rewrite Rplus_assoc.
+      rewrite <- Rmult_plus_distr_r.
+      rewrite half_half.
+      rewrite Rmult_1_l.
+      fold (1-hsn).
+      exact i.
+    }
+  Qed.
+
+  Lemma s_half_pow_lt_1 : forall n,  s_half_pow n < 1.
+  Proof.
+    intro n.
+    apply Rle_lt_trans with (1 - (/2)^n).
+    { apply s_half_pow_le_n. }
+    {
+      unfold Rminus.
+      apply Rplus_lt_compat_l_minus.
+      rewrite Rminus_diag.
+      rewrite <- Ropp_0.
+      apply Ropp_lt_contravar.
+      apply pow_lt.
+      exact Rlt_0_half.
+    }
+  Qed.
+
+  Lemma growing_s_half_pow_partial : forall u, Un_partial u u_half_pow -> Un_growing (serie u).
+  Proof.
+    intros u h.
+    unfold Un_growing.
+    unfold Un_partial in h.
+    intro n;destruct n as [ | n ].
+    {
+      simpl.
+      rewrite Rplus_0_r.
+      destruct (h 1%nat) as [ h' | h' ].
+      { rewrite h'. right. reflexivity. }
+      { rewrite h'. unfold u_half_pow. simpl. rewrite Rmult_1_r. left. exact Rlt_0_half. }
+    }
+    {
+      simpl.
+      rewrite <- Rplus_assoc.
+      rewrite (Rplus_comm _ (u (S n))).
+      rewrite Rplus_assoc.
       apply Rplus_le_compat_l.
-      rewrite tech_pow_Rmult.
+      apply Rplus_le_compat_0_r.
+      destruct (h (S (S n))) as [ h' | h' ].
+      { rewrite h'. right. reflexivity. }
+      { rewrite h'. unfold u_half_pow. apply pow_le. left. exact Rlt_0_half. }
+    }
+  Qed.
+
+  Lemma s_half_pow_pos_partial : forall u, Un_partial u u_half_pow ->
+    forall n,  0 <= (serie u) n.
+  Proof.
+    intros u h n.
+    unfold Un_partial in h.
+    induction n as [ | n i ].
+    { simpl. right. reflexivity. }
+    { simpl. apply Rle_trans with (serie u n).
+      { exact i. }
+      { apply Rplus_le_compat_0_r. destruct (h (S n)) as [ h' | h' ].
+        { rewrite h'. right. reflexivity. }
+        { rewrite h'. unfold u_half_pow. apply pow_le. left. exact Rlt_0_half. }
+      }
+    }
+  Qed.
+
+  Lemma s_half_pow_le_n_partial : forall u, Un_partial u u_half_pow ->
+    forall n,  (serie u) n <= 1 - (/ 2) ^ n.
+  Proof.
+    intros u h n.
+    unfold Un_partial in h.
+    induction n as [ | n i ].
+    { simpl. rewrite Rminus_diag. right. reflexivity. }
+    { simpl. destruct (h (S n)) as [ h' | h' ].
+      { rewrite h'. rewrite Rplus_0_l. apply Rle_trans with (1 - (/ 2) ^ n).
+        { exact i. }
+        { unfold Rminus. apply Rplus_le_compat_l. apply Ropp_le_contravar.
+          pattern ( (/ 2) ^ n) at 2;rewrite <- Rmult_1_l.
+          apply Rmult_le_compat_r.
+          apply pow_le. left. exact Rlt_0_half.
+          left. exact Rlt_half_1.
+        }
+      }
+      {
+        rewrite h'. clear h'.
+        apply Rplus_le_compat_l_minus.
+        apply Rle_trans with (1 - (/ 2) ^ n).
+        { exact i. }
+        {
+          unfold Rminus.
+          rewrite Rplus_assoc.
+          apply Rplus_le_compat_l.
+          unfold u_half_pow.
+          simpl.
+          rewrite Ropp_mult_distr_r.
+          rewrite <- Rmult_plus_distr_r.
+          rewrite half_half.
+          rewrite Rmult_1_l.
+          right. reflexivity.
+        }
+      }
+    }
+  Qed.
+
+
+
+  Lemma s_half_pow_lt_1_partial : forall u, Un_partial u u_half_pow ->
+    forall n,  (serie u) n <= 1.
+  Proof.
+    intros u h n.
+    apply Rle_trans with (1 - (/2)^n).
+    { apply s_half_pow_le_n_partial. exact h. }
+    {
+      unfold Rminus.
+      apply Rplus_le_compat_l_minus.
+      rewrite Rminus_diag.
+      rewrite <- Ropp_0.
+      apply Ropp_le_contravar.
       apply pow_le.
       left.
       exact Rlt_0_half.
     }
-    {
-      assert(eq:f n = f (S n)).
-      {
-        apply (crit_inj u l e n);assumption.
-      }
-      rewrite eq. right. reflexivity.
+  Qed.
+
+  Definition crit_test (u : nat->R ) (l e : R) (n:nat) := if Rle_lt_dec (u n) (l - e) then false else true.
+
+  Fixpoint crit (u : nat->R ) (l e : R) (n:nat) := match n with
+    | O => 0
+    | S n' => if crit_test u l e n' then (/ 2)^n else 0
+    end.
+
+  Lemma crit_partial : forall u l e, Un_partial (crit u l e) u_half_pow.
+  Proof.
+    intros u l e n.
+    destruct n.
+    { simpl. left. reflexivity. }
+    { simpl. destruct (crit_test u l e n).
+      { right. unfold u_half_pow. simpl. reflexivity. }
+      { left. reflexivity. }
     }
   Qed.
 
-  Lemma growing_flat : forall u N n, Un_growing u -> (forall n, 0 <= u n) -> u N = 0 -> (n <= N)%nat -> u n = 0.
+  Lemma crit_rewrite_l : forall u l e n,
+      u n <= l - e -> crit u l e (S n) = 0.
   Proof.
-  Admitted.
-
-  Lemma lt_disj : (forall n m, S m < S n -> S m < n \/ S m = n)%nat.
-  Proof.
-    intros n m h.
-    apply lt_le_S in h.
-    apply le_lt_or_eq in h.
-    destruct h as [ h | h ].
-    {
-      apply lt_S_n in h.
-      left. exact h.
-    }
-    {
-      apply eq_add_S in h.
-      right. exact h.
-    }
+    intros u l e n h.
+    simpl.
+    unfold crit_test.
+    destruct (Rle_lt_dec (u n) (l-e)).
+    { reflexivity. }
+    { exfalso. eapply Rlt_irrefl_le. exact r. exact h. }
   Qed.
 
-  (* crit depends on l-e. We show the order of crit_sum depends on the size of l-e *)
-  Lemma practice2 : forall u l ex ey n x y,
-    l - ex > l - ey -> 
-    cv_crit_sum_r u l ex n x ->
-    cv_crit_sum_r u l ey n y ->
-    x <= y.
+  Lemma crit_rewrite_r : forall u l e n,
+      l - e < u n  -> crit u l e (S n) = (/ 2)^(S n).
   Proof.
-    intros u l ex ey n x y.
-    intro h.
-    intros hx hy.
-    generalize dependent y.
-    generalize dependent x.
+    intros u l e n h.
+    simpl.
+    unfold crit_test.
+    destruct (Rle_lt_dec (u n) (l-e)).
+    { exfalso. eapply Rlt_irrefl_le. exact h. exact r. }
+    { reflexivity. }
+  Qed.
+
+
+
+  Definition s_crit u l e := serie (crit u l e).
+
+  Lemma crit_bound_l : forall (u : nat -> R) (l e : R) (m n : nat),
+    s_crit u l e m <= s_crit u l e (m + n).
+  Proof.
+    intros u l e m.
     induction n as [ | n i ].
     {
-      intros x hx y hy.
-      inversion hx. subst x.
-      inversion hy. subst y.
-      right. reflexivity.
+      rewrite<- plus_n_O.
+      right.
+      reflexivity.
     }
     {
-      intros x hx y hy.
-      inversion hx;clear hx.
+      rewrite <- plus_n_Sm.
+      apply Rle_trans with (s_crit u l e (m + n)).
+      { exact i. }
       {
-        subst n0 x.
-        rename r into x.
-        rename H1 into hx.
-        inversion hy;clear hy.
-        {
-          subst n0 y.
-          rename r into y.
-          rename H2 into hy.
-          apply Rplus_le_compat_r.
-          apply i. assumption. assumption.
-        }
-        {
-          subst n0 r.
-          exfalso.
-          clear - h H0 H1.
-          destruct H1.
-          {
-            apply Rlt_irrefl with (u n).
-            apply Rlt_trans with (l-ey).
-            assumption.
-            apply Rlt_trans with (l-ex);assumption.
-          }
-          { rewrite H in H0. clear H. apply Rlt_irrefl with (l-ex). apply Rlt_trans with (l-ey);assumption. }
-        }
-      }
-      {
-        subst n0 r.
-        inversion hy;clear hy.
-        {
-          subst n0 y.
-          rename r into y.
-          apply Rle_trans with y.
-          { apply i. assumption. assumption. }
-          {
-            pattern y at 1;rewrite <- Rplus_0_r.
-            apply Rplus_le_compat_l.
-            apply pow_le.
-            left. exact Rlt_0_half.
-          }
-        }
-        {
-          subst n0 r.
-          apply i;assumption.
-        }
+        clear i.
+        unfold s_crit at 2.
+        rewrite serie_Sn.
+        apply Rplus_le_compat_0_l.
+        apply posn.
+        apply pos_partial with u_half_pow.
+        { exact u_half_pow_pos. }
+        { apply crit_partial. }
       }
     }
   Qed.
 
-  Lemma practice3 : forall u l e,
-    (forall n, u n <= l - e) ->
-    forall n, cv_crit_sum_r u l e n 0.
+  Lemma crit_bound_r : forall (u : nat -> R) (l e : R) (m n : nat),
+    s_crit u l e (m + n) <= s_crit u l e m + (/ 2) ^ m - (/ 2) ^ (m + n).
   Proof.
-    intros u l e h n.
+    intros u l e m n.
     induction n as [ | n i ].
-    constructor.
-    apply crit_f. apply h. exact i.
-  Qed.
-
-
-  (* This is the proof that both definitions are equivalent *)
-  Remark cv_crit_equiv : forall (u : nat->R ) (l e : R) (n:nat) (r:R),
-    cv_crit_sum_r u l e n r <-> cv_crit_sum u l e n = r.
-  intros u l e n r.
-  split.
-  {
-    intro h.
-    induction h.
-    { simpl. reflexivity. }
-    { simpl.
-      rewrite IHh.
-      destruct (cv_crit_test u l e n) eqn:eqt.
-      { reflexivity. }
-      {
-        rewrite Rplus_0_r.
-        unfold cv_crit_test in eqt.
-        destruct (Rle_lt_dec (u n) (l-e)).
-        { destruct r0.
-          { exfalso. apply Rlt_irrefl with (l-e). apply Rlt_trans with (u n);assumption. }
-          { rewrite H0 in H. apply Rlt_irrefl in H. contradiction. }
-        }
-        { inversion eqt. }
-      }
+    {
+      rewrite<- plus_n_O.
+      unfold Rminus.
+      rewrite Rplus_assoc.
+      rewrite Rplus_opp_r.
+      rewrite Rplus_0_r.
+      right.
+      reflexivity.
     }
     {
+      rewrite <- plus_n_Sm.
       simpl.
-      rewrite IHh.
-      unfold cv_crit_test.
-      destruct (Rle_lt_dec (u n) (l-e)).
-      { rewrite Rplus_0_r. reflexivity. }
-      { exfalso. destruct H.
-        { apply Rlt_irrefl with (u n). apply Rlt_trans with (l-e);assumption. }
-        { rewrite H in r0. apply Rlt_irrefl in r0. contradiction. }
-      }
-    }
-  }
-  {
-    intro h. generalize dependent r.
-    induction n as [ | n i ].
-    { intros r h. simpl in h. subst r. constructor. }
-    { intros r h. simpl in h.
-      unfold cv_crit_test in h.
-      destruct (Rle_lt_dec (u n) (l-e)).
       {
-        apply crit_f. exact r0.
-        apply i. rewrite Rplus_0_r in h. exact h.
-      }
-      {
-        pose (ccs := cv_crit_sum u l e n).
-        fold ccs in h, i.
-        rewrite <- h.
-        apply crit_t.
-        exact r0.
-        apply i.
-        reflexivity.
-      }
-    }
-  }
-  Qed.
-
-  Lemma crit_bound_fix : forall (u : nat -> R) (l e : R) (m n : nat),
-    cv_crit_sum u l e m <= cv_crit_sum u l e (m + n) <= cv_crit_sum u l e m + (/ 2) ^ m - (/ 2) ^ (m + n).
-  Proof.
-      intros u l e m.
-      induction n as [ | n i ].
-      {
-        rewrite<- plus_n_O.
-        ring_simplify (cv_crit_sum u l e m + (/ 2) ^ m - (/ 2) ^ m).
-        split ; apply Rle_refl.
-      }
-      {
-        rewrite <- plus_n_Sm.
-        simpl.
-        split.
+        unfold s_crit at 1.
+        rewrite serie_Sn.
+        apply Rplus_le_compat_r_minus.
+        apply Rle_trans with (s_crit u l e m + (/ 2) ^ m - (/ 2) ^ (m + n)).
+        { exact i. }
         {
-          apply Rle_trans with (cv_crit_sum u l e (m + n)%nat + 0).
-          {
-            rewrite Rplus_0_r.
-            apply i.
-          }
-          {
-            apply Rplus_le_compat_l.
-            case (cv_crit_test u l e (m + n)%nat).
-            {
-              apply Rlt_le.
-              exact (Hi2pn (S (m + n))).
-            }
-            {
-              apply Rle_refl.
-            }
-          }
-        }
-        {
-          apply Rle_trans with (cv_crit_sum u l e  (m + n)%nat + / 2 * (/ 2) ^ (m + n)).
-          {
-            apply Rplus_le_compat_l.
-            case (cv_crit_test u l e (m + n)%nat).
-            {
-              apply Rle_refl.
-            }
-            {
-              apply Rlt_le.
-              exact (Hi2pn (S (m + n))).
-            }
-          }
-          {
-            apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
-            rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
-            apply Rle_trans with (1 := proj2 i).
-            apply Req_le.
-            field.
-          }
+          clear i.
+          unfold Rminus.
+          repeat (rewrite Rplus_assoc).
+          apply Rplus_le_compat_l.
+          apply Rplus_le_compat_l.
+          rewrite <- Ropp_plus_distr.
+          apply Ropp_le_contravar.
+          apply Rplus_le_compat_l_minus.
+          pose (p:=(/ 2)^(m+n)).
+          fold p.
+          unfold Rminus.
+          pattern p at 1;rewrite <- Rmult_1_l.
+          rewrite Ropp_mult_distr_l.
+          rewrite <- Rmult_plus_distr_r.
+          rewrite <- half_half.
+          rewrite Rplus_assoc.
+          rewrite Rplus_opp_r.
+          rewrite Rplus_0_r.
+          unfold p.
+          rewrite tech_pow_Rmult.
+          fold (u_half_pow (S (m+n))).
+          apply partial_le.
+          { apply crit_partial. }
+          { apply u_half_pow_pos. }
         }
       }
+    }
   Qed.
 
   Lemma crit_Sn : forall u l e n y,
@@ -570,242 +639,6 @@ Section sequence.
       assumption.
     }
     { subst n0 r. left. split;assumption. }
-  Qed.
-
-
-  (* TODO : remove *)
-  Lemma crit_bound : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
-    cv_crit_sum_r u l e m x ->
-    cv_crit_sum_r u l e (m + n) y ->
-    x <= y <= x + (/ 2) ^ m - (/ 2) ^ (m + n).
-  Proof.
-    intros u l e m n x y hx hy.
-    generalize dependent m.
-    generalize dependent y.
-    generalize dependent x.
-    induction n as [ | n i ].
-    {
-      intros x y m hx hy.
-      rewrite plus_comm in hy.
-      simpl in hy.
-      rewrite plus_comm.
-      simpl.
-      unfold Rminus.
-      rewrite Rplus_assoc.
-      rewrite Rplus_opp_r.
-      rewrite Rplus_0_r.
-      {
-        inversion hx.
-        {
-          subst x.
-          subst m.
-          inversion hy.
-          subst y.
-          split;right;reflexivity.
-        }
-        {
-          subst x.
-          subst m.
-          simpl.
-          simpl in hx.
-          inversion hy.
-          {
-            subst y.
-            subst n0.
-            simpl.
-            simpl in hy.
-            split.
-            {
-              right.
-              apply (crit_inj u l e (S n)).
-              assumption.
-              assumption.
-            }
-            {
-              right.
-              apply (crit_inj u l e (S n)).
-              assumption.
-              assumption.
-            }
-          }
-          {
-            subst n. subst y. exfalso.
-            destruct H2. apply Rlt_irrefl with (u n0). apply Rlt_trans with (l-e);assumption.
-            rewrite H1 in H. apply Rlt_irrefl in H. contradiction.
-          }
-        }
-        {
-          subst x.
-          subst m.
-          inversion hy.
-          {
-            subst y.
-            subst n0.
-            exfalso.
-            destruct H. apply Rlt_irrefl with (u n). apply Rlt_trans with (l-e);assumption.
-            rewrite H in H2. apply Rlt_irrefl in H2. contradiction.
-          }
-          {
-            subst y. subst n0. split.
-            { right. apply (crit_inj u l e (S n)). assumption. assumption. }
-            { right. apply (crit_inj u l e (S n)). assumption. assumption. }
-          }
-        }
-      }
-    }
-    {
-      intros x y m hx hy.
-      rewrite <- plus_n_Sm in hy.
-      inversion hy;clear hy.
-      {
-        subst n0 y.
-        rename r into y;rename H1 into hy.
-        specialize (i x y m hx hy).
-        destruct i.
-        split.
-        {
-          apply Rle_trans with y.
-          assumption.
-          pattern y at 1;rewrite <- Rplus_0_r. apply Rplus_le_compat_l.
-          apply pow_le. left. apply Rlt_0_half.
-        }
-        {
-          simpl.
-          apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
-          rewrite Rplus_assoc. rewrite Rplus_opp_r. rewrite Rplus_0_r.
-          rewrite <- plus_n_Sm. simpl.
-          unfold Rminus.
-          rewrite Rplus_assoc.
-          rewrite <- Ropp_plus_distr.
-          rewrite <- Rmult_plus_distr_r.
-          rewrite half_half.
-          rewrite Rmult_1_l.
-          assumption.
-        }
-      }
-      {
-        subst y n0. rename r into y. rename H1 into hy.
-        specialize (i x y m hx hy).
-        destruct i.
-        split. assumption.
-        apply Rle_trans with (x + (/ 2) ^ m - (/ 2) ^ (m + n)).
-        assumption.
-        unfold Rminus. apply Rplus_le_compat_l.
-        apply Ropp_le_contravar.
-        rewrite <- plus_n_Sm. simpl.
-        pattern ((/ 2) ^ (m + n)) at 2;rewrite <- Rmult_1_l.
-        apply Rmult_le_compat_r.
-        apply pow_le.
-        left. apply Rlt_0_half.
-        left. apply Rlt_half_1.
-      }
-    }
-  Qed.
-
-  Lemma crit_bound_l : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
-    cv_crit_sum_r u l e m x ->
-    cv_crit_sum_r u l e (m + n) y ->
-    x <= y.
-  Proof.
-    intros u l e m n x y hx hy.
-    generalize dependent m.
-    generalize dependent y.
-    generalize dependent x.
-    induction n as [ | n i ].
-    {
-      intros x y m hx hy.
-      rewrite plus_comm in hy.
-      simpl in hy.
-      assert (x = y).
-      { apply (crit_inj u l e m); assumption. }
-      subst y. right. reflexivity.
-    }
-    {
-      intros x y m hx hy.
-      rewrite <- plus_n_Sm in hy.
-      inversion hy;clear hy.
-      {
-        subst n0 y. rename r into y. rename H1 into hy.
-        apply Rle_trans with y.
-        apply (i _ _ m).
-        exact hx.
-        exact hy.
-        pattern y at 1;rewrite<- Rplus_0_r.
-        apply Rplus_le_compat_l.
-        apply pow_le.
-        left.
-        exact Rlt_0_half.
-      }
-      {
-        subst r n0. rename H1 into hy.
-        apply (i _ _ m).
-        exact hx.
-        exact hy.
-      }
-    }
-  Qed.
-
-  Lemma crit_bound_r : forall (u : nat -> R) (l e : R) (m n : nat) (x y:R),
-    cv_crit_sum_r u l e m x ->
-    cv_crit_sum_r u l e (m + n) y ->
-    y <= x + (/ 2) ^ m - (/ 2) ^ (m + n).
-  Proof.
-    intros u l e m n x y hx hy.
-    generalize dependent m.
-    generalize dependent y.
-    generalize dependent x.
-    induction n as [ | n i ].
-    {
-      intros x y m hx hy.
-      rewrite plus_comm in hy.
-      simpl in hy.
-      assert (eq:x = y).
-      { apply (crit_inj u l e m);assumption. }
-      subst y.
-      rewrite plus_comm.
-      simpl.
-      unfold Rminus.
-      rewrite Rplus_assoc.
-      rewrite Rplus_opp_r.
-      rewrite Rplus_0_r.
-      right. reflexivity.
-    }
-    {
-      intros x y m hx hy.
-      rewrite <- plus_n_Sm in hy.
-      inversion hy;clear hy.
-      {
-        subst n0 y; rename r into y;rename H1 into hy.
-        specialize (i x y m hx hy).
-        {
-          simpl.
-          apply Rplus_le_reg_r with (-(/ 2 * (/ 2) ^ (m + n))).
-          rewrite Rplus_assoc. rewrite Rplus_opp_r. rewrite Rplus_0_r.
-          rewrite <- plus_n_Sm. simpl.
-          unfold Rminus.
-          rewrite Rplus_assoc.
-          rewrite <- Ropp_plus_distr.
-          rewrite <- Rmult_plus_distr_r.
-          rewrite half_half.
-          rewrite Rmult_1_l.
-          assumption.
-        }
-      }
-      {
-        subst y n0. rename r into y. rename H1 into hy.
-        specialize (i x y m hx hy).
-        apply Rle_trans with (x + (/ 2) ^ m - (/ 2) ^ (m + n)).
-        assumption.
-        unfold Rminus. apply Rplus_le_compat_l.
-        apply Ropp_le_contravar.
-        rewrite <- plus_n_Sm. simpl.
-        pattern ((/ 2) ^ (m + n)) at 2;rewrite <- Rmult_1_l.
-        apply Rmult_le_compat_r.
-        apply pow_le.
-        left. apply Rlt_0_half.
-        left. apply Rlt_half_1.
-      }
-    }
   Qed.
 
   Lemma crit_bound_O : forall u l e n x, cv_crit_sum_r u l e n x ->  0 <= x <= 1 - (/2)^n.
