@@ -869,6 +869,19 @@ Section sequence.
     { exact tata. }
   Qed.
 
+  (* (/ 2)^n can be made as small as we want *)
+  Lemma small_half_pow : forall m : R, 0 < m -> exists n : nat, (/ 2) ^ n < m.
+  Proof.
+    generalize tata';intro tata.
+    intros m hm.
+    specialize (tata m hm).
+    destruct tata as [N tata].
+    exists N.
+    apply tata.
+    unfold ge.
+    constructor.
+  Qed.
+
   Lemma fill_n : (forall n N, n < N -> exists n', n + n' = N)%nat.
   Proof.
     intros n N h.
@@ -919,16 +932,13 @@ Section sequence.
     exists N : nat, u N > l - e.
   Proof.
     intros u l e m hu Hm Hm2.
-    destruct (tata' m) as [N H4].
+    destruct (small_half_pow m) as [N H4].
     { exact Hm. }
     exists N.
     apply Rnot_le_lt.
     intro h.
     apply (Rlt_not_le m ((/ 2) ^ N)). 
-    {
-      apply H4.
-      constructor.
-    }
+    { exact H4. }
     {
       apply Hm2.
       unfold is_upper_bound.
