@@ -931,16 +931,19 @@ Section sequence.
     (forall b : R, is_upper_bound (crit_exist u l e) b -> m <= b) ->
     exists N : nat, u N > l - e.
   Proof.
-    intros u l e m hu Hm Hm2.
+    intros u l e m hu hm Hm2.
     destruct (small_half_pow m) as [N H4].
-    { exact Hm. }
+    { exact hm. }
     exists N.
+
+    specialize (Hm2 ((/ 2)^N)).
+
     apply Rnot_le_lt.
     intro h.
-    apply (Rlt_not_le m ((/ 2) ^ N)). 
+    apply (Rlt_not_le m ((/ 2) ^ N)).
     { exact H4. }
     {
-      apply Hm2.
+      apply Hm2. clear Hm2.
       unfold is_upper_bound.
       intros x he.
       destruct he as [n H6].
