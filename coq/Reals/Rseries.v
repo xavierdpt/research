@@ -1136,7 +1136,7 @@ Section sequence.
   Qed.
 
   (* This lemma show that there is a least upper bound of fcrit1 *)
-  Lemma fcrit_lub_ex : forall u l e, exists x, is_lub (crit_exist u l e) x.
+  Lemma lub_of_crit_exist : forall u l e, exists x, is_lub (crit_exist u l e) x.
   Proof.
     intros u l e.
     (* Here, we don't really construct the least upper bound *)
@@ -1219,14 +1219,17 @@ Section sequence.
     intros e he.
     unfold R_dist.
 
-    specialize (fcrit_lub_ex u l e);intro hlub_ex.
-    destruct hlub_ex as [ m hlub].
-    generalize crit_technic_c;intro hc.
-    specialize (hc u l e m hu).
-    assert (hm:0 < m).
+    (* crit_exist has a least upper bound *)
+    destruct (lub_of_crit_exist u l e) as [ m hlub].
+
+    (* Given an increasing sequence u and a least upper bound of crit_exist,
+        there's a N such that u N > l - e *)
+    destruct (crit_technic_c u l e m) as [ N hun ].
+    { exact hu. }
     { eapply crit_lub_pos. apply hul. apply he. apply hlub. }
-    specialize (hc hm hlub).
-    destruct hc as [ N hun ].
+    { exact hlub. }
+
+    (* We just need to show that this N satisfies the goal *)
 
     exists N.
     intros n hnN.
@@ -1270,50 +1273,67 @@ Section sequence.
     }
   Qed.
 
-(*********)
-  Lemma Un_cv_crit : Un_growing -> bound EUn ->  exists l : R, Un_cv l.
+  Lemma Un_cv_crit : forall u, Un_growing u -> bound (EUn u) ->  exists l : R, Un_cv u l.
   Proof.
-    intros Hug Heub.
-    exists (proj1_sig (completeness EUn Heub EUn_noempty)).
-    destruct (completeness EUn Heub EUn_noempty) as (l, H).
-    now apply Un_cv_crit_lub.
+    intros u hg hbound.
+    destruct (completeness (EUn u)) as [x hlub].
+    { exact hbound. }
+    { exists (u 0%nat). unfold EUn. exists 0%nat. reflexivity. }
+    exists x.
+    apply Un_cv_crit_lub.
+    { exact hg. }
+    { exact hlub. }
   Qed.
 
-(*********)
   Lemma finite_greater :
-    forall N:nat,  exists M : R, (forall n:nat, (n <= N)%nat -> Un n <= M).
+    forall (u:nat->R) (N:nat),  exists M : R, (forall n:nat, (n <= N)%nat -> u n <= M).
   Proof.
-    intro; induction  N as [| N HrecN].
-    split with (Un 0); intros; rewrite (le_n_O_eq n H);
-      apply (Req_le (Un n) (Un n) (eq_refl (Un n))).
-    elim HrecN; clear HrecN; intros; split with (Rmax (Un (S N)) x); intros;
-      elim (Rmax_Rle (Un (S N)) x (Un n)); intros; clear H1;
-        inversion H0.
-    rewrite <- H1; rewrite <- H1 in H2;
-      apply
-        (H2 (or_introl (Un n <= x) (Req_le (Un n) (Un n) (eq_refl (Un n))))).
-    apply (H2 (or_intror (Un n <= Un (S N)) (H n H3))).
+    intros u N.
+    induction N as [ | N i ].
+    {
+      exists (u 0%nat).
+      intros n hn.
+      inversion hn. subst n.
+      right. reflexivity.
+    }
+    {
+      destruct i as [M h].
+      exists (Rmax M (u (S N))).
+      intros n hn.
+      apply le_lt_or_eq in hn.
+      destruct hn as [ hn | hn ].
+      { apply Rle_trans with M.
+        apply h. unfold lt in hn. apply le_S_n in hn. exact hn.
+        apply Rmax_l.
+      }
+      { subst n. apply Rmax_r. }
+    }
   Qed.
 
-(*********)
-  Lemma cauchy_bound : Cauchy_crit -> bound EUn.
+  Lemma cauchy_bound : forall u, Cauchy_crit u -> bound (EUn u).
   Proof.
-    unfold Cauchy_crit, bound; intros; unfold is_upper_bound;
-      unfold Rgt in H; elim (H 1 Rlt_0_1); clear H; intros;
-        generalize (H x); intro; generalize (le_dec x); intro;
-          elim (finite_greater x); intros; split with (Rmax x0 (Un x + 1));
-            clear H; intros; unfold EUn in H; elim H; clear H;
-              intros; elim (H1 x2); clear H1; intro y.
+    intro u.
+    unfold Cauchy_crit, bound. intros. unfold is_upper_bound.
+      unfold Rgt in H. elim (H 1 Rlt_0_1). clear H. intros.
+        generalize (H x). intro. generalize (le_dec x). intro.
+          elim (finite_greater u x). intros. split with (Rmax x0 (u x + 1)).
+            clear H. intros. unfold EUn in H. elim H. clear H.
+              intros.
+    elim (H1 x2).
+    clear H1.
+    intro y.
     unfold ge in H0; generalize (H0 x2 (le_n x) y); clear H0; intro;
-      rewrite <- H in H0; unfold R_dist in H0; elim (Rabs_def2 (Un x - x1) 1 H0);
-        clear H0; intros; elim (Rmax_Rle x0 (Un x + 1) x1);
+      rewrite <- H in H0; unfold R_dist in H0; elim (Rabs_def2 (u x - x1) 1 H0);
+        clear H0; intros; elim (Rmax_Rle x0 (u x + 1) x1);
           intros; apply H4; clear H3 H4; right; clear H H0 y;
-            apply (Rlt_le x1 (Un x + 1)); generalize (Rlt_minus (-1) (Un x - x1) H1);
-              clear H1; intro; apply (Rminus_lt x1 (Un x + 1));
-                cut (-1 - (Un x - x1) = x1 - (Un x + 1));
+            apply (Rlt_le x1 (u x + 1)); generalize (Rlt_minus (-1) (u x - x1) H1);
+              clear H1; intro; apply (Rminus_lt x1 (u x + 1));
+                cut (-1 - (u x - x1) = x1 - (u x + 1));
                   [ intro; rewrite H0 in H; assumption | ring ].
+    clear H1.
+    intro y.
     generalize (H2 x2 y); clear H2 H0; intro; rewrite <- H in H0;
-      elim (Rmax_Rle x0 (Un x + 1) x1); intros; clear H1;
+      elim (Rmax_Rle x0 (u x + 1) x1); intros; clear H1;
         apply H2; left; assumption.
   Qed.
 
