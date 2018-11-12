@@ -427,6 +427,7 @@ Proof.
   }
 Qed.
 
+
 Lemma Pow_x_infinity :
   forall x:R,
     Rabs x > 1 ->
@@ -523,6 +524,115 @@ Proof.
 Qed.
 
 (* stopped here *)
+
+Lemma Rlt_0_half : 0 < / 2. Admitted.
+Lemma half_nz : / 2 <> 0. Admitted.
+
+Lemma lala :
+    Rabs (/ 2) < 1 ->
+    forall y:R,
+      0 < y ->
+      exists N : nat, (/ 2) ^ N < y.
+Proof.
+  intros H y hy.
+  assert (hadx : Rabs (/ (/ 2)) > 1).
+  {
+    rewrite <- (Rinv_involutive 1).
+    { 
+      rewrite Rabs_Rinv.
+      {
+        unfold Rgt.
+        apply Rinv_lt_contravar.
+        {
+          apply Rmult_lt_0_compat.
+          {
+            apply Rabs_pos_lt.
+            exact half_nz.
+          }
+          {
+            rewrite Rinv_1.
+            apply Rlt_0_1.
+          }
+        }
+        {
+          rewrite Rinv_1.
+          exact H.
+        }
+      }
+      { exact half_nz. }
+    }
+    { 
+      apply R1_neq_R0.
+    }
+  }
+  generalize Pow_x_infinity;intro hpow.
+  specialize (hpow (/ (/ 2))).
+  specialize (hpow hadx).
+  specialize (hpow (/ y + 1)).
+  destruct hpow as [N hpow].
+  exists N.
+  specialize (hpow N).
+  assert (ob:(N >= N)%nat). constructor.
+  specialize (hpow ob).
+  rewrite <- (Rinv_involutive y).
+  {
+
+    
+
+    (*rewrite <- (Rinv_involutive (Rabs ((/ 2) ^ N))).*)
+    {
+(*      apply Rinv_lt_contravar. *)
+      {
+(*        apply Rmult_lt_0_compat. *)
+        {
+(*          apply Rinv_0_lt_compat. *)
+  (*        exact hy. *)
+(*        } *)
+        {
+          apply Rinv_0_lt_compat.
+          apply Rabs_pos_lt.
+          apply pow_nonzero.
+          exact half_nz.
+        }
+      }
+      {
+        rewrite <- Rabs_Rinv.
+        {
+          rewrite Rinv_pow.
+          {
+            apply Rlt_le_trans with (/ y + 1).
+            {
+              pattern (/ y) at 1;rewrite <- Rplus_0_r.
+              apply Rplus_lt_compat_l.
+              apply Rlt_0_1.
+            }
+            {
+              apply Rge_le.
+              exact hpow.
+            }
+          }
+          { exact half_nz. }
+        }
+        {
+          apply pow_nonzero.
+          exact half_nz.
+        }
+      }
+    }
+    {
+      apply Rabs_no_R0.
+      apply pow_nonzero.
+      exact half_nz.
+    }
+  }
+  {
+    apply Rlt_dichotomy_converse.
+    right.
+    unfold Rgt.
+    exact hy.
+  }
+Qed.
+
 
 Lemma pow_lt_1_zero :
   forall x:R,
@@ -1547,6 +1657,9 @@ Proof.
   fold (R_dist b c).
   reflexivity.
 Qed.
+
+
+
 
 Definition infinite_sum (s:nat -> R) (l:R) : Prop :=
   forall eps:R,

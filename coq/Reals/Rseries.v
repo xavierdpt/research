@@ -172,6 +172,110 @@ Proof.
   }
 Qed.
 
+(* Duplicate from extension of Rfunctions *)
+Lemma Rgen : forall r:R, exists n:nat, INR n >= r.
+Proof.
+  intro r.
+  destruct (archimed r) as [ agt ale ].
+  exists (Z.abs_nat (up r)).
+  destruct (up r) eqn:upeq.
+  { (* up r = 0 *)
+    simpl.
+    left. exact agt.
+  }
+  { (* up r = Z.pos p *)
+    simpl.
+    destruct (Pos.to_nat p) eqn:poseq.
+    { (* Pos.to_nat p = 0 *)
+      simpl.
+      generalize (Pos2Nat.is_pos p);intro hpos.
+      rewrite poseq in hpos.
+      inversion hpos.
+    }
+    { (* Pos.to_nat p = S n *)
+      (* rewrite S_INR. *)
+      left.
+      rewrite INR_IZR_INZ.
+      rewrite <- poseq.
+      rewrite positive_nat_Z.
+      exact agt.
+    }
+  }
+  { (* up r = Z.neg p *)
+    simpl.
+    destruct (Pos.to_nat p) eqn:poseq.
+    { (* Pos.to_nat p = 0 *)
+      simpl.
+      generalize (Pos2Nat.is_pos p);intro hpos.
+      rewrite poseq in hpos.
+      inversion hpos.
+    }
+    { (* Pos.to_nat p = S n *)
+      left.
+      rewrite INR_IZR_INZ.
+      rewrite <- poseq.
+      rewrite positive_nat_Z.
+      apply Rgt_trans with (IZR (Z.neg p)).
+      {
+        apply Rlt_gt.
+        apply IZR_lt.
+        apply Pos2Z.neg_lt_pos.
+      }
+      { exact agt. }
+    }
+  }
+Qed.
+
+Lemma Rgen_two_power :
+  forall b:R, exists N : nat, b <= 2 ^ N.
+Proof.
+  intros.
+  destruct (archimed b) as [H0 H1].
+  clear H1.
+  {
+    destruct (Rgen b) as [N H1].
+    apply Rge_le in H1.
+    exists N.
+    unfold IZR. unfold IPR. unfold IPR_2.
+    apply Rle_trans with (1 + INR N * 1).
+    {
+      apply Rle_trans with (INR N).
+      { exact H1. }
+      {
+        apply Rlt_le.
+        pattern (INR N) at 1;rewrite <- Rplus_0_l.
+        rewrite Rmult_1_r.
+        apply Rplus_lt_compat_r.
+        apply Rlt_0_1.
+      }
+    }
+    { apply poly. exact Rlt_0_1. }
+  }
+Qed.
+
+Lemma Neq_2_0 : 2 <> 0.
+Proof.
+  intro eq. apply Rlt_irrefl with 0. pattern 0 at 2;rewrite <- eq.
+  exact Rlt_0_2.
+Qed.
+
+Lemma Rgen_half_power :
+  forall b:R, 0 < b -> exists N : nat, (/ 2) ^ N <= b.
+Proof.
+  intros.
+  generalize Rgen_two_power;intro gtp.
+  specialize (gtp (/ b)).
+  destruct gtp as [N h].
+  exists N.
+  rewrite <- Rinv_pow.
+  2:{ exact Neq_2_0. }
+  rewrite <- Rinv_involutive with b.
+  2:{ apply Rlt_dichotomy_converse. right. exact H. }
+  apply Rinv_le_contravar.
+  1:{ apply Rinv_0_lt_compat. exact H. }
+  exact h.
+Qed.
+
 Section sequence.
 
   Fixpoint Rmax_N (U:nat->R) (n:nat) : R :=
@@ -827,18 +931,6 @@ Section sequence.
     }
   Qed.
 
-  Lemma tata : forall m : R, 0 < m -> exists N : nat, forall n : nat, (n >= N)%nat -> Rabs ((/ 2) ^ n) < m.
-  Proof.
-    intros m h.
-    apply pow_lt_1_zero.
-    {
-      rewrite Rabs_right.
-      { exact Rlt_half_1. }
-      { apply Rle_ge. left. exact Rlt_0_half. }
-    }
-    { exact h. }
-  Qed.
-
   Lemma le_0_eq : (forall n, n <= 0 -> n = 0)%nat.
   Proof.
     intros n h.
@@ -847,39 +939,40 @@ Section sequence.
     reflexivity.
   Qed.
 
-  Lemma tata' : forall m : R, 0 < m -> exists N : nat, forall n : nat, (n >= N)%nat -> (/ 2) ^ n < m.
-  Proof.
-    generalize tata;intro tata.
-    intros m hm.
-    specialize (tata m hm).
-    destruct tata as [N tata].
-    exists N.
-    intros n h.
-    specialize (tata n h).
-    unfold Rabs in tata.
-    destruct (Rcase_abs ((/2)^n)).
-    {
-      exfalso.
-      clear - r.
-      apply Rlt_irrefl with 0.
-      apply Rlt_trans with ((/ 2)^n).
-      { apply pow_lt. exact Rlt_0_half. }
-      { exact r. }
-    }
-    { exact tata. }
-  Qed.
-
   (* (/ 2)^n can be made as small as we want *)
   Lemma small_half_pow : forall m : R, 0 < m -> exists n : nat, (/ 2) ^ n < m.
   Proof.
-    generalize tata';intro tata.
+    generalize Rgen_half_power;intro rhp.
     intros m hm.
-    specialize (tata m hm).
-    destruct tata as [N tata].
-    exists N.
-    apply tata.
-    unfold ge.
-    constructor.
+    specialize (rhp m hm).
+    destruct rhp as [N h].
+    destruct h as [ h | h ].
+    { exists N. exact h. }
+    {
+      subst m.
+      exists (S N).
+      Search( (/ _)^_).
+      rewrite <- Rinv_pow.
+      2:exact Neq_2_0.
+      rewrite <- Rinv_pow.
+      2:exact Neq_2_0.
+      apply Rinv_lt_contravar.
+      1:{
+        rewrite <- pow_add.
+        apply pow_lt.
+        exact Rlt_0_2.
+      }
+      apply Rlt_pow.
+      1:{
+        rewrite <- Rinv_involutive.
+        2:{ exact Neq_2_0. }
+        rewrite <- Rinv_1.
+        apply Rinv_lt_contravar.
+        1:{ rewrite Rmult_1_r. exact Rlt_0_half. }
+        { exact Rlt_half_1. }
+      }
+      { unfold lt. constructor. }
+    }
   Qed.
 
   Lemma fill_n : (forall n N, n < N -> exists n', n + n' = N)%nat.
@@ -1021,7 +1114,7 @@ Section sequence.
     unfold is_upper_bound in h.
     apply Rle_antisym.
     { apply h. exists n. reflexivity. }
-    { apply crit_bound_O_l. }
+    { apply s_crit_pos. }
   Qed.
 
   Lemma crit_lub_pos : forall u l e m,
