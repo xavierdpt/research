@@ -1017,77 +1017,91 @@ Section sequence.
     }
   Qed.
 
+  Lemma crit_technic_d : forall (u : nat -> R) (l e m : R) (n : nat),
+    0 < m ->
+    Un_growing u ->
+    (/ 2) ^ n < m ->
+    u n <= l - e ->
+    is_upper_bound (crit_exist u l e) ((/ 2) ^ n).
+  Proof.
+    intros u l e m n hm hu hn hun.
+    unfold is_upper_bound.
+    intros x hcrit.
+    destruct hcrit as [ncrit heq].
+    subst x.
+    generalize crit_technic_4;intro Hs.
+    specialize (Hs u l e hu).
+    specialize (Hs n hun).
+    destruct (le_or_lt n ncrit) as [hnn|hnn].
+    {
+      rewrite (le_plus_minus n ncrit).
+      2:exact hnn.
+      apply Rle_trans with (  s_crit u l e n + (/ 2) ^ n - (/ 2) ^ (n + (ncrit - n)) ).
+      apply (crit_bound_r u l e).
+      rewrite Hs.
+      rewrite Rplus_0_l.
+      pose (k := (n + (ncrit - n))%nat).
+      fold k.
+      pose (p2N:=(/2)^n).
+      pose (p2k:=(/2)^k).
+      fold p2N. fold p2k.
+      left.
+      apply Rplus_lt_reg_l with (p2k - p2N).
+      unfold Rminus.
+      repeat (rewrite Rplus_assoc).
+      rewrite (Rplus_comm).
+      repeat (rewrite <- Rplus_assoc).
+      rewrite Rplus_opp_l.
+      rewrite Rplus_0_l.
+      rewrite Rplus_opp_l.
+      repeat (rewrite Rplus_assoc).
+      rewrite Rplus_opp_l.
+      rewrite Rplus_0_r.
+      unfold p2k.
+      apply Hi2pn.
+    }
+    {
+      apply Rle_trans with (s_crit u l e n).
+      {
+        apply fill_n in hnn.
+        destruct hnn as [ n' heq ].
+        subst n.
+        apply crit_bound_l.
+      }
+      {
+        rewrite Hs.
+        apply pow_le.
+        left.
+        exact Rlt_0_half.
+      }
+    }
+  Qed.
 
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
     0 < m ->
-    (forall b : R, is_upper_bound (crit_exist u l e) b -> m <= b) ->
+    is_lub (crit_exist u l e) m ->
     exists N : nat, u N > l - e.
   Proof.
-    intros u l e m hu hm Hm2.
+    intros u l e m hu hm hlub.
     destruct (small_half_pow m) as [N H4].
     { exact hm. }
     exists N.
 
-    specialize (Hm2 ((/ 2)^N)).
-
+    unfold is_lub in hlub.
+    apply proj2 in hlub.
+    specialize (hlub ((/ 2)^N)).
     apply Rnot_le_lt.
     intro h.
-    apply (Rlt_not_le m ((/ 2) ^ N)).
-    { exact H4. }
-    {
-      apply Hm2. clear Hm2.
-      unfold is_upper_bound.
-      intros x he.
-      destruct he as [n H6].
-      subst x.
-      generalize crit_technic_4;intro Hs.
-      specialize (Hs u l e hu).
-      specialize (Hs N h).
-      destruct (le_or_lt N n) as [Hn|Hn].
-      {
-        rewrite (le_plus_minus N n).
-        2:exact Hn.
-        apply Rle_trans with (  s_crit u l e N + (/ 2) ^ N - (/ 2) ^ (N + (n - N)) ).
-        apply (crit_bound_r u l e).
-        rewrite Hs.
-        rewrite Rplus_0_l.
-        pose (k := (N + (n - N))%nat).
-        fold k.
-        pose (p2N:=(/2)^N).
-        pose (p2k:=(/2)^k).
-        fold p2N. fold p2k.
-        left.
-        apply Rplus_lt_reg_l with (p2k - p2N).
-        unfold Rminus.
-        repeat (rewrite Rplus_assoc).
-        rewrite (Rplus_comm).
-        repeat (rewrite <- Rplus_assoc).
-        rewrite Rplus_opp_l.
-        rewrite Rplus_0_l.
-        rewrite Rplus_opp_l.
-        repeat (rewrite Rplus_assoc).
-        rewrite Rplus_opp_l.
-        rewrite Rplus_0_r.
-        unfold p2k.
-        apply Hi2pn.
-      }
-      {
-        apply Rle_trans with (s_crit u l e N).
-        {
-          apply fill_n in Hn.
-          destruct Hn as [ n' heq ].
-          subst N.
-          apply crit_bound_l.
-        }
-        {
-          rewrite Hs.
-          apply pow_le.
-          left.
-          exact Rlt_0_half.
-        }
-      }
-    }
+
+    eapply Rlt_not_le.
+    2:apply hlub.
+    exact H4.
+    eapply crit_technic_d.
+    exact hm.
+    exact hu.
+    exact H4.
+    exact h.
   Qed.
 
   (* This lemma show that there is a least upper bound of fcrit1 *)
@@ -1177,17 +1191,15 @@ Section sequence.
     {
       specialize (fcrit_lub_ex u l e);intro hlub_ex.
       destruct hlub_ex as [ m hlub].
-      assert (hm: 0<m).
+      apply crit_technic_c with m.
+      { exact hu. }
       {
         apply (crit_lub_pos u l e).
         { exact hul. }
         { exact he. }
         { exact hlub. }
       }
-      apply crit_technic_c with m.
-      { exact hu. }
-      { exact hm. }
-      { apply hlub. }
+      { exact hlub. }
     }
     destruct HE as [N hun].
     exists N.
