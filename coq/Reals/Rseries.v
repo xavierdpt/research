@@ -828,7 +828,7 @@ Section sequence.
     }
   Qed.
 
-  Lemma crit_technic_2: forall (u : nat -> R) (l e : R),
+  Lemma crit_lesn_len: forall (u : nat -> R) (l e : R),
     Un_growing u ->
     forall N : nat, u (S N) <= l - e ->
     u N <= l - e.
@@ -850,7 +850,10 @@ Section sequence.
       apply Rlt_0_half.
   Qed.
 
-  Lemma crit_technic_4 : forall (u : nat -> R) (l e : R), Un_growing u -> forall  (N : nat), u N <= l - e -> s_crit u l e N = 0.
+  Lemma scrit_le_0 : forall (u : nat -> R) (l e : R) (N:nat),
+    Un_growing u ->
+    u N <= l - e ->
+    s_crit u l e N = 0.
   Proof.
       intros.
       induction N as [ | N i ].
@@ -864,7 +867,7 @@ Section sequence.
         {
           rewrite Rplus_0_l.
           apply crit_0_inv.
-          apply crit_technic_2.
+          apply crit_lesn_len.
           { exact H. }
           { exact H0. }
         }
@@ -1017,6 +1020,8 @@ Section sequence.
     }
   Qed.
 
+  (* This proof shows that for any positive m and increasing sequence u, if (/2)^n is smaller than m and
+     u n is small enough for crit_exist, then (/2)^n is an upper bound of crit_exist. *)
   Lemma crit_technic_d : forall (u : nat -> R) (l e m : R) (n : nat),
     0 < m ->
     Un_growing u ->
@@ -1025,51 +1030,66 @@ Section sequence.
     is_upper_bound (crit_exist u l e) ((/ 2) ^ n).
   Proof.
     intros u l e m n hm hu hn hun.
+
+    (* Goal : (/2)^n is an upper bound of crit_exist *)
+
     unfold is_upper_bound.
+    (* This means that any x satisfying crit_exist is smaller than (/2)^n *) 
     intros x hcrit.
+    (* Let x be such that it satisfies crit_exist. Then there is n such that s_crit u l e n = x *)
     destruct hcrit as [ncrit heq].
     subst x.
-    generalize crit_technic_4;intro Hs.
-    specialize (Hs u l e hu).
-    specialize (Hs n hun).
+    (* Because u n <= l - e and u is increasing, s_crit u l e n = 0 *)
+    assert (scrit_n_0:s_crit u l e n = 0).
+    { apply scrit_le_0. exact hu. exact hun. }
+    clear hun.
+    
+    (* ncrit can be after or before n *)
     destruct (le_or_lt n ncrit) as [hnn|hnn].
-    {
-      rewrite (le_plus_minus n ncrit).
-      2:exact hnn.
-      apply Rle_trans with (  s_crit u l e n + (/ 2) ^ n - (/ 2) ^ (n + (ncrit - n)) ).
-      apply (crit_bound_r u l e).
-      rewrite Hs.
-      rewrite Rplus_0_l.
-      pose (k := (n + (ncrit - n))%nat).
-      fold k.
-      pose (p2N:=(/2)^n).
-      pose (p2k:=(/2)^k).
-      fold p2N. fold p2k.
-      left.
-      apply Rplus_lt_reg_l with (p2k - p2N).
-      unfold Rminus.
-      repeat (rewrite Rplus_assoc).
-      rewrite (Rplus_comm).
-      repeat (rewrite <- Rplus_assoc).
-      rewrite Rplus_opp_l.
-      rewrite Rplus_0_l.
-      rewrite Rplus_opp_l.
-      repeat (rewrite Rplus_assoc).
-      rewrite Rplus_opp_l.
-      rewrite Rplus_0_r.
-      unfold p2k.
-      apply Hi2pn.
+    { (* here, ncrit is after n *)
+      apply le_lt_or_eq in hnn.
+      destruct hnn.
+      {
+        apply fill_n in H.
+        destruct H.
+        subst ncrit.
+        apply Rle_trans with (s_crit u l e n + (/ 2) ^ n - (/ 2) ^ (n + x)).
+        { apply crit_bound_r. }
+        {
+          rewrite scrit_n_0.
+          rewrite Rplus_0_l.
+          pattern ((/ 2)^n) at 2;rewrite <- Rplus_0_r.
+          apply Rplus_le_compat_l.
+          rewrite <- Ropp_0.
+          apply Ropp_le_contravar.
+          apply pow_le.
+          left.
+          exact Rlt_0_half.
+        }
+      }
+      {
+        subst ncrit.
+        rewrite scrit_n_0.
+        apply pow_le.
+        left.
+        exact Rlt_0_half.
+      }
     }
-    {
+    { (* ncrit is before n *)
+      (* We go from ncrit to n, then from n to (/2)^n *)
       apply Rle_trans with (s_crit u l e n).
       {
+        (* Here, we apply a property of s_crit, which is equivalent to stating that s_crit is increasing *)
+        (* We could also prove that because s_crit u l e n = 0 and ncrit < n, then s_crit u l e ncrit = 0 *)
+        (* This would be more intuitive *)
         apply fill_n in hnn.
         destruct hnn as [ n' heq ].
         subst n.
         apply crit_bound_l.
       }
       {
-        rewrite Hs.
+        (* 0 <= / 2 *)
+        rewrite scrit_n_0.
         apply pow_le.
         left.
         exact Rlt_0_half.
@@ -1077,6 +1097,7 @@ Section sequence.
     }
   Qed.
 
+  (* If m is a positive least upper bound of crit_exist and u is increasing, there is N such that u N > l - e *)
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
     0 < m ->
@@ -1084,19 +1105,29 @@ Section sequence.
     exists N : nat, u N > l - e.
   Proof.
     intros u l e m hu hm hlub.
+
+    (* Because m is positive, we can find N such that (/ 2)^N < m.
+       We don't need any hypothesis on crit_exist for that
+     *)
     destruct (small_half_pow m) as [N H4].
     { exact hm. }
     exists N.
 
     unfold is_lub in hlub.
     apply proj2 in hlub.
+    (* We will show that (/2)^N is an upper bound of crit_exist *)
     specialize (hlub ((/ 2)^N)).
-    apply Rnot_le_lt.
-    intro h.
 
+    (* If x < y, then it is not the case that y <= x *)
+    apply Rnot_le_lt.
+    (* Therefore, we can assume that if x <= y, we get a contradiction *)
+    intro h.
+    (* Now, if we have x < y in the hypothesis and we need a contradiction, we can try to prove y <= x *)
     eapply Rlt_not_le.
-    2:apply hlub.
     exact H4.
+
+    apply hlub.
+    (* The actual proof that (/2)^N is an upper bound of crit_exist is done in crit_technic_d. *)
     eapply crit_technic_d.
     exact hm.
     exact hu.
@@ -1187,21 +1218,16 @@ Section sequence.
     unfold Un_cv.
     intros e he.
     unfold R_dist.
-    assert(HE:exists N : nat, u N > l - e).
-    {
-      specialize (fcrit_lub_ex u l e);intro hlub_ex.
-      destruct hlub_ex as [ m hlub].
-      apply crit_technic_c with m.
-      { exact hu. }
-      {
-        apply (crit_lub_pos u l e).
-        { exact hul. }
-        { exact he. }
-        { exact hlub. }
-      }
-      { exact hlub. }
-    }
-    destruct HE as [N hun].
+
+    specialize (fcrit_lub_ex u l e);intro hlub_ex.
+    destruct hlub_ex as [ m hlub].
+    generalize crit_technic_c;intro hc.
+    specialize (hc u l e m hu).
+    assert (hm:0 < m).
+    { eapply crit_lub_pos. apply hul. apply he. apply hlub. }
+    specialize (hc hm hlub).
+    destruct hc as [ N hun ].
+
     exists N.
     intros n hnN.
     unfold R_dist.
