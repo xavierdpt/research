@@ -1,13 +1,3 @@
-(************************************************************************)
-(*         *   The Coq Proof Assistant / The Coq Development Team       *)
-(*  v      *   INRIA, CNRS and contributors - Copyright 1999-2018       *)
-(* <O___,, *       (see CREDITS file for the list of authors)           *)
-(*   \VV/  **************************************************************)
-(*    //   *    This file is distributed under the terms of the         *)
-(*         *     GNU Lesser General Public License Version 2.1          *)
-(*         *     (see LICENSE file for the text of the license)         *)
-(************************************************************************)
-
 Require Import Rbase.
 Require Import Rfunctions.
 Require Import Rseries.
@@ -15,84 +5,116 @@ Require Import Max.
 Require Import Omega.
 Local Open Scope R_scope.
 
-(*****************************************************************)
-(**           Convergence properties of sequences                *)
-(*****************************************************************)
+Definition Un_decreasing (u:nat -> R) : Prop :=
+  forall n:nat, u (S n) <= u n.
 
-Definition Un_decreasing (Un:nat -> R) : Prop :=
-  forall n:nat, Un (S n) <= Un n.
-Definition opp_seq (Un:nat -> R) (n:nat) : R := - Un n.
-Definition has_ub (Un:nat -> R) : Prop := bound (EUn Un).
-Definition has_lb (Un:nat -> R) : Prop := bound (EUn (opp_seq Un)).
+Definition opp_seq (u:nat -> R) (n:nat) : R := - u n.
 
-(**********)
-Lemma growing_cv :
-  forall Un:nat -> R, Un_growing Un -> has_ub Un -> { l:R | Un_cv Un l }.
+Definition has_ub (u:nat -> R) : Prop := bound (EUn u).
+
+Definition has_lb (u:nat -> R) : Prop := bound (EUn (opp_seq u)).
+
+Lemma exists_lub : forall (u:nat->R), bound (EUn u) -> { l | is_lub (EUn u) l }.
 Proof.
-  intros Un Hug Heub.
-  exists (proj1_sig (completeness (EUn Un) Heub (EUn_noempty Un))).
-  destruct (completeness _ Heub (EUn_noempty Un)) as (l, H).
-  now apply Un_cv_crit_lub.
+  intros u hb.
+  apply completeness.
+  { exact hb. }
+  { apply EUn_noempty. }
+Qed.
+
+Lemma growing_cv :
+  forall u:nat -> R, Un_growing u -> has_ub u -> { l:R | Un_cv u l }.
+Proof.
+  intros u hg hub.
+  unfold has_ub in hub.
+  destruct (exists_lub u) as [l hlub].
+  { exact hub. }
+  {
+    exists l.
+    apply Un_cv_crit_lub.
+    { exact hg. }
+    { exact hlub. }
+  }
 Qed.
 
 Lemma decreasing_growing :
-  forall Un:nat -> R, Un_decreasing Un -> Un_growing (opp_seq Un).
+  forall u:nat -> R, Un_decreasing u -> Un_growing (opp_seq u).
 Proof.
-  intro.
-  unfold Un_growing, opp_seq, Un_decreasing.
-  intros.
+  intros u hdec.
+  unfold Un_decreasing in hdec.
+  unfold Un_growing.
+  intro n.
+  specialize (hdec n).
+  unfold opp_seq.
   apply Ropp_le_contravar.
-  apply H.
+  exact hdec.
 Qed.
 
 Lemma decreasing_cv :
-  forall Un:nat -> R, Un_decreasing Un -> has_lb Un -> { l:R | Un_cv Un l }.
+  forall u:nat -> R, Un_decreasing u -> has_lb u -> { l:R | Un_cv u l }.
 Proof.
-  intros.
-  cut ({ l:R | Un_cv (opp_seq Un) l } -> { l:R | Un_cv Un l }).
-  intro X.
-  apply X.
-  apply growing_cv.
-  apply decreasing_growing; assumption.
-  exact H0.
-  intros (x,p).
-  exists (- x).
-  unfold Un_cv in p.
-  unfold R_dist in p.
-  unfold opp_seq in p.
+
+  intros u hdec hlb.
+  unfold has_lb in hlb.
+  
+  generalize completeness;intro hc.
+  specialize (hc (EUn (opp_seq u))).
+  specialize (hc hlb);clear hlb.
+  specialize (hc (EUn_noempty (opp_seq u))).
+  destruct hc as [l hlub].
+
+  exists (-l).
+
+  generalize Un_cv_crit_lub;intro h.
+  specialize (h (opp_seq u)).
+  apply decreasing_growing in hdec.
+  specialize (h hdec);clear hdec.
+  specialize (h l).
+  specialize (h hlub);clear hlub.
+
   unfold Un_cv.
+  intros e he.
+
+  unfold Un_cv in h.
+  specialize (h e he).
+
+  destruct h as [N h].
+  exists N.
+
+  intros n hnn.
+  specialize (h n hnn);clear hnn.
+
+  unfold opp_seq in h.
+  unfold R_dist in h.
+  unfold Rminus in h.
+  rewrite <- Ropp_plus_distr in h.
+  rewrite Rabs_Ropp in h.
+
   unfold R_dist.
-  intros.
-  elim (p eps H1); intros.
-  exists x0; intros.
-  assert (H4 := H2 n H3).
-  rewrite <- Rabs_Ropp.
-  replace (- (Un n - - x)) with (- Un n - x); [ assumption | ring ].
+  unfold Rminus.
+  rewrite Ropp_involutive.
+
+  exact h.
 Qed.
 
-(***********)
 Lemma ub_to_lub :
-  forall Un:nat -> R, has_ub Un -> { l:R | is_lub (EUn Un) l }.
+  forall u:nat -> R, has_ub u -> { l:R | is_lub (EUn u) l }.
 Proof.
-  intros.
-  unfold has_ub in H.
+  intros u h.
+  unfold has_ub in h.
   apply completeness.
-  assumption.
-  exists (Un 0%nat).
-  unfold EUn.
-  exists 0%nat; reflexivity.
+  { exact h. }
+  { apply EUn_noempty. }
 Qed.
 
-(**********)
 Lemma lb_to_glb :
-  forall Un:nat -> R, has_lb Un -> { l:R | is_lub (EUn (opp_seq Un)) l }.
+  forall u:nat -> R, has_lb u -> { l:R | is_lub (EUn (opp_seq u)) l }.
 Proof.
-  intros; unfold has_lb in H.
+  intros u h.
+  unfold has_lb in h.
   apply completeness.
-  assumption.
-  exists (- Un 0%nat).
-  exists 0%nat.
-  reflexivity.
+  { exact h. }
+  { apply EUn_noempty. }
 Qed.
 
 Definition lub (Un:nat -> R) (pr:has_ub Un) : R :=
@@ -101,46 +123,49 @@ Definition lub (Un:nat -> R) (pr:has_ub Un) : R :=
 Definition glb (Un:nat -> R) (pr:has_lb Un) : R :=
   let (a,_) := lb_to_glb Un pr in - a.
 
-(* Compatibility with previous unappropriate terminology *)
 Notation maj_sup := ub_to_lub (only parsing).
 Notation min_inf := lb_to_glb (only parsing).
 Notation majorant := lub (only parsing).
 Notation minorant := glb (only parsing).
 
 Lemma maj_ss :
-  forall (Un:nat -> R) (k:nat),
-    has_ub Un -> has_ub (fun i:nat => Un (k + i)%nat).
+  forall (u:nat -> R) (k:nat),
+    has_ub u -> has_ub (fun i:nat => u (k + i)%nat).
 Proof.
-  intros.
-  unfold has_ub in H.
-  unfold bound in H.
-  elim H; intros.
-  unfold is_upper_bound in H0.
+  intros u k h.
   unfold has_ub.
-  exists x.
+  unfold has_ub in h.
+  unfold bound in h.
+  unfold bound.
+  destruct h as [ M h ].
+  exists M.
   unfold is_upper_bound.
-  intros.
-  apply H0.
-  elim H1; intros.
-  exists (k + x1)%nat; assumption.
+  intros x hx.
+  unfold is_upper_bound in h.
+  apply h.
+  unfold EUn in hx.
+  destruct hx as [n eq].
+  unfold EUn.
+  exists (k+n)%nat.
+  exact eq.
 Qed.
 
 Lemma min_ss :
-  forall (Un:nat -> R) (k:nat),
-    has_lb Un -> has_lb (fun i:nat => Un (k + i)%nat).
+  forall (u:nat -> R) (k:nat),
+    has_lb u -> has_lb (fun i:nat => u (k + i)%nat).
 Proof.
-  intros.
-  unfold has_lb in H.
-  unfold bound in H.
-  elim H; intros.
-  unfold is_upper_bound in H0.
+  intros u k.
   unfold has_lb.
-  exists x.
+  unfold bound.
   unfold is_upper_bound.
-  intros.
-  apply H0.
-  elim H1; intros.
-  exists (k + x1)%nat; assumption.
+  unfold EUn.
+  unfold opp_seq.
+  intros [M h].
+  exists M.
+  intros x [n eq].
+  apply h.
+  exists (k+n)%nat.
+  exact eq.
 Qed.
 
 Definition sequence_ub (Un:nat -> R) (pr:has_ub Un)
@@ -149,56 +174,93 @@ Definition sequence_ub (Un:nat -> R) (pr:has_ub Un)
 Definition sequence_lb (Un:nat -> R) (pr:has_lb Un)
   (i:nat) : R := glb (fun k:nat => Un (i + k)%nat) (min_ss Un i pr).
 
-(* Compatibility *)
 Notation sequence_majorant := sequence_ub (only parsing).
 Notation sequence_minorant := sequence_lb (only parsing).
+
+Lemma tadaa : forall f yf, is_lub (EUn f) (lub f yf).
+Proof.
+  intros f yf.
+  unfold lub.
+  destruct (ub_to_lub f yf).
+  exact i.
+Qed.
 
 Lemma Wn_decreasing :
   forall (Un:nat -> R) (pr:has_ub Un), Un_decreasing (sequence_ub Un pr).
 Proof.
-  intros.
+  intros Un pr.
   unfold Un_decreasing.
-  intro.
+  intro n.
   unfold sequence_ub.
-  pose proof (ub_to_lub (fun k:nat => Un (S n + k)%nat) (maj_ss Un (S n) pr)) as (x,(H1,H2)).
-  pose proof (ub_to_lub (fun k:nat => Un (n + k)%nat) (maj_ss Un n pr)) as (x0,(H3,H4)).
-  cut (lub (fun k:nat => Un (S n + k)%nat) (maj_ss Un (S n) pr) = x);
-    [ intro Maj1; rewrite Maj1 | idtac ].
-  cut (lub (fun k:nat => Un (n + k)%nat) (maj_ss Un n pr) = x0);
-    [ intro Maj2; rewrite Maj2 | idtac ].
-  apply H2.
-  unfold is_upper_bound.
-  intros x1 H5.
-  unfold is_upper_bound in H3.
-  apply H3.
-  elim H5; intros.
-  exists (1 + x2)%nat.
-  replace (n + (1 + x2))%nat with (S n + x2)%nat.
-  assumption.
-  replace (S n) with (1 + n)%nat; [ ring | ring ].
-  cut
-    (is_lub (EUn (fun k:nat => Un (n + k)%nat))
-      (lub (fun k:nat => Un (n + k)%nat) (maj_ss Un n pr))).
-  intros (H5,H6).
-  assert (H7 := H6 x0 H3).
-  assert
-    (H8 := H4 (lub (fun k:nat => Un (n + k)%nat) (maj_ss Un n pr)) H5).
-  apply Rle_antisym; assumption.
-  unfold lub.
-  case (ub_to_lub (fun k:nat => Un (n + k)%nat) (maj_ss Un n pr)).
-  trivial.
-  cut
-    (is_lub (EUn (fun k:nat => Un (S n + k)%nat))
-      (lub (fun k:nat => Un (S n + k)%nat) (maj_ss Un (S n) pr))).
-  intros (H5,H6).
-  assert (H7 := H6 x H1).
-  assert
-    (H8 :=
-      H2 (lub (fun k:nat => Un (S n + k)%nat) (maj_ss Un (S n) pr)) H5).
-  apply Rle_antisym; assumption.
-  unfold lub.
-  case (ub_to_lub (fun k:nat => Un (S n + k)%nat) (maj_ss Un (S n) pr)).
-  trivial.
+
+  pose (f:=fun k:nat => Un (S n + k)%nat).
+  fold f.
+
+  pose (g:=fun k:nat => Un (n + k)%nat).
+  fold g.
+
+  pose (yf := (maj_ss Un (S n) pr)).
+  fold f in yf.
+  fold yf.
+
+  pose (yg := (maj_ss Un n pr)).
+  fold g in yg.
+  fold yg.
+
+  destruct (ub_to_lub f yf) as [ x [ H1 H2 ]].
+  destruct (ub_to_lub g yg) as [ x0 [ H3 H4 ]].
+
+  assert (Maj1 : lub f yf = x).
+  {
+    destruct (tadaa f yf) as [H5 H6].
+    {
+      apply Rle_antisym.
+      {
+        apply H6.
+        exact H1.
+      }
+      {
+        apply H2.
+        exact H5.
+      }
+    }
+  }
+  {
+    rewrite Maj1.
+    cut (lub g yg = x0).
+    {
+      intro Maj2.
+      rewrite Maj2.
+      apply H2.
+      unfold is_upper_bound.
+      intros x1 H5.
+      unfold is_upper_bound in H3.
+      apply H3.
+      elim H5; intros x2 H.
+      exists (1 + x2)%nat.
+      unfold g.
+      replace (n + (1 + x2))%nat with (S n + x2)%nat.
+      assumption.
+      replace (S n) with (1 + n)%nat; [ ring | ring ].
+    }
+    {
+      cut
+        (is_lub (EUn g)
+          (lub g yg)).
+      {
+        intros (H5,H6).
+        assert (H7 := H6 x0 H3).
+        assert
+          (H8 := H4 (lub g yg) H5).
+        apply Rle_antisym; assumption.
+      }
+      {
+        unfold lub.
+        case (ub_to_lub g yg).
+        trivial.
+      }
+    }
+  }
 Qed.
 
 Lemma Vn_growing :
