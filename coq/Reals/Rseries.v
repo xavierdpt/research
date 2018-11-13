@@ -1406,220 +1406,249 @@ Definition cstu (x:R) := fun n:nat => x.
 Lemma GP_infinite :
   forall x:R, Rabs x < 1 -> Pser (cstu 1) x (/ (1 - x)).
 Proof.
-  intros x H.
+  intros x hx.
   unfold Pser.
+  unfold cstu.
   unfold infinite_sum.
-  intros eps H0.
-  destruct (Req_dec x 0) as [ H1 | H1 ].
+  intros e he.
+  destruct (Req_dec x 0) as [ heq | hneq ].
   {
     subst x.
     exists 0%nat.
-    intros n H2.
+    intros n H2;clear H2.
     rewrite Rminus_0_r.
     rewrite Rinv_1.
-    cut (sum_f_R0 (fun n0:nat => 1 * 0 ^ n0) n = 1).
+
+    induction n as [ | n i ].
     {
-      intros H3.
-      unfold cstu.
-      rewrite H3.
+      simpl.
+      rewrite Rmult_1_l.
       rewrite R_dist_eq.
-      auto.
+      exact he.
     }
     {
-      clear H2.
-      induction n as [ | n i ].
-      {
-        simpl.
-        rewrite Rmult_1_r.
-        reflexivity.
-      }
-      {
-        simpl.
-        rewrite i.
-        rewrite Rmult_1_l.
-        rewrite Rmult_0_l.
-        rewrite Rplus_0_r.
-        reflexivity.
-      }
+      simpl.
+      rewrite Rmult_1_l.
+      rewrite Rmult_0_l.
+      rewrite Rplus_0_r.
+      exact i.
     }
   }
   {
-    cut (0 < eps * (Rabs (1 - x) * Rabs (/ x))).
+    assert (hneqm:1-x<>0).
     {
-      intro H2.
-      elim (pow_lt_1_zero x H (eps * (Rabs (1 - x) * Rabs (/ x))) H2).
-      intro N.
-      intros H3.
-      exists N.
-      intros n H4.
-      cut (sum_f_R0 (fun n0:nat => 1 * x ^ n0) n = sum_f_R0 (fun n0:nat => x ^ n0) n).
+      apply Rminus_eq_contra.
+      apply Rlt_dichotomy_converse.
+      right.
+      unfold Rgt.
+      apply (Rle_lt_trans x (Rabs x) 1).
+      { apply RRle_abs. }
+      { exact hx. }
+    }
+    assert (H2 : 0 < e * (Rabs (1 - x) * Rabs (/ x))).
+    {
+      apply Rmult_lt_0_compat.
+      { exact he. }
       {
-        intros H5.
-        unfold cstu.
-        rewrite H5.
-        apply (Rmult_lt_reg_l (Rabs (1 - x)) (R_dist (sum_f_R0 (fun n0:nat => x ^ n0) n) (/ (1 - x))) eps).
+        apply Rmult_lt_0_compat.
         {
           apply Rabs_pos_lt.
-          apply Rminus_eq_contra.
-          apply Rlt_dichotomy_converse.
-          right.
-          unfold Rgt.
-          apply (Rle_lt_trans x (Rabs x) 1).
-          apply RRle_abs.
-          exact H.
+          exact hneqm.
+        }
+        {
+          apply Rabs_pos_lt.
+          apply Rinv_neq_0_compat.
+          exact hneq.
+        }
+      }
+    }
+    {
+      specialize pow_lt_1_zero as hpow.
+      specialize (hpow x).
+      specialize (hpow hx).
+      specialize (hpow (e * (Rabs (1 - x) * Rabs (/ x)))).
+      specialize (hpow H2).
+      destruct hpow as [N H3].
+      exists N.
+      intros n hnn.
+      assert (H5 : sum_f_R0 (fun n0:nat => 1 * x ^ n0) n = sum_f_R0 (fun n0:nat => x ^ n0) n).
+      {
+        clear hnn.
+        induction n as [ | n i ].
+        {
+          simpl.
+          rewrite Rmult_1_l.
+          reflexivity.
+        }
+        {
+          simpl.
+          rewrite i.
+          rewrite Rmult_1_l.
+          reflexivity.
+        }
+      }
+      {
+        rewrite H5;clear H5.
+        apply Rmult_lt_reg_l with (Rabs (1 - x)).
+        {
+          apply Rabs_pos_lt.
+          exact hneqm.
         }
         {
           unfold R_dist.
           rewrite <- Rabs_mult.
           rewrite Rmult_minus_distr_l.
-          cut
+          assert (H6:
             ((1 - x) * sum_f_R0 (fun n0:nat => x ^ n0) n =
-              - (sum_f_R0 (fun n0:nat => x ^ n0) n * (x - 1))).
+              - (sum_f_R0 (fun n0:nat => x ^ n0) n * (x - 1)))).
           {
-            intro H6.
+            unfold Rminus.
+            rewrite Ropp_mult_distr_r.
+            rewrite Ropp_plus_distr.
+            rewrite Ropp_involutive.
+            rewrite (Rplus_comm (- x)).
+            rewrite Rmult_comm.
+            reflexivity.
+          }
+          {
             rewrite H6.
-            rewrite GP_finite.
+            generalize GP_finite;intro gpf.
+            rewrite gpf;clear gpf.
             rewrite Rinv_r.
             {
-              cut (- (x ^ (n + 1) - 1) - 1 = - x ^ (n + 1)).
+              assert (H7:(- (x ^ (n + 1) - 1) - 1 = - x ^ (n + 1))).
               {
-                intro H7.
+                unfold Rminus.
+                rewrite Ropp_plus_distr.
+                rewrite Ropp_involutive.
+                rewrite Rplus_assoc.
+                rewrite Rplus_opp_r.
+                rewrite Rplus_0_r.
+                reflexivity.
+              }
+              {
                 rewrite H7.
                 rewrite Rabs_Ropp.
-                cut ((n + 1)%nat = S n).
+                rewrite plus_comm.
+                simpl.
+                rewrite Rabs_mult.
+                apply (Rlt_le_trans _ (Rabs x * (e * (Rabs (1 - x) * Rabs (/ x)))) _).
                 {
-                  intro H8.
-                  rewrite H8.
-                  simpl.
-                  rewrite Rabs_mult.
-                  apply
-                    (Rlt_le_trans (Rabs x * Rabs (x ^ n))
-                      (Rabs x * (eps * (Rabs (1 - x) * Rabs (/ x)))) (
-                        Rabs (1 - x) * eps)).
+                  apply Rmult_lt_compat_l.
                   {
-                    apply Rmult_lt_compat_l.
-                    {
-                      apply Rabs_pos_lt.
-                      exact H1.
-                    }
-                    {
-                      auto.
-                    }
+                    apply Rabs_pos_lt.
+                    exact hneq.
                   }
                   {
-                    cut
-                      (Rabs x * (eps * (Rabs (1 - x) * Rabs (/ x))) =
-                        Rabs x * Rabs (/ x) * (eps * Rabs (1 - x))).
-                    {
-                      clear H8.
-                      intros H8.
-                      rewrite H8.
-                      rewrite <- Rabs_mult.
-                      rewrite Rinv_r.
-                      {
-                        rewrite Rabs_R1.
-                        cut (1 * (eps * Rabs (1 - x)) = Rabs (1 - x) * eps).
-                        {
-                          intros H9.
-                          rewrite H9.
-                          unfold Rle.
-                          right.
-                          reflexivity.
-                        }
-                        {
-                          ring.
-                        }
-                      }
-                      { exact H1. }
-                    }
-                    {
-                      ring.
-                    }
+                    apply H3.
+                    exact hnn.
                   }
                 }
                 {
-                  ring.
+                  assert (H8:
+                    (Rabs x * (e * (Rabs (1 - x) * Rabs (/ x))) =
+                      Rabs x * Rabs (/ x) * (e * Rabs (1 - x)))).
+                  {
+                    rewrite Rmult_assoc.
+                    apply Rmult_eq_compat_l.
+                    rewrite <- Rmult_assoc.
+                    rewrite Rmult_comm.
+                    reflexivity.
+                  }
+                  {
+                    rewrite H8;clear H8.
+                    rewrite <- Rabs_mult.
+                    rewrite Rinv_r.
+                    {
+                      rewrite Rabs_R1.
+                      rewrite Rmult_1_l.
+                      rewrite Rmult_comm.
+                      unfold Rle.
+                      right.
+                      reflexivity.
+                    }
+                    { exact hneq. }
+                  }
                 }
               }
-              {
-                ring.
-              }
             }
-            {
-              apply Rminus_eq_contra.
-              apply Rlt_dichotomy_converse.
-              right.
-              unfold Rgt.
-              apply (Rle_lt_trans x (Rabs x) 1).
-              {
-                apply RRle_abs.
-              }
-              { exact H. }
-            }
+            { exact hneqm. }
           }
-          {
-            ring.
-          }
-        }
-      }
-      {
-        elim n.
-        {
-          simpl.
-          ring.
-        }
-        {
-          simpl.
-          intros n0 H5.
-          rewrite H5.
-          ring.
-        }
-      }
-    }
-    {
-      apply Rmult_lt_0_compat.
-      { exact H0. }
-      {
-        apply Rmult_lt_0_compat.
-        {
-          apply Rabs_pos_lt.
-          apply Rminus_eq_contra.
-          apply Rlt_dichotomy_converse.
-          right.
-          unfold Rgt.
-          apply (Rle_lt_trans x (Rabs x) 1).
-          { apply RRle_abs. }
-          { exact H. }
-        }
-        {
-          apply Rabs_pos_lt.
-          apply Rinv_neq_0_compat.
-          exact H1.
         }
       }
     }
   }
 Qed.
 
-(* Convergence is preserved after shifting the indices. *)
-Lemma CV_shift : 
-  forall f k l, Un_cv (fun n => f (n + k)%nat) l -> Un_cv f l.
-intros f' k l cvfk eps ep; destruct (cvfk eps ep) as [N Pn].
-exists (N + k)%nat; intros n nN; assert (tmp: (n = (n - k) + k)%nat).
- rewrite Nat.sub_add;[ | apply le_trans with (N + k)%nat]; auto with arith.
-rewrite tmp; apply Pn; apply Nat.le_add_le_sub_r; assumption.
+Lemma CV_shift : forall f k l, Un_cv (fun n => f (n + k)%nat) l -> Un_cv f l.
+Proof.
+  intros f k l h.
+  unfold Un_cv.
+  intros e he.
+  unfold Un_cv in h.
+  specialize (h e he).
+  destruct h as [ N h ].
+  exists (N+k)%nat.
+  intros n hn.
+  specialize (h (n-k)%nat).
+  assert (eqnk: (n = n - k + k)%nat).
+  {
+    rewrite Nat.sub_add.
+    { reflexivity. }
+    {
+      apply le_trans with (N+k)%nat.
+      {
+        pattern k at 1;rewrite plus_n_O.
+        rewrite plus_comm.
+        apply plus_le_compat_r.
+        apply le_0_n.
+      }
+      {
+        unfold ge in hn.
+        exact hn.
+      }
+    }
+  }
+  assert (hn': (n - k >= N)%nat).
+  {
+    unfold ge.
+    unfold ge in hn.
+    apply plus_le_reg_l with k.
+    rewrite plus_comm.
+    rewrite (plus_comm k).
+    rewrite <- eqnk.
+    exact hn.
+  }
+  specialize (h hn');clear hn'.
+  rewrite <- eqnk in h.
+  exact h.
 Qed.
 
 Lemma CV_shift' : 
   forall f k l, Un_cv f l -> Un_cv (fun n => f (n + k)%nat) l.
-intros f' k l cvf eps ep; destruct (cvf eps ep) as [N Pn].
-exists N; intros n nN; apply Pn; auto with arith.
+Proof.
+  intros f k l h.
+  unfold Un_cv.
+  intros e he.
+  unfold Un_cv in h.
+  specialize (h e he).
+  destruct h as [ N h ].
+  exists N.
+  intros n hn.
+  apply h.
+  unfold ge.
+  apply le_trans with n.
+  { unfold ge in hn. exact hn. }
+  { apply Nat.le_add_r. }
 Qed.
-
-(* Growing property is preserved after shifting the indices (one way only) *)
 
 Lemma Un_growing_shift : 
    forall k un, Un_growing un -> Un_growing (fun n => un (n + k)%nat).
 Proof.
-intros k un P n; apply P.
+  intros k u h.
+  unfold Un_growing.
+  intros n.
+  unfold Un_growing in h.
+  rewrite plus_Sn_m.
+  apply h.
 Qed.
