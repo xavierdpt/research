@@ -177,21 +177,39 @@ Definition sequence_lb (Un:nat -> R) (pr:has_lb Un)
 Notation sequence_majorant := sequence_ub (only parsing).
 Notation sequence_minorant := sequence_lb (only parsing).
 
-Lemma tadaa : forall f yf, is_lub (EUn f) (lub f yf).
+Lemma lub_is_lub : forall f hb, is_lub (EUn f) (lub f hb).
 Proof.
-  intros f yf.
+  intros f hb.
   unfold lub.
-  destruct (ub_to_lub f yf).
+  destruct (ub_to_lub f hb).
   exact i.
+Qed.
+
+Lemma lub_unique : forall p l1 l2, is_lub p l1 -> is_lub p l2 -> l1 = l2.
+Proof.
+  intros p l1 l2 hl1 hl2.
+  destruct hl1 as [up1 min1].
+  destruct hl2 as [up2 min2].
+  apply Rle_antisym.
+  {
+    apply min1.
+    exact up2.
+  }
+  {
+    apply min2.
+    exact up1.
+  }
 Qed.
 
 Lemma Wn_decreasing :
   forall (Un:nat -> R) (pr:has_ub Un), Un_decreasing (sequence_ub Un pr).
 Proof.
-  intros Un pr.
+  intros Un u_has_ub.
   unfold Un_decreasing.
   intro n.
   unfold sequence_ub.
+
+  (* Introduce variables to improve readability *)
 
   pose (f:=fun k:nat => Un (S n + k)%nat).
   fold f.
@@ -199,158 +217,130 @@ Proof.
   pose (g:=fun k:nat => Un (n + k)%nat).
   fold g.
 
-  pose (yf := (maj_ss Un (S n) pr)).
-  fold f in yf.
-  fold yf.
+  pose (hbf := (maj_ss Un (S n) u_has_ub)).
+  fold f in hbf.
+  fold hbf.
 
-  pose (yg := (maj_ss Un n pr)).
-  fold g in yg.
-  fold yg.
+  pose (hbg := (maj_ss Un n u_has_ub)).
+  fold g in hbg.
+  fold hbg.
 
-  destruct (ub_to_lub f yf) as [ x [ H1 H2 ]].
-  destruct (ub_to_lub g yg) as [ x0 [ H3 H4 ]].
+  (* upper bound -> there's a least upper bound *)
+  destruct (ub_to_lub f hbf) as [ lf hlubf].
+  destruct (ub_to_lub g hbg) as [ lg hlubg].
 
-  assert (Maj1 : lub f yf = x).
+  assert (eqf : lub f hbf = lf).
   {
-    destruct (tadaa f yf) as [H5 H6].
-    {
-      apply Rle_antisym.
-      {
-        apply H6.
-        exact H1.
-      }
-      {
-        apply H2.
-        exact H5.
-      }
-    }
+    apply (lub_unique (EUn f)).
+    - apply lub_is_lub.
+    - exact hlubf.
   }
+
+  assert (eqg : lub g hbg = lg).
   {
-    rewrite Maj1.
-    cut (lub g yg = x0).
-    {
-      intro Maj2.
-      rewrite Maj2.
-      apply H2.
-      unfold is_upper_bound.
-      intros x1 H5.
-      unfold is_upper_bound in H3.
-      apply H3.
-      elim H5; intros x2 H.
-      exists (1 + x2)%nat.
-      unfold g.
-      replace (n + (1 + x2))%nat with (S n + x2)%nat.
-      assumption.
-      replace (S n) with (1 + n)%nat; [ ring | ring ].
-    }
-    {
-      cut
-        (is_lub (EUn g)
-          (lub g yg)).
-      {
-        intros (H5,H6).
-        assert (H7 := H6 x0 H3).
-        assert
-          (H8 := H4 (lub g yg) H5).
-        apply Rle_antisym; assumption.
-      }
-      {
-        unfold lub.
-        case (ub_to_lub g yg).
-        trivial.
-      }
-    }
+    apply (lub_unique (EUn g)).
+    - apply lub_is_lub.
+    - exact hlubg.
   }
+
+  (* Now we can get rid of this lub _ _ thing and simplify even more *)
+  rewrite eqf.
+  rewrite eqg.
+  clear eqf eqg hbf hbg u_has_ub.
+
+  destruct hlubf as [lf_up lf_min];clear lf_up.
+  destruct hlubg as [lg_up lg_min];clear lg_min.
+
+  apply lf_min;clear lf_min.
+
+  unfold is_upper_bound.
+  intros ubf hubf.
+  unfold is_upper_bound in lg_up.
+  apply lg_up;clear lg_up.
+
+  destruct hubf as [nubf heq].
+  subst ubf.
+  unfold EUn.
+  unfold f.
+  unfold g.
+
+  exists (S nubf).
+
+  rewrite plus_Sn_m.
+  rewrite <- plus_n_Sm.
+
+  reflexivity.
+
 Qed.
 
 Lemma Vn_growing :
   forall (Un:nat -> R) (pr:has_lb Un), Un_growing (sequence_lb Un pr).
 Proof.
-  intros.
+
+  intros u u_has_lb.
   unfold Un_growing.
-  intro.
+  intro n.
   unfold sequence_lb.
-  assert (H := lb_to_glb (fun k:nat => Un (S n + k)%nat) (min_ss Un (S n) pr)).
-  assert (H0 := lb_to_glb (fun k:nat => Un (n + k)%nat) (min_ss Un n pr)).
-  elim H; intros.
-  elim H0; intros.
-  cut (glb (fun k:nat => Un (S n + k)%nat) (min_ss Un (S n) pr) = - x);
-    [ intro Maj1; rewrite Maj1 | idtac ].
-  cut (glb (fun k:nat => Un (n + k)%nat) (min_ss Un n pr) = - x0);
-    [ intro Maj2; rewrite Maj2 | idtac ].
-  unfold is_lub in p.
-  unfold is_lub in p0.
-  elim p; intros.
+
+  pose (f := fun k : nat => u (n + k)%nat).
+  fold f.
+
+  pose (g := fun k : nat => u (S n + k)%nat).
+  fold g.
+
+  pose (fss := min_ss u n u_has_lb).
+  fold fss.
+
+  pose (gss := min_ss u (S n) u_has_lb).
+  fold gss.
+
+  unfold glb.
+
+  destruct (lb_to_glb f fss) as [lubf hlubf].
+  destruct (lb_to_glb g gss) as [lubg hlubg].
+
   apply Ropp_le_contravar.
-  apply H2.
-  elim p0; intros.
+
+  destruct hlubf as [hubf hminf].
+  destruct hlubg as [hubg hming].
+
+  apply hming.
+
   unfold is_upper_bound.
-  intros.
-  unfold is_upper_bound in H3.
-  apply H3.
-  elim H5; intros.
-  exists (1 + x2)%nat.
-  unfold opp_seq in H6.
+  intros x hex.
+  unfold EUn in hex.
+  destruct hex as [nx heq].
+  subst x.
+  
+  unfold is_upper_bound in hubf.
+  apply hubf.
+
+  unfold EUn.
   unfold opp_seq.
-  replace (n + (1 + x2))%nat with (S n + x2)%nat.
-  assumption.
-  replace (S n) with (1 + n)%nat; [ ring | ring ].
-  cut
-    (is_lub (EUn (opp_seq (fun k:nat => Un (n + k)%nat)))
-      (- glb (fun k:nat => Un (n + k)%nat) (min_ss Un n pr))).
-  intro.
-  unfold is_lub in p0; unfold is_lub in H1.
-  elim p0; intros; elim H1; intros.
-  assert (H6 := H5 x0 H2).
-  assert
-    (H7 := H3 (- glb (fun k:nat => Un (n + k)%nat) (min_ss Un n pr)) H4).
-  rewrite <-
-    (Ropp_involutive (glb (fun k:nat => Un (n + k)%nat) (min_ss Un n pr)))
-    .
-  apply Ropp_eq_compat; apply Rle_antisym; assumption.
-  unfold glb.
-  case (lb_to_glb (fun k:nat => Un (n + k)%nat) (min_ss Un n pr)); simpl.
-  intro; rewrite Ropp_involutive.
-  trivial.
-  cut
-    (is_lub (EUn (opp_seq (fun k:nat => Un (S n + k)%nat)))
-      (- glb (fun k:nat => Un (S n + k)%nat) (min_ss Un (S n) pr))).
-  intro.
-  unfold is_lub in p; unfold is_lub in H1.
-  elim p; intros; elim H1; intros.
-  assert (H6 := H5 x H2).
-  assert
-    (H7 :=
-      H3 (- glb (fun k:nat => Un (S n + k)%nat) (min_ss Un (S n) pr)) H4).
-  rewrite <-
-    (Ropp_involutive
-      (glb (fun k:nat => Un (S n + k)%nat) (min_ss Un (S n) pr)))
-    .
-  apply Ropp_eq_compat; apply Rle_antisym; assumption.
-  unfold glb.
-  case (lb_to_glb (fun k:nat => Un (S n + k)%nat) (min_ss Un (S n) pr)); simpl.
-  intro; rewrite Ropp_involutive.
-  trivial.
+  unfold g.
+  unfold f.
+  exists (S nx).
+  rewrite <- plus_n_Sm.
+  rewrite plus_Sn_m.
+
+  reflexivity.
 Qed.
 
 Lemma lub_opp_glb : forall (U:nat -> R) (hlb: has_lb U) (n:nat)
   (f:=(fun k:nat => U (n + k)%nat)),
   is_lub (EUn (opp_seq f)) (- glb f (min_ss U n hlb)).
 Proof.
-  intros.
+  intros U hlb n f.
+  pose (hbf := (min_ss U n hlb)).
+  fold hbf.
   unfold glb.
-  (* lb_to_glb : has_lb Un -> {l : R | is_lub (EUn (opp_seq Un)) l} *)
-  (* min_ss : has_lb Un -> has_lb (i => Un (k + i)%nat) *)
-  case (lb_to_glb f (min_ss U n hlb)).
-  simpl.
-  intro x0.
+  destruct (lb_to_glb f hbf) as [ x0 i ].
   rewrite Ropp_involutive.
-  intro i.
-  apply i.
+  exact i.
 Qed.
 
 
-(**********)
+
 Lemma Vn_Un_Wn_order :
   forall (U:nat -> R) (hub:has_ub U) (hlb:has_lb U)
     (n:nat), sequence_lb U hlb n <= U n <= sequence_ub U hub n.
