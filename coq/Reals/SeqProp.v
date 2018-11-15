@@ -398,161 +398,218 @@ Lemma min_maj :
   forall (Un:nat -> R) (pr1:has_ub Un) (pr2:has_lb Un),
     has_ub (sequence_lb Un pr2).
 Proof.
-  intros.
-  assert (H := Vn_Un_Wn_order Un pr1 pr2).
+
+  intros u hub hlb.
+
   unfold has_ub.
   unfold bound.
-  unfold has_ub in pr1.
-  unfold bound in pr1.
-  elim pr1; intros.
-  exists x.
+
+  generalize hub;intro hub'.
+  unfold has_ub in hub'.
+  unfold bound in hub'.
+  destruct hub' as [xup hup].
+
+  exists xup.
   unfold is_upper_bound.
-  intros.
-  unfold is_upper_bound in H0.
-  elim H1; intros.
-  rewrite H2.
-  apply Rle_trans with (Un x1).
-  assert (H3 := H x1); elim H3; intros; assumption.
-  apply H0.
-  exists x1; reflexivity.
+  intros xn hn.
+
+  destruct hn as [n heq].
+  subst xn.
+
+  apply Rle_trans with (u n).
+  {
+    apply Vn_Un_Wn_order.
+    exact hub.
+  }
+  {
+    unfold is_upper_bound in hup.
+    apply hup.
+    exists n.
+    reflexivity.
+  }
 Qed.
 
 Lemma maj_min :
   forall (Un:nat -> R) (pr1:has_ub Un) (pr2:has_lb Un),
     has_lb (sequence_ub Un pr1).
 Proof.
-  intros.
-  assert (H := Vn_Un_Wn_order Un pr1 pr2).
+  intros u hub hlb.
+(*  assert (H := Vn_Un_Wn_order Un pr1 pr2). *)
+
   unfold has_lb.
   unfold bound.
-  unfold has_lb in pr2.
-  unfold bound in pr2.
-  elim pr2; intros.
-  exists x.
+
+  elim hlb; intros xlb hxlb.
+
+  exists xlb.
   unfold is_upper_bound.
-  intros.
-  unfold is_upper_bound in H0.
-  elim H1; intros.
-  rewrite H2.
-  apply Rle_trans with (opp_seq Un x1).
-  assert (H3 := H x1); elim H3; intros.
-  unfold opp_seq; apply Ropp_le_contravar.
-  assumption.
-  apply H0.
-  exists x1; reflexivity.
+  intros x h.
+
+  unfold is_upper_bound in hxlb.
+
+  elim h; intros n heq.
+  rewrite heq.
+
+  apply Rle_trans with (opp_seq u n).
+  {
+    unfold opp_seq.
+    apply Ropp_le_contravar.
+    apply Vn_Un_Wn_order.
+    exact hlb.
+  }
+  {
+    apply hxlb.
+    exists n.
+    reflexivity.
+  }
 Qed.
 
-(**********)
 Lemma cauchy_maj : forall Un:nat -> R, Cauchy_crit Un -> has_ub Un.
 Proof.
-  intros.
+  intros u h.
   unfold has_ub.
+  generalize cauchy_bound;intro hcbound.
   apply cauchy_bound.
-  assumption.
+  exact h.
 Qed.
 
-(**********)
 Lemma cauchy_opp :
   forall Un:nat -> R, Cauchy_crit Un -> Cauchy_crit (opp_seq Un).
 Proof.
-  intro.
+  intros u h.
   unfold Cauchy_crit.
+  intros e he.
+  unfold Cauchy_crit in h.
+  specialize (h e he).
+  destruct h as [N h].
+  exists N.
+  intros n m hnn hnm.
+  specialize (h n m hnn hnm).
+  unfold R_dist in h.
   unfold R_dist.
-  intros.
-  elim (H eps H0); intros.
-  exists x; intros.
   unfold opp_seq.
-  rewrite <- Rabs_Ropp.
-  replace (- (- Un n - - Un m)) with (Un n - Un m);
-  [ apply H1; assumption | ring ].
+  unfold Rminus.
+  rewrite <- Ropp_plus_distr.
+  rewrite Rabs_Ropp.
+  unfold Rminus in h.
+  exact h.
 Qed.
 
-(**********)
 Lemma cauchy_min : forall Un:nat -> R, Cauchy_crit Un -> has_lb Un.
 Proof.
-  intros.
+  intros u h.
   unfold has_lb.
-  assert (H0 := cauchy_opp _ H).
   apply cauchy_bound.
-  assumption.
+  apply cauchy_opp.
+  exact h.
 Qed.
 
-(**********)
 Lemma maj_cv :
   forall (Un:nat -> R) (pr:Cauchy_crit Un),
     { l:R | Un_cv (sequence_ub Un (cauchy_maj Un pr)) l }.
 Proof.
-  intros.
+  intros u h.
   apply decreasing_cv.
-  apply Wn_decreasing.
-  apply maj_min.
-  apply cauchy_min.
-  assumption.
+  { apply Wn_decreasing. }
+  {
+    apply maj_min.
+    apply cauchy_min.
+    exact h.
+  }
 Qed.
 
-(**********)
 Lemma min_cv :
   forall (Un:nat -> R) (pr:Cauchy_crit Un),
     { l:R | Un_cv (sequence_lb Un (cauchy_min Un pr)) l }.
 Proof.
-  intros.
+  intros u h.
   apply growing_cv.
-  apply Vn_growing.
-  apply min_maj.
-  apply cauchy_maj.
-  assumption.
+  { apply Vn_growing. }
+  {
+    apply min_maj.
+    apply cauchy_maj.
+    exact h.
+  }
 Qed.
 
 Lemma cond_eq_gt : forall x y:R, y < x -> (forall eps:R, 0 < eps -> Rabs (x - y) < eps) -> False.
 Proof.
-  intros x y Hlt H.
-  specialize (H (x-y)).
-
-  rewrite <- Rplus_minus with y x in Hlt.
-  rewrite <- Rplus_0_r in Hlt at 1.
-  apply Rplus_lt_reg_l with y _ _ in Hlt.
- 
-  specialize (H Hlt).
-  rewrite Rabs_right in H.
+  intros x y hxy h.
+  specialize (h (x - y)).
+  apply Rlt_irrefl with (x-y).
+  assert (hxy' : 0 < x - y).
   {
-    apply Rlt_irrefl in H.
-    apply H.
+    unfold Rminus.
+    apply Rplus_lt_reg_r with y.
+    rewrite Rplus_0_l.
+    rewrite Rplus_assoc.
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_r.
+    exact hxy.
   }
-  left.
-  unfold Rgt.
-  apply Hlt.
+  pattern (x-y) at 1; rewrite <- Rabs_right.
+  {
+    apply h.
+    exact hxy'.
+  }
+  {
+    left.
+    apply Rlt_gt.
+    exact hxy'.
+  }
 Qed.
 
 Lemma cond_eq :
   forall x y:R, (forall eps:R, 0 < eps -> Rabs (x - y) < eps) -> x = y.
 Proof.
-  intros x y H.
-  destruct (total_order_T x y) as [[Hlt|Heq]|Hgt].
+  intros x y h.
+  destruct (Req_dec x y) as [ heq | hneq ].
+  { exact heq. }
   {
-    apply cond_eq_gt in Hlt.
-    contradiction.
-    rewrite <- Rabs_Ropp.
-    rewrite Ropp_minus_distr.
-    exact H.
-  }
-  {
-    apply Heq.
-  }
-  {
-    unfold Rgt in Hgt.
-    apply cond_eq_gt in Hgt.
-    contradiction.
-    exact H.
+    apply Rdichotomy in hneq.
+    destruct hneq as [ hlt | hgt ].
+    {
+      apply cond_eq_gt in hlt.
+      { contradiction. }
+      {
+        intros e he.
+        rewrite Rabs_minus_sym.
+        apply h.
+        exact he.
+      }
+    }
+    {
+      apply cond_eq_gt in hgt.
+      { contradiction. }
+      {
+        intros e he.
+        apply h.
+        exact he.
+      }
+    }
   }
 Qed.
 
 Lemma not_Rlt : forall r1 r2:R, ~ r1 < r2 -> r1 >= r2.
 Proof.
-  intros r1 r2; generalize (Rtotal_order r1 r2); unfold Rge.
-  tauto.
+  intros x y h.
+  apply Rle_ge.
+  apply Rnot_gt_le.
+  intro h'.
+  apply h.
+  apply Rgt_lt.
+  exact h'.
 Qed.
 
-(**********)
+(* stopped here *)
+
+Fixpoint approx_maj_v (Un:nat->R) (n:nat) := match n with
+| O => Un O
+| S n' => if Rle_lt_dec (approx_maj_v Un n') (Un n) then Un n else approx_maj_v Un n'
+end.
+
+Lemma lem : forall x y, Rle_lt_dec x y = true <-> x < y.
+
 Lemma approx_maj :
   forall (Un:nat -> R) (pr:has_ub Un) (eps:R),
     0 < eps ->  exists k : nat, Rabs (lub Un pr - Un k) < eps.
@@ -562,72 +619,133 @@ Proof.
   pose (In := fix aux n := match n with S n' => if Rle_lt_dec (Vn n) (Un n) then n else aux n' | O => O end).
 
   assert (VUI: forall n, Vn n = Un (In n)).
-  induction n.
-  easy.
-  simpl.
-  destruct (Rle_lt_dec (Vn n) (Un (S n))) as [H1|H1].
-  destruct (Rle_lt_dec (Un (S n)) (Un (S n))) as [H2|H2].
-  easy.
-  elim (Rlt_irrefl _ H2).
-  destruct (Rle_lt_dec (Vn n) (Un (S n))) as [H2|H2].
-  elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H2 H1)).
-  exact IHn.
+  {
+    induction n.
+    {
+      easy.
+    }
+    {
+      simpl.
+      destruct (Rle_lt_dec (Vn n) (Un (S n))) as [H1|H1].
+      {
+        destruct (Rle_lt_dec (Un (S n)) (Un (S n))) as [H2|H2].
+        {
+          easy.
+        }
+        {
+          elim (Rlt_irrefl _ H2).
+        }
+      }
+      {
+        destruct (Rle_lt_dec (Vn n) (Un (S n))) as [H2|H2].
+        {
+          elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H2 H1)).
+        }
+        {
+          exact IHn.
+        }
+      }
+    }
+  }
 
   assert (HubV : has_ub Vn).
-  destruct pr as (ub, Hub).
-  exists ub.
-  intros x (n, Hn).
-  rewrite Hn, VUI.
-  apply Hub.
-  now exists (In n).
+  {
+    destruct pr as (ub, Hub).
+    exists ub.
+    intros x (n, Hn).
+    rewrite Hn, VUI.
+    apply Hub.
+    now exists (In n).
+  }
 
   assert (HgrV : Un_growing Vn).
-  intros n.
-  induction n.
-  simpl.
-  destruct (Rle_lt_dec (Un O) (Un 1%nat)) as [H|_].
-  exact H.
-  apply Rle_refl.
-  simpl.
-  destruct (Rle_lt_dec (Vn n) (Un (S n))) as [H1|H1].
-  destruct (Rle_lt_dec (Un (S n)) (Un (S (S n)))) as [H2|H2].
-  exact H2.
-  apply Rle_refl.
-  destruct (Rle_lt_dec (Vn n) (Un (S (S n)))) as [H2|H2].
-  exact H2.
-  apply Rle_refl.
+  {
+    intros n.
+    induction n.
+    {
+      simpl.
+      destruct (Rle_lt_dec (Un O) (Un 1%nat)) as [H|_].
+      {
+        exact H.
+      }
+      {
+        apply Rle_refl.
+      }
+    }
+    {
+      simpl.
+      destruct (Rle_lt_dec (Vn n) (Un (S n))) as [H1|H1].
+      {
+        destruct (Rle_lt_dec (Un (S n)) (Un (S (S n)))) as [H2|H2].
+        {
+          exact H2.
+        }
+        {
+          apply Rle_refl.
+        }
+      }
+      {
+        destruct (Rle_lt_dec (Vn n) (Un (S (S n)))) as [H2|H2].
+        {
+          exact H2.
+        }
+        {
+          apply Rle_refl.
+        }
+      }
+    }
+  }
 
   destruct (ub_to_lub Vn HubV) as (l, Hl).
   unfold lub.
   destruct (ub_to_lub Un pr) as (l', Hl').
   replace l' with l.
-  intros eps Heps.
-  destruct (Un_cv_crit_lub Vn HgrV l Hl eps Heps) as (n, Hn).
-  exists (In n).
-  rewrite <- VUI.
-  rewrite Rabs_minus_sym.
-  apply Hn.
-  apply le_refl.
-
-  apply Rle_antisym.
-  apply Hl.
-  intros n (k, Hk).
-  rewrite Hk, VUI.
-  apply Hl'.
-  now exists (In k).
-  apply Hl'.
-  intros n (k, Hk).
-  rewrite Hk.
-  apply Rle_trans with (Vn k).
-  clear.
-  induction k.
-  apply Rle_refl.
-  simpl.
-  destruct (Rle_lt_dec (Vn k) (Un (S k))) as [H|H].
-  apply Rle_refl.
-  now apply Rlt_le.
-  apply Hl.
-  now exists k.
+  {
+    intros eps Heps.
+    destruct (Un_cv_crit_lub Vn HgrV l Hl eps Heps) as (n, Hn).
+    exists (In n).
+    rewrite <- VUI.
+    rewrite Rabs_minus_sym.
+    apply Hn.
+    apply le_refl.
+  }
+  {
+    apply Rle_antisym.
+    {
+      apply Hl.
+      intros n (k, Hk).
+      rewrite Hk, VUI.
+      apply Hl'.
+      now exists (In k).
+    }
+    {
+      apply Hl'.
+      intros n (k, Hk).
+      rewrite Hk.
+      apply Rle_trans with (Vn k).
+      {
+        clear.
+        induction k.
+        {
+          apply Rle_refl.
+        }
+        {
+          simpl.
+          destruct (Rle_lt_dec (Vn k) (Un (S k))) as [H|H].
+          {
+            apply Rle_refl.
+          }
+          {
+            now apply Rlt_le.
+          }
+        }
+      }
+      {
+        apply Hl.
+        now exists k.
+      }
+    }
+  }
 Qed.
 
 (**********)
