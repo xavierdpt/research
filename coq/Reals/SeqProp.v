@@ -339,84 +339,58 @@ Proof.
   exact i.
 Qed.
 
-
-
 Lemma Vn_Un_Wn_order :
   forall (U:nat -> R) (hub:has_ub U) (hlb:has_lb U)
     (n:nat), sequence_lb U hlb n <= U n <= sequence_ub U hub n.
 Proof.
   intros U hub hlb n.
-  split. 
+
+  unfold sequence_ub.
+  unfold sequence_lb.
+
+  pose (f := fun k:nat => U (n + k)%nat).
+  fold f.
+
+  pose (smin := min_ss U n hlb).
+  fold f in smin.
+  fold smin.
+
+  pose (smaj := maj_ss U n hub).
+  fold f in smaj.
+  fold smaj.
+
+  unfold glb.
+  unfold lub.
+
+  destruct (lb_to_glb f smin) as [ xmin imin].
+  destruct (ub_to_lub f smaj) as [ xmaj imaj].
+
+  destruct imin as [imin1 imin2].
+  destruct imaj as [imaj1 imaj2].
+
+  unfold is_upper_bound in imin1, imaj1.
+
+  split.
   {
-    clear hub.
-
-    unfold sequence_lb.
-
-    (* duplicate hlb as X *)
-    generalize hlb; intro hlb'; rename hlb into X; rename hlb' into hlb.
-
-    apply min_ss with U n in X . (* has_lb U -> has_lb ( i => U (k + i) ) *)
-    apply lb_to_glb in X. (* has_lb U -> {l | is_lub (EUn (opp_seq U)) l} *)
-
-    destruct X as [ x p ].
-
-    assert (eq : (glb (fun k:nat => U (n + k)%nat) (min_ss U n hlb)) = (- x)).
-    {
-
-      destruct (lub_opp_glb U hlb n) as [hup' hup_le'].
-
-      unfold is_lub in p.
-      destruct p as [hup hup_le].
-      specialize (hup_le' x).
-      specialize (hup_le' hup).
-      specialize (hup_le (- glb (fun k:nat => U (n + k)%nat) (min_ss U n hlb))).
-      specialize (hup_le hup').
-      rewrite <- Ropp_involutive at 1.
-      apply Ropp_eq_compat.
-      apply Rle_antisym.
-      assumption.
-      assumption.
-    }
-    rewrite eq. clear eq.
-    unfold is_lub in p.
-    destruct p as [H H0].
-    unfold is_upper_bound in H.
-    rewrite <- (Ropp_involutive (U n)).
-    apply Ropp_le_contravar.
-    apply H.
-    exists 0%nat.
+    apply Ropp_le_cancel.
+    rewrite Ropp_involutive.
+    apply imin1;clear imin1.
+    unfold EUn.
     unfold opp_seq.
-    replace (n + 0)%nat with n.
-    reflexivity.
-    ring.
-  } 
-  {
-    unfold sequence_ub.
-    cut { l:R | is_lub (EUn (fun i:nat => U (n + i)%nat)) l }.
-    intro X.
-    elim X; intros.
-    replace (lub (fun k:nat => U (n + k)%nat) (maj_ss U n hub)) with x.
-    unfold is_lub in p.
-    elim p; intros.
-    unfold is_upper_bound in H.
-    apply H.
+    unfold f.
     exists 0%nat.
-    replace (n + 0)%nat with n; [ reflexivity | ring ].
-    cut
-      (is_lub (EUn (fun k:nat => U (n + k)%nat))
-        (lub (fun k:nat => U (n + k)%nat) (maj_ss U n hub))).
-    intro.
-    unfold is_lub in p; unfold is_lub in H.
-    elim p; intros; elim H; intros.
-    assert (H4 := H3 x H0).
-    assert
-      (H5 := H1 (lub (fun k:nat => U (n + k)%nat) (maj_ss U n hub)) H2).
-    apply Rle_antisym; assumption.
-    unfold lub.
-    case (ub_to_lub (fun k:nat => U (n + k)%nat) (maj_ss U n hub)).
-    intro; trivial.
-    apply ub_to_lub.
-    apply maj_ss; assumption.
+    rewrite plus_comm.
+    simpl.
+    reflexivity.
+  }
+  {
+    apply imaj1;clear imaj1.
+    unfold EUn.
+    unfold f.
+    exists 0%nat.
+    rewrite plus_comm.
+    simpl.
+    reflexivity.
   }
 Qed.
 
