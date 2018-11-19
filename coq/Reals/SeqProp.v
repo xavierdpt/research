@@ -1763,472 +1763,642 @@ Proof.
   }
 Qed.
 
-Lemma cv_speed_pow_fact : forall (x:R) (f:=fun n:nat => x ^ n / INR (fact n)),
-  Un_cv f 0.
+Definition pow_fact x n := x ^ n / INR (fact n).
+
+Definition pow_fact_abs x n := Rabs x ^ n / INR (fact n).
+
+Lemma cv_pfa_pf : forall x, Un_cv (pow_fact_abs x) 0 -> Un_cv (pow_fact x) 0.
 Proof.
-  intro;
-    cut
-      (Un_cv (fun n:nat => Rabs x ^ n / INR (fact n)) 0 ->
-        Un_cv (fun n:nat => x ^ n / INR (fact n)) 0).
-  {
-  intro; apply H.
-  unfold Un_cv; unfold R_dist; intros; case (Req_dec x 0);
-    intro.
-  {
-  exists 1%nat; intros.
-  rewrite H1; unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r;
-    rewrite Rabs_R0; rewrite pow_ne_zero;
-      [ unfold Rdiv; rewrite Rmult_0_l; rewrite Rabs_R0; assumption
-        | red; intro; rewrite H3 in H2; elim (le_Sn_n _ H2) ].
-  }
-  {
-  assert (H2 := Rabs_pos_lt x H1); set (M := up (Rabs x)); cut (0 <= M)%Z.
-  {
-  intro; elim (IZN M H3); intros M_nat H4.
-  set (Un := fun n:nat => Rabs x ^ (M_nat + n) / INR (fact (M_nat + n))).
-  cut (Un_cv Un 0); unfold Un_cv; unfold R_dist; intros.
-  {
-  elim (H5 eps H0); intros N H6.
-  exists (M_nat + N)%nat; intros;
-    cut (exists p : nat, (p >= N)%nat /\ n = (M_nat + p)%nat).
-  {
-  intro; elim H8; intros p H9.
-  elim H9; intros; rewrite H11; unfold Un in H6; apply H6; assumption.
-  }
-  {
-  exists (n - M_nat)%nat.
-  split.
-  {
-  unfold ge; apply (fun p n m:nat => plus_le_reg_l n m p) with M_nat;
-    rewrite <- le_plus_minus.
-  {
-  assumption.
-  }
-  {
-  apply le_trans with (M_nat + N)%nat.
-  {
-  apply le_plus_l.
-  }
-  {
-  assumption.
-  }
-  }
-  }
-  {
-  apply le_plus_minus; apply le_trans with (M_nat + N)%nat;
-    [ apply le_plus_l | assumption ].
-  }
-  }
-  }
-  {
+  intros x h.
+
+  unfold Un_cv.
+  intros e he.
+
+  unfold Un_cv in h.
+  specialize (h _ he).
+  destruct h as [ N h ].
+
+  exists N.
+
+  intros n hn.
+  specialize (h n hn).
+
+  unfold R_dist.
+  unfold R_dist in h.
+
+  unfold Rminus.
+  rewrite Ropp_0.
+  rewrite Rplus_0_r.
+
+  unfold Rminus in h.
+  rewrite Ropp_0 in h.
+  rewrite Rplus_0_r in h.
+
+  unfold pow_fact.
+  unfold pow_fact_abs in h.
+
+  unfold Rdiv.
+  rewrite Rabs_mult.
+  rewrite <- Rabs_Rabsolu.
+  rewrite <- RPow_abs.
+  rewrite <- Rabs_mult.
+
+  exact h.
+Qed.
+
+Definition pow_fact_abs_mn x M n := Rabs x ^ (M + n) / INR (fact (M + n)).
+
+Lemma cv_pow_fact_abs_mn : forall x M,
+  x <> 0 ->
+  up (Rabs x) = Z.of_nat M ->
+  Un_cv (pow_fact_abs_mn x M) 0.
+Proof.
+  intros x M hx hM.
+  assert (hxa := Rabs_pos_lt x hx).
+  unfold Un_cv.
+  unfold R_dist.
+  intros eps0 H5.
+  set (Un := pow_fact_abs_mn x M).
   set (Vn := fun n:nat => Rabs x * (Un 0%nat / INR (S n))).
-  cut (1 <= M_nat)%nat.
+  cut (1 <= M)%nat.
   {
-  intro; cut (forall n:nat, 0 < Un n).
-  {
-  intro; cut (Un_decreasing Un).
-  {
-  intro; cut (forall n:nat, Un (S n) <= Vn n).
-  {
-  intro; cut (Un_cv Vn 0).
-  {
-  unfold Un_cv; unfold R_dist; intros.
-  elim (H10 eps0 H5); intros N1 H11.
-  exists (S N1); intros.
-  cut (forall n:nat, 0 < Vn n).
-  {
-  intro; apply Rle_lt_trans with (Rabs (Vn (pred n) - 0)).
-  {
-  repeat rewrite Rabs_right.
-  {
-  unfold Rminus; rewrite Ropp_0; do 2 rewrite Rplus_0_r;
-    replace n with (S (pred n)).
-  {
-  apply H9.
-  }
-  {
-  inversion H12; simpl; reflexivity.
-  }
-  }
-  {
-  apply Rle_ge; unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r; left;
-    apply H13.
-  }
-  {
-  apply Rle_ge; unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r; left;
-    apply H7.
-  }
-  }
-  {
-  apply H11; unfold ge; apply le_S_n; replace (S (pred n)) with n;
-    [ unfold ge in H12; exact H12 | inversion H12; simpl; reflexivity ].
-  }
-  }
-  {
-  intro; apply Rlt_le_trans with (Un (S n0)); [ apply H7 | apply H9 ].
-  }
-  }
-  {
-  cut (cv_infty (fun n:nat => INR (S n))).
-  {
-  intro; cut (Un_cv (fun n:nat => / INR (S n)) 0).
-  {
-  unfold Un_cv, R_dist; intros; unfold Vn.
-  cut (0 < eps1 / (Rabs x * Un 0%nat)).
-  {
-  intro; elim (H11 _ H13); intros N H14.
-  exists N; intros;
-    replace (Rabs x * (Un 0%nat / INR (S n)) - 0) with
-    (Rabs x * Un 0%nat * (/ INR (S n) - 0));
-    [ idtac | unfold Rdiv; ring ].
-  rewrite Rabs_mult; apply Rmult_lt_reg_l with (/ Rabs (Rabs x * Un 0%nat)).
-  {
-  apply Rinv_0_lt_compat; apply Rabs_pos_lt.
-  apply prod_neq_R0.
-  {
-  apply Rabs_no_R0; assumption.
-  }
-  {
-  assert (H16 := H7 0%nat); red; intro; rewrite H17 in H16;
-    elim (Rlt_irrefl _ H16).
-  }
-  }
-  {
-  rewrite <- Rmult_assoc; rewrite <- Rinv_l_sym.
-  {
-  rewrite Rmult_1_l.
-  replace (/ Rabs (Rabs x * Un 0%nat) * eps1) with (eps1 / (Rabs x * Un 0%nat)).
-  {
-  apply H14; assumption.
-  }
-  {
-  unfold Rdiv; rewrite (Rabs_right (Rabs x * Un 0%nat)).
-  {
-  apply Rmult_comm.
-  }
-  {
-  apply Rle_ge; apply Rmult_le_pos.
-  {
-  apply Rabs_pos.
-  }
-  {
-  left; apply H7.
-  }
-  }
-  }
-  }
-  {
-  apply Rabs_no_R0.
-  apply prod_neq_R0;
-    [ apply Rabs_no_R0; assumption
-      | assert (H16 := H7 0%nat); red; intro; rewrite H17 in H16;
-        elim (Rlt_irrefl _ H16) ].
-  }
-  }
-  }
-  {
-  unfold Rdiv; apply Rmult_lt_0_compat.
-  {
-  assumption.
-  }
-  {
-  apply Rinv_0_lt_compat; apply Rmult_lt_0_compat.
-  {
-  apply Rabs_pos_lt; assumption.
-  }
-  {
-  apply H7.
-  }
-  }
-  }
-  }
-  {
-  apply (cv_infty_cv_R0 (fun n:nat => INR (S n))).
-  {
-  intro; apply not_O_INR; discriminate.
-  }
-  {
-  assumption.
-  }
-  }
-  }
-  {
-  unfold cv_infty; intro;
-    destruct (total_order_T M0 0) as [[Hlt|Heq]|Hgt].
-  {
-  exists 0%nat; intros.
-  apply Rlt_trans with 0; [ assumption | apply lt_INR_0; apply lt_O_Sn ].
-  }
-  {
-  exists 0%nat; intros; rewrite Heq; apply lt_INR_0; apply lt_O_Sn.
-  }
-  {
-  set (M0_z := up M0).
-  assert (H10 := archimed M0).
-  cut (0 <= M0_z)%Z.
-  {
-  intro; elim (IZN _ H11); intros M0_nat H12.
-  exists M0_nat; intros.
-  apply Rlt_le_trans with (IZR M0_z).
-  {
-  elim H10; intros; assumption.
-  }
-  {
-  rewrite H12; rewrite <- INR_IZR_INZ; apply le_INR.
-  apply le_trans with n; [ assumption | apply le_n_Sn ].
-  }
-  }
-  {
-  apply le_IZR; left; simpl; unfold M0_z;
-    apply Rlt_trans with M0; [ assumption | elim H10; intros; assumption ].
-  }
-  }
-  }
-  }
-  }
-  {
-  intro; apply Rle_trans with (Rabs x * Un n * / INR (S n)).
-  {
-  unfold Un; replace (M_nat + S n)%nat with (M_nat + n + 1)%nat.
-  {
-  rewrite pow_add; replace (Rabs x ^ 1) with (Rabs x);
-    [ idtac | simpl; ring ].
-  unfold Rdiv; rewrite <- (Rmult_comm (Rabs x));
-    repeat rewrite Rmult_assoc; repeat apply Rmult_le_compat_l.
-  {
-  apply Rabs_pos.
-  }
-  {
-  left; apply pow_lt; assumption.
-  }
-  {
-  replace (M_nat + n + 1)%nat with (S (M_nat + n)).
-  {
-  rewrite fact_simpl; rewrite mult_comm; rewrite mult_INR;
-    rewrite Rinv_mult_distr.
-  {
-  apply Rmult_le_compat_l.
-  {
-  left; apply Rinv_0_lt_compat; apply lt_INR_0; apply neq_O_lt; red;
-    intro; assert (H10 := eq_sym H9); elim (fact_neq_0 _ H10).
-  }
-  {
-  left; apply Rinv_lt_contravar.
-  {
-  apply Rmult_lt_0_compat; apply lt_INR_0; apply lt_O_Sn.
-  }
-  {
-  apply lt_INR; apply lt_n_S.
-  pattern n at 1; replace n with (0 + n)%nat; [ idtac | reflexivity ].
-  apply plus_lt_compat_r.
-  apply lt_le_trans with 1%nat; [ apply lt_O_Sn | assumption ].
-  }
-  }
-  }
-  {
-  apply INR_fact_neq_0.
-  }
-  {
-  apply not_O_INR; discriminate.
-  }
-  }
-  {
-  ring.
-  }
-  }
-  }
-  {
-  ring.
-  }
-  }
-  {
-  unfold Vn; rewrite Rmult_assoc; unfold Rdiv;
-    rewrite (Rmult_comm (Un 0%nat)); rewrite (Rmult_comm (Un n)).
-  repeat apply Rmult_le_compat_l.
-  {
-  apply Rabs_pos.
-  }
-  {
-  left; apply Rinv_0_lt_compat; apply lt_INR_0; apply lt_O_Sn.
-  }
-  {
-  apply decreasing_prop; [ assumption | apply le_O_n ].
-  }
-  }
-  }
-  }
-  {
-  unfold Un_decreasing; intro; unfold Un.
-  replace (M_nat + S n)%nat with (M_nat + n + 1)%nat.
-  {
-  rewrite pow_add; unfold Rdiv; rewrite Rmult_assoc;
-    apply Rmult_le_compat_l.
-  {
-  left; apply pow_lt; assumption.
-  }
-  {
-  replace (Rabs x ^ 1) with (Rabs x); [ idtac | simpl; ring ].
-  replace (M_nat + n + 1)%nat with (S (M_nat + n)).
-  {
-  apply Rmult_le_reg_l with (INR (fact (S (M_nat + n)))).
-  {
-  apply lt_INR_0; apply neq_O_lt; red; intro; assert (H9 := eq_sym H8);
-    elim (fact_neq_0 _ H9).
-  }
-  {
-  rewrite (Rmult_comm (Rabs x)); rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym.
-  {
-  rewrite Rmult_1_l.
-  rewrite fact_simpl; rewrite mult_INR; rewrite Rmult_assoc;
-    rewrite <- Rinv_r_sym.
-  {
-  rewrite Rmult_1_r; apply Rle_trans with (INR M_nat).
-  {
-  left; rewrite INR_IZR_INZ.
-  rewrite <- H4; assert (H8 := archimed (Rabs x)); elim H8; intros; assumption.
-  }
-  {
-  apply le_INR; omega.
-  }
-  }
-  {
-  apply INR_fact_neq_0.
-  }
-  }
-  {
-  apply INR_fact_neq_0.
-  }
-  }
-  }
-  {
-  ring.
-  }
-  }
-  }
-  {
-  ring.
-  }
-  }
-  }
-  {
-  intro; unfold Un; unfold Rdiv; apply Rmult_lt_0_compat.
-  {
-  apply pow_lt; assumption.
-  }
-  {
-  apply Rinv_0_lt_compat; apply lt_INR_0; apply neq_O_lt; red; intro;
-    assert (H8 := eq_sym H7); elim (fact_neq_0 _ H8).
-  }
-  }
-  }
-  {
-  clear Un Vn; apply INR_le; simpl.
-  induction  M_nat as [| M_nat HrecM_nat].
-  {
-  assert (H6 := archimed (Rabs x)); fold M in H6; elim H6; intros.
-  rewrite H4 in H7; rewrite <- INR_IZR_INZ in H7.
-  simpl in H7; elim (Rlt_irrefl _ (Rlt_trans _ _ _ H2 H7)).
-  }
-  {
-  apply (le_INR 1); apply le_n_S;
-    apply le_O_n.
-  }
-  }
-  }
-  }
-  {
-    clear - H2.
-    apply le_IZR.
-    left.
-    apply Rlt_trans with (Rabs x).
-    { exact H2. }
+    intro H6.
+    cut (forall n:nat, 0 < Un n).
     {
-      destruct (archimed (Rabs x)) as [ H3 H4 ].
-      unfold M.
-      exact H3.
-    }
-  }
-  }
-  }
-  {
-    intro H.
-    unfold Un_cv.
-    unfold R_dist.
-    intros eps H0.
-    unfold Un_cv in H.
-    unfold R_dist in H.
-    specialize (H _ H0).
-    destruct H as [ x0 H1 ].
-    exists x0.
-    intros n H2.
-    apply Rle_lt_trans with (Rabs (Rabs x ^ n / INR (fact n) - 0)).
-    {
-      clear.
-      unfold Rminus.
-      rewrite Ropp_0.
-      rewrite Rplus_0_r.
-      rewrite Rplus_0_r.
-      rewrite (Rabs_right (Rabs x ^ n / INR (fact n))).
-      {
-        unfold Rdiv.
-        rewrite Rabs_mult.
-        rewrite (Rabs_right (/ INR (fact n))).
+        intro H7.
+        cut (Un_decreasing Un).
         {
-          rewrite RPow_abs.
-          right.
-          reflexivity.
-        }
-        {
-          apply Rle_ge.
-          left.
-          apply Rinv_0_lt_compat.
-          apply lt_INR_0.
-          apply lt_O_fact.
-        }
-      }
-      {
-        apply Rle_ge.
-        unfold Rdiv.
-        apply Rmult_le_pos.
-        {
-          clear. 
-          destruct (Req_dec x 0) as [ H3 | H3 ].
+          intro H8.
+          cut (forall n:nat, Un (S n) <= Vn n).
           {
-            subst x.
-            rewrite Rabs_R0.
-            destruct n as [ | n].
+            intro H9.
+            cut (Un_cv Vn 0).
             {
-              simpl.
-              left.
-              exact Rlt_0_1.
+              intros H10.
+              unfold Un_cv in H10.
+              unfold R_dist in H10.
+              specialize (H10 _ H5).
+              destruct H10 as [ N1 H11 ].
+              exists (S N1).
+              intros n H12.
+              cut (forall n:nat, 0 < Vn n).
+              {
+                intro H13.
+                apply Rle_lt_trans with (Rabs (Vn (pred n) - 0)).
+                {
+                  rewrite Rabs_right.
+                  {
+                    rewrite Rabs_right.
+                    {
+                      unfold Rminus.
+                      rewrite Ropp_0.
+                      rewrite Rplus_0_r.
+                      rewrite Rplus_0_r.
+                      replace n with (S (pred n)).
+                      { apply H9. }
+                      {
+                        inversion H12.
+                        {
+                          simpl.
+                          reflexivity.
+                        }
+                        {
+                          simpl.
+                          reflexivity.
+                        }
+                      }
+                    }
+                    {
+                      apply Rle_ge.
+                      unfold Rminus.
+                      rewrite Ropp_0.
+                      rewrite Rplus_0_r.
+                      left.
+                      apply H13.
+                    }
+                  }
+                  {
+                    apply Rle_ge.
+                    unfold Rminus.
+                    rewrite Ropp_0.
+                    rewrite Rplus_0_r.
+                    left.
+                    apply H7.
+                  }
+                }
+                {
+                  apply H11.
+                  unfold ge.
+                  apply le_S_n.
+                  replace (S (pred n)) with n.
+                  {
+                    unfold ge in H12.
+                    exact H12.
+                  }
+                  {
+                    inversion H12.
+                    {
+                      simpl.
+                     reflexivity.
+                    }
+                    {
+                      simpl.
+                     reflexivity.
+                    }
+                  }
+                }
+              }
+              {
+                intro n0.
+                apply Rlt_le_trans with (Un (S n0)).
+                { apply H7. }
+                { apply H9. }
+              }
             }
             {
-              simpl.
-              rewrite Rmult_0_l.
-              right.
-              reflexivity.
+              cut (cv_infty (fun n:nat => INR (S n))).
+              {
+                intro H10.
+                cut (Un_cv (fun n:nat => / INR (S n)) 0).
+                {
+                  intros H11.
+                  unfold Un_cv.
+                  intros eps1 H12.
+                  unfold R_dist.
+                  unfold Vn.
+                  unfold Un_cv in H11.
+                  unfold R_dist in H11.
+                  cut (0 < eps1 / (Rabs x * Un 0%nat)).
+                  {
+                    intro H13.
+                    specialize (H11 _ H13).
+                    destruct H11 as [ N H14 ].
+                    exists N.
+                    intros n H15.
+                    replace (Rabs x * (Un 0%nat / INR (S n)) - 0) with  (Rabs x * Un 0%nat * (/ INR (S n) - 0)).
+                    2:{
+                      unfold Rdiv.
+                      unfold Rminus.
+                      rewrite Ropp_0.
+                      rewrite Rplus_0_r.
+                      rewrite Rplus_0_r.
+                      rewrite Rmult_assoc.
+                      reflexivity.
+                    }
+                    rewrite Rabs_mult.
+                    apply Rmult_lt_reg_l with (/ Rabs (Rabs x * Un 0%nat)).
+                    {
+                      apply Rinv_0_lt_compat.
+                      apply Rabs_pos_lt.
+                      apply prod_neq_R0.
+                      {
+                        apply Rabs_no_R0.
+                        exact hx.
+                      }
+                      {
+                        intro eq.
+                        apply Rlt_irrefl with 0.
+                        pattern 0 at 2;rewrite <- eq.
+                        apply H7.
+                      }
+                    }
+                    {
+                      rewrite <- Rmult_assoc.
+                      rewrite <- Rinv_l_sym.
+                      {
+                        rewrite Rmult_1_l.
+                        replace (/ Rabs (Rabs x * Un 0%nat) * eps1) with (eps1 / (Rabs x * Un 0%nat)).
+                        {
+                          apply H14.
+                          exact H15.
+                        }
+                        {
+                          unfold Rdiv.
+                          rewrite (Rabs_right (Rabs x * Un 0%nat)).
+                          { apply Rmult_comm. }
+                          {
+                            apply Rle_ge.
+                            apply Rmult_le_pos.
+                            { apply Rabs_pos. }
+                            {
+                              left.
+                              apply H7.
+                            }
+                          }
+                        }
+                      }
+                      {
+                        apply Rabs_no_R0.
+                        apply prod_neq_R0.
+                        {
+                          apply Rabs_no_R0.
+                          exact hx.
+                        }
+                        {
+                          intro eq.
+                          apply Rlt_irrefl with 0.
+                          pattern 0 at 2;rewrite <- eq.
+                          apply H7.
+                        }
+                      }
+                    }
+                  }
+                  {
+                    unfold Rdiv.
+                    apply Rmult_lt_0_compat.
+                    { exact H12. }
+                    {
+                      apply Rinv_0_lt_compat.
+                      apply Rmult_lt_0_compat.
+                      {
+                        apply Rabs_pos_lt.
+                        exact hx.
+                      }
+                      { apply H7. }
+                    }
+                  }
+                }
+                {
+                  apply (cv_infty_cv_R0 (fun n:nat => INR (S n))).
+                  {
+                    intro n.
+                    apply not_O_INR.
+                    intro eq.
+                    inversion eq.
+                  }
+                  { exact H10. }
+                }
+              }
+              {
+                unfold cv_infty.
+                intro M0.
+                destruct (total_order_T M0 0) as [[Hlt|Heq]|Hgt].
+                {
+                  exists 0%nat.
+                  intros n H10.
+                  apply Rlt_trans with 0.
+                  { exact Hlt. }
+                  {
+                    apply lt_INR_0.
+                    apply lt_O_Sn.
+                  }
+                }
+                {
+                  exists 0%nat.
+                  intros n H10.
+                  rewrite Heq.
+                  apply lt_INR_0.
+                  apply lt_O_Sn.
+                }
+                {
+                  set (M0_z := up M0).
+                  assert (H10 := archimed M0).
+                  cut (0 <= M0_z)%Z.
+                  {
+                    intro H11.
+                    apply IZN in H11.
+                    destruct H11 as [ M0_nat H12 ].
+                    exists M0_nat.
+                    intros n H13.
+                    apply Rlt_le_trans with (IZR M0_z).
+                    {
+                      destruct H10 as [ H14 H15 ].
+                      exact H14.
+                    }
+                    {
+                      rewrite H12.
+                      rewrite <- INR_IZR_INZ.
+                      apply le_INR.
+                      apply le_trans with n.
+                      { exact H13. }
+                      { apply le_n_Sn. }
+                    }
+                  }
+                  {
+                    apply le_IZR.
+                    left.
+                    unfold M0_z.
+                    apply Rlt_trans with M0.
+                    { exact Hgt. }
+                    {
+                      destruct H10 as [ H11 H12 ].
+                      exact H11.
+                    }
+                  }
+                }
+              }
             }
           }
+          {
+            intro n.
+            apply Rle_trans with (Rabs x * Un n * / INR (S n)).
+            {
+              unfold Un.
+              unfold pow_fact_abs_mn.
+              fold (plus 1 n).
+              rewrite (plus_comm 1 n).
+              rewrite plus_assoc.
+              rewrite pow_add.
+              simpl pow.
+              rewrite Rmult_1_r.
+              unfold Rdiv.
+              rewrite <- (Rmult_comm (Rabs x)).
+              repeat rewrite Rmult_assoc.
+              apply Rmult_le_compat_l.
+              { apply Rabs_pos. }
+              {
+                apply Rmult_le_compat_l.
+                {
+                  left.
+                  apply pow_lt.
+                  exact hxa.
+                }
+                {
+                  rewrite <- plus_assoc.
+                  rewrite (plus_comm n).
+                  simpl plus.
+                  rewrite <- plus_n_Sm.
+                  rewrite fact_simpl.
+                  rewrite mult_comm.
+                  rewrite mult_INR.
+                  rewrite Rinv_mult_distr.
+                  {
+                    apply Rmult_le_compat_l.
+                    {
+                      left.
+                      apply Rinv_0_lt_compat.
+                      apply lt_INR_0.
+                      apply neq_O_lt.
+                      intro eq.
+                      eapply fact_neq_0.
+                      rewrite eq.
+                      reflexivity.
+                    }
+                    {
+                      left.
+                      apply Rinv_lt_contravar.
+                      {
+                        apply Rmult_lt_0_compat.
+                        {
+                          apply lt_INR_0.
+                          apply lt_O_Sn.
+                        } 
+                        {
+                          apply lt_INR_0.
+                          apply lt_O_Sn.
+                        } 
+                      }
+                      {
+                        apply lt_INR.
+                        apply lt_n_S.
+                        apply Nat.lt_add_pos_l.
+                        unfold lt.
+                        exact H6.
+                      }
+                    }
+                  }
+                  { apply INR_fact_neq_0. }
+                  {
+                    apply not_O_INR.
+                    intro eq.
+                    inversion eq.
+                  }
+                }
+              }
+            }
+            {
+              unfold Vn.
+              rewrite Rmult_assoc.
+              unfold Rdiv.
+              rewrite (Rmult_comm (Un 0%nat)).
+              rewrite (Rmult_comm (Un n)).
+              repeat apply Rmult_le_compat_l.
+              { apply Rabs_pos. }
+              {
+                left.
+                apply Rinv_0_lt_compat.
+                apply lt_INR_0.
+                apply lt_O_Sn.
+              }
+              {
+                apply decreasing_prop.
+                { exact H8. }
+                { apply le_O_n. }
+              }
+            }
+          }
+        }
+        {
+          unfold Un_decreasing.
+          intro n.
+          unfold Un.
+          unfold pow_fact_abs_mn.
+          fold (1+n)%nat.
+          rewrite (plus_comm 1 n).
+          rewrite plus_assoc.
+          rewrite pow_add.
+          unfold Rdiv.
+          rewrite Rmult_assoc.
+          apply Rmult_le_compat_l.
           {
             left.
             apply pow_lt.
-            apply Rabs_pos_lt.
-            exact H3.
+            exact hxa.
+          }
+          {
+            simpl.
+            rewrite Rmult_1_r.
+            rewrite <- plus_assoc.
+            rewrite (plus_comm n).
+            simpl.
+            rewrite <- plus_n_Sm.
+            apply Rmult_le_reg_l with (INR (fact (S (M + n)))).
+            {
+              apply lt_INR_0.
+              apply neq_O_lt.
+              intro H8.
+              eapply fact_neq_0.
+              rewrite H8.
+              reflexivity.
+            }
+            {
+              rewrite (Rmult_comm (Rabs x)).
+              rewrite <- Rmult_assoc.
+              rewrite <- Rinv_r_sym.
+              {
+                rewrite Rmult_1_l.
+                rewrite fact_simpl.
+                rewrite mult_INR.
+                rewrite Rmult_assoc.
+                rewrite <- Rinv_r_sym.
+                {
+                  rewrite Rmult_1_r.
+                  apply Rle_trans with (INR M).
+                  {
+                    left.
+                    rewrite INR_IZR_INZ.
+                    rewrite <- hM.
+                    apply archimed.
+                  }
+                  {
+                    apply le_INR.
+                    apply le_trans with (S M).
+                    { apply le_n_Sn. }
+                    {
+                      rewrite <- plus_Sn_m.
+                      apply le_plus_l.
+                    }
+                  }
+                }
+                {
+                  apply INR_fact_neq_0.
+                }
+              }
+              {
+                apply INR_fact_neq_0.
+              }
+            }
           }
         }
+      }
+      {
+        intro.
+        unfold Un.
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
         {
-          clear.
-          left.
+          apply pow_lt.
+          exact hxa.
+        }
+        {
           apply Rinv_0_lt_compat.
           apply lt_INR_0.
-          apply lt_O_fact.
+          apply neq_O_lt.
+          intro H7.
+          eapply fact_neq_0.
+          rewrite H7.
+          reflexivity.
         }
       }
     }
+      {
+        clear - hM hxa.
+        apply INR_le.
+        simpl.
+        destruct M as [ | M ].
+        {
+          exfalso.
+          destruct (archimed (Rabs x)) as [ H7 H8 ].
+          rewrite hM in H7.
+          rewrite <- INR_IZR_INZ in H7.
+          simpl in H7.
+          eapply Rlt_irrefl.
+          eapply Rlt_trans.
+          { exact hxa. }
+          { exact H7. }
+        }
+        {
+          apply (le_INR 1).
+          apply le_n_S.
+          apply le_O_n.
+        }
+      }
+Qed.
+
+Lemma cv_speed_pow_fact : forall (x:R),
+  Un_cv (pow_fact x) 0.
+Proof.
+  intros x.
+  apply cv_pfa_pf.
+  unfold Un_cv.
+  intros e he.
+  unfold R_dist.
+
+  destruct (Req_dec x 0) as [ hx | hx ].
+  {
+    subst x.
+    unfold pow_fact_abs.
+    exists 1%nat.
+    intros n hn.
+    unfold Rminus.
+    rewrite Ropp_0.
+    rewrite Rplus_0_r.
+    rewrite Rabs_R0.
+    rewrite pow_ne_zero.
     {
-      clear - H1 H2.
-      apply H1.
-      exact H2.
+      unfold Rdiv.
+      rewrite Rmult_0_l.
+      rewrite Rabs_R0.
+      exact he.
     }
+    {
+      intro eq.
+      subst n.
+      unfold ge in hn.
+      inversion hn.
+    }
+  }
+  {
+    assert (hxa := Rabs_pos_lt x hx).
+    set (Mz := up (Rabs x)).
+
+    assert (hM: (0 <= Mz)%Z).
+    {
+      clear - hxa.
+      unfold Mz.
+      apply le_IZR.
+      left.
+      apply Rlt_trans with (Rabs x).
+      { exact hxa. }
+      { apply archimed. }
+    }
+
+    apply IZN in hM.
+    destruct hM as [ M hM ].
+    subst Mz.
+
+    set (Un := pow_fact_abs_mn x M).
+    generalize cv_pow_fact_abs_mn; intro h.
+    specialize (h x M hx hM).
+    fold Un in h.
+
+    unfold Un_cv in h.
+    specialize (h _ he).
+    destruct h as [ N h ].
+    exists (M + N)%nat.
+    intros n hn.
+
+    unfold R_dist in h.
+
+    assert (hex : exists p : nat, (p >= N)%nat /\ n = (M + p)%nat).
+    {
+      exists (n - M)%nat.
+      split.
+      {
+        unfold ge.
+        apply (plus_le_reg_l _ _ M).
+        rewrite <- le_plus_minus.
+        { exact hn. }
+        {
+          apply le_trans with (M + N)%nat.
+          { apply le_plus_l. }
+          { exact hn. }
+        }
+      }
+      {
+        apply le_plus_minus.
+        apply le_trans with (M + N)%nat.
+        { apply le_plus_l. }
+        { exact hn. }
+      }
+    }
+
+    destruct hex as [ p [ hp heq ] ].
+    subst n.
+    unfold Un in h.
+    unfold pow_fact_abs_mn in h.
+    unfold pow_fact_abs.
+    apply h.
+    exact hp.
   }
 Qed.
