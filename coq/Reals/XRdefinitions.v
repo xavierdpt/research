@@ -3,9 +3,9 @@ Require Export ZArith_base.
 
 Parameter R : Set.
 
-Delimit Scope R_scope with R.
-Bind Scope R_scope with R.
-Local Open Scope R_scope.
+Delimit Scope XR_scope with R.
+Bind Scope XR_scope with R.
+Local Open Scope XR_scope.
 
 Parameter R0 : R.
 Parameter R1 : R.
@@ -16,12 +16,12 @@ Parameter Rinv : R -> R.
 Parameter Rlt : R -> R -> Prop.
 Parameter up : R -> Z.
 
-Infix "+" := Rplus : R_scope.
-Infix "*" := Rmult : R_scope.
-Notation "- x" := (Ropp x) : R_scope.
-Notation "/ x" := (Rinv x) : R_scope.
+Infix "+" := Rplus : XR_scope.
+Infix "*" := Rmult : XR_scope.
+Notation "- x" := (Ropp x) : XR_scope.
+Notation "/ x" := (Rinv x) : XR_scope.
 
-Infix "<" := Rlt : R_scope.
+Infix "<" := Rlt : XR_scope.
 
 Definition Rgt (r1 r2:R) : Prop := r2 < r1.
 Definition Rle (r1 r2:R) : Prop := r1 < r2 \/ r1 = r2.
@@ -29,17 +29,17 @@ Definition Rge (r1 r2:R) : Prop := Rgt r1 r2 \/ r1 = r2.
 Definition Rminus (r1 r2:R) : R := r1 + - r2.
 Definition Rdiv (r1 r2:R) : R := r1 * / r2.
 
-Infix "-" := Rminus : R_scope.
-Infix "/" := Rdiv   : R_scope.
+Infix "-" := Rminus : XR_scope.
+Infix "/" := Rdiv   : XR_scope.
 
-Infix "<=" := Rle : R_scope.
-Infix ">=" := Rge : R_scope.
-Infix ">"  := Rgt : R_scope.
+Infix "<=" := Rle : XR_scope.
+Infix ">=" := Rge : XR_scope.
+Infix ">"  := Rgt : XR_scope.
 
-Notation "x <= y <= z" := (x <= y /\ y <= z) : R_scope.
-Notation "x <= y < z"  := (x <= y /\ y <  z) : R_scope.
-Notation "x < y < z"   := (x <  y /\ y <  z) : R_scope.
-Notation "x < y <= z"  := (x <  y /\ y <= z) : R_scope.
+Notation "x <= y <= z" := (x <= y /\ y <= z) : XR_scope.
+Notation "x <= y < z"  := (x <= y /\ y <  z) : XR_scope.
+Notation "x < y < z"   := (x <  y /\ y <  z) : XR_scope.
+Notation "x < y <= z"  := (x <  y /\ y <= z) : XR_scope.
 
 Fixpoint IPR_2 (p:positive) : R :=
   match p with
