@@ -1,17 +1,17 @@
 Require Export ArithRing.
 
-Require Import Rbase.
-Require Export Rpow_def.
-Require Export R_Ifp.
-Require Export Rbasic_fun.
-Require Export R_sqr.
-Require Export SplitAbsolu.
-Require Export SplitRmult.
-Require Export ArithProp.
+Require Import XRbase.
+Require Export XRpow_def.
+Require Export XR_Ifp.
+Require Export XRbasic_fun.
+Require Export XR_sqr.
+Require Export XSplitAbsolu.
+Require Export XSplitRmult.
+Require Export XArithProp.
 Require Import Omega.
 Require Import Zpower.
 Local Open Scope nat_scope.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Lemma INR_fact_neq_0 : forall n:nat, INR (fact n) <> 0.
 Proof.

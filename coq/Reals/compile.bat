@@ -1,9 +1,11 @@
+"C:\Program Files (x86)\GnuWin32\bin\make"
+goto :end
 rem C:\Coq\bin\coqc XRdefinitions.v
 rem C:\Coq\bin\coqc XRaxioms.v
 rem C:\Coq\bin\coqc XRpow_def.v
 rem C:\Coq\bin\coqc XRIneq.v
 rem C:\Coq\bin\coqc XDiscrR.v
-C:\Coq\bin\coqc XRbase.v
+rem C:\Coq\bin\coqc XRbase.v
 goto :end
 Alembert.v
 AltSeries.v

@@ -1902,6 +1902,15 @@ Proof. (* this one is not obvious *)
   }
 Qed.
 
+Lemma Rmult_lt_reg_r : forall r r1 r2 : R, R0 < r -> r1 * r < r2 * r -> r1 < r2.
+Proof.
+  intros x y z hx h.
+  eapply Rmult_lt_reg_l.
+  apply hx.
+  repeat rewrite (Rmult_comm x).
+  exact h.
+Qed.
+
 Lemma Rmult_gt_reg_l : forall r r1 r2, R0 < r -> r * r1 < r * r2 -> r1 < r2.
 Proof.
   exact Rmult_lt_reg_l.
