@@ -1,14 +1,11 @@
-Require Import RIneq.
+Require Import XRIneq.
 Require Import Omega.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
-Lemma Rlt_R0_R2 : 0 < 2.
+Lemma Rlt_R0_R2 : R0 < IZR 2.
 Proof.
-  (* map 2%R into nat *)
-  change 2%R with (INR 2%nat).
-  (* switch the comparison to nat *)
+  change (IZR 2) with (INR 2%nat).
   apply lt_INR_0.
-  (* apply the theorem from nat *)
   apply lt_O_Sn.
 Qed.
 

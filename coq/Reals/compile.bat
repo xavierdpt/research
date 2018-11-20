@@ -1,5 +1,9 @@
-C:\Coq\bin\coqc XRdefinitions.v
-C:\Coq\bin\coqc XRaxioms.v
+rem C:\Coq\bin\coqc XRdefinitions.v
+rem C:\Coq\bin\coqc XRaxioms.v
+rem C:\Coq\bin\coqc XRpow_def.v
+rem C:\Coq\bin\coqc XRIneq.v
+rem C:\Coq\bin\coqc XDiscrR.v
+C:\Coq\bin\coqc XRbase.v
 goto :end
 Alembert.v
 AltSeries.v
@@ -9,7 +13,6 @@ Cauchy_prod.v
 compile.bat
 Cos_plus.v
 Cos_rel.v
-DiscrR.v
 Exp_prop.v
 Integration.v
 Machin.v
@@ -34,14 +37,12 @@ Rfunctions.v
 Rgeom.v
 RiemannInt.v
 RiemannInt_SF.v
-RIneq.v
 Rlimit.v
 RList.v
 Rlogic.v
 Rminmax.v
 ROrderedType.v
 Rpower.v
-Rpow_def.v
 Rprod.v
 Rseries.v
 Rsigma.v
