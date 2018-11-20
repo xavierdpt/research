@@ -958,6 +958,7 @@ Proof.
   fold f.
 
   unfold Un_cv in hu, hv.
+  unfold R_dist in hu, hv.
   unfold Un_cv.
 
   intros e he.

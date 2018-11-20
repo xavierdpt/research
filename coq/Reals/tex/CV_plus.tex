@@ -1,0 +1,35 @@
+\documentclass{article}
+\usepackage{amsfonts,amsmath,amssymb}
+\begin{document}
+
+\textbf{Theorem}
+
+Let $u$ and $v$ be two sequences.
+
+Assume that $u$ converges to $l_u$ (hypothese $H_u$) and v converges to $l_v$ (hypothese $H_v$).
+
+Then we can show that the sum $u+v$ converges to $l_u + l_v$.
+
+\textbf{Proof}
+
+$H_u$ states that for all $\varepsilon > 0$, there is some integer $N$ such that for all $n \geqslant N$, $|u_n - l_u] < \varepsilon$, and similarly for $H_v$.
+
+And we must show that for all $\varepsilon > 0$, there is some integer $N$ such that for all $n \geqslant N$, $|(u_n + v_n) - (l_u+l_n)] < \varepsilon$.
+
+Let's introduce $\varepsilon>0$.
+
+The $H_u$ and $H_v$ hold for $\varepsilon/2$, i.e. there's $N_u$ such that forall $n \geqslant N_u$, $|u_n-l_u|<\varepsilon/2$ and  $N_v$ such that forall $n \geqslant N_v$, $|v_n-l_v|<\varepsilon/2$.
+
+We need to find a suitable integer $N$. Let's choose $M=\max(N_u,N_v)$, and let's introduce $n\geqslant M$.
+
+Because $n\geqslant M$, we have $n\geqslant N_u$ and $n\geqslant N_v$, so we can deduce that $|u_n-l_u|<\varepsilon/2$ and $|v_n-l_v|<\varepsilon/2$.
+
+We must now show that this allows to derive $|(u_n+v_n)-(l_u+l_v)|<\varepsilon$.
+
+We have $(u_n+v_n)-(l_u+l_v) = (u_n-l_u)+(v_n-l_v)$ and the triangle inequality implies that 
+$|(u_n-l_u)+(v_n-l_v)| \leqslant |u_n-l_u|+|v_n-l_v|$, so that $|u_n-l_u|+|v_n-l_v|<\varepsilon/2+\varepsilon/2$ by transitivity.
+
+This later statement if true if $|u_n-l_u|<\varepsilon/2$ and $|v_n-l_v|<\varepsilon/2$, both of which are actually the case.
+
+QeD.
+\end{document}
