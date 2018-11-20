@@ -1,9 +1,9 @@
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
 Require Import Max.
 Require Import Omega.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Definition Un_decreasing (u:nat -> R) : Prop :=
   forall n:nat, u (S n) <= u n.
@@ -68,8 +68,8 @@ Proof.
   generalize Un_cv_crit_lub;intro h.
   specialize (h (opp_seq u)).
   apply decreasing_growing in hdec.
-  specialize (h hdec);clear hdec.
   specialize (h l).
+  specialize (h hdec);clear hdec.
   specialize (h hlub);clear hlub.
 
   unfold Un_cv.
@@ -532,12 +532,12 @@ Proof.
   }
 Qed.
 
-Lemma cond_eq_gt : forall x y:R, y < x -> (forall eps:R, 0 < eps -> Rabs (x - y) < eps) -> False.
+Lemma cond_eq_gt : forall x y:R, y < x -> (forall eps:R, R0 < eps -> Rabs (x - y) < eps) -> False.
 Proof.
   intros x y hxy h.
   specialize (h (x - y)).
   apply Rlt_irrefl with (x-y).
-  assert (hxy' : 0 < x - y).
+  assert (hxy' : R0 < x - y).
   {
     unfold Rminus.
     apply Rplus_lt_reg_r with y.
@@ -560,7 +560,7 @@ Proof.
 Qed.
 
 Lemma cond_eq :
-  forall x y:R, (forall eps:R, 0 < eps -> Rabs (x - y) < eps) -> x = y.
+  forall x y:R, (forall eps:R, R0 < eps -> Rabs (x - y) < eps) -> x = y.
 Proof.
   intros x y h.
   destruct (Req_dec x y) as [ heq | hneq ].
@@ -785,7 +785,7 @@ Qed.
 
 Lemma approx_maj :
   forall (Un:nat -> R) (pr:has_ub Un) (eps:R),
-    0 < eps ->  exists k : nat, Rabs (lub Un pr - Un k) < eps.
+    R0 < eps ->  exists k : nat, Rabs (lub Un pr - Un k) < eps.
 Proof.
   intros Un pr.
 
@@ -804,7 +804,7 @@ Proof.
   {
     intros eq eps Heps.
     subst l'.
-    destruct (Un_cv_crit_lub (amv Un) (HgrV Un) l Hl eps Heps) as (n, Hn).
+    destruct (Un_cv_crit_lub (amv Un) l (HgrV Un) Hl eps Heps) as (n, Hn).
     exists ((ami Un) n).
     rewrite <- VUI.
     rewrite Rabs_minus_sym.
@@ -866,7 +866,7 @@ Qed.
 
 Lemma approx_min :
   forall (Un:nat -> R) (pr:has_lb Un) (eps:R),
-    0 < eps ->  exists k : nat, Rabs (glb Un pr - Un k) < eps.
+    R0 < eps ->  exists k : nat, Rabs (glb Un pr - Un k) < eps.
 Proof.
   intros Un pr.
   unfold glb.
@@ -895,11 +895,11 @@ Proof.
   unfold R_dist in hl, hl'.
   apply cond_eq.
   intros eps he.
-  cut (0 < eps / 2).
+  cut (R0 < eps / (IZR 2)).
   {
     intro he'.
-    specialize (hl (eps / 2) he').
-    specialize (hl' (eps / 2) he').
+    specialize (hl (eps / (IZR 2)) he').
+    specialize (hl' (eps / (IZR 2)) he').
     destruct hl as [N hl].
     destruct hl' as [N' hl'].
     set (M := max N N').
@@ -942,7 +942,7 @@ Proof.
     { exact he. }
     {
       apply Rinv_0_lt_compat.
-      prove_sup0.
+      exact Rlt_0_2.
     }
   }
 Qed.
@@ -961,19 +961,19 @@ Proof.
   unfold Un_cv.
 
   intros e he.
-  assert ( he' : e / 2 > 0).
+  assert ( he' : e / (IZR 2) > R0).
   {
     unfold Rdiv.
     apply Rmult_lt_0_compat.
     { exact he. }
     {
       apply Rinv_0_lt_compat.
-      prove_sup0.
+      exact Rlt_0_2.
     }
   }
 
-  specialize (hu (e / 2) he').
-  specialize (hv (e / 2) he').
+  specialize (hu (e / (IZR 2)) he').
+  specialize (hv (e / (IZR 2)) he').
   clear he he'.
 
   destruct hu as [U hu].
@@ -1080,14 +1080,14 @@ Proof.
   destruct h as [ l h ].
   unfold Cauchy_crit.
   intros e he.
-  assert ( he' : e / 2 > 0).
+  assert ( he' : e / (IZR 2) > R0).
   {
     unfold Rdiv.
     apply Rmult_lt_0_compat.
     { exact he. }
     {
       apply Rinv_0_lt_compat.
-      prove_sup0.
+      exact Rlt_0_2.
     }
   }
   unfold Un_cv in h.
@@ -1138,7 +1138,7 @@ Qed.
 Lemma maj_by_pos :
   forall Un:nat -> R,
     { l:R | Un_cv Un l } ->
-    exists l : R, 0 < l /\ (forall n:nat, Rabs (Un n) <= l).
+    exists l : R, R0 < l /\ (forall n:nat, Rabs (Un n) <= l).
 Proof.
   intros u h.
   destruct h as [ l h ].
@@ -1156,7 +1156,7 @@ Proof.
 
   destruct hf as [ub hub].
 
-  assert(hpos: 0 <= ub).
+  assert(hpos: R0 <= ub).
   {
     apply Rle_trans with (Rabs (u 0%nat)).
     { apply Rabs_pos. }
@@ -1169,7 +1169,7 @@ Proof.
     }
   }
 
-  exists (ub + 1).
+  exists (ub + R1).
 
   split.
   {
@@ -1219,7 +1219,7 @@ Proof.
   unfold R_dist.
   intros e he.
 
-  assert (he' : 0 < e / (2 * M)).
+  assert (he' : R0 < e / (IZR 2 * M)).
   {
     unfold Rdiv.
     apply Rmult_lt_0_compat.
@@ -1227,12 +1227,12 @@ Proof.
     {
       apply Rinv_0_lt_compat.
       apply Rmult_lt_0_compat.
-      { prove_sup0. }
+      { exact Rlt_0_2. }
       { exact hm. }
     }
   }
 
-  assert (he'' : 0 < e / M).
+  assert (he'' : R0 < e / M).
   {
     unfold Rdiv.
     apply Rmult_lt_0_compat.
@@ -1243,13 +1243,13 @@ Proof.
     }
   }
 
-  assert (hmneq : M <> 0).
+  assert (hmneq : M <> R0).
   {
     apply Rgt_not_eq.
     exact hm.
   }
 
-  destruct (Req_dec lv 0) as [ hlveq | hlvneq ].
+  destruct (Req_dec lv R0) as [ hlveq | hlvneq ].
   { (* lv = 0 *)
     subst lv.
 
@@ -1299,7 +1299,7 @@ Proof.
   }
   {
     (* lv <> 0 *)
-    assert ( hev : 0 < e / (2 * Rabs lv)).
+    assert ( hev : R0 < e / (IZR 2 * Rabs lv)).
     {
       unfold Rdiv.
       apply Rmult_lt_0_compat.
@@ -1307,7 +1307,7 @@ Proof.
       {
         apply Rinv_0_lt_compat.
         apply Rmult_lt_0_compat.
-        { prove_sup0. }
+        { exact Rlt_0_2. }
         {
           apply Rabs_pos_lt.
           exact hlvneq.
@@ -1371,8 +1371,8 @@ Proof.
           unfold Rdiv.
           rewrite Rmult_assoc.
           rewrite <- Rinv_mult_distr.
-          2:discrR.
-          2:exact hmneq.
+          2:{ exact Neq_2_0. }
+		  2:{ exact hmneq. }
           apply hv.
           unfold ge.
           apply le_trans with N.
@@ -1405,7 +1405,7 @@ Proof.
           unfold Rdiv.
           rewrite Rmult_assoc.
           rewrite <- Rinv_mult_distr.
-          2:discrR.
+          2:{ exact Neq_2_0. }
           2:apply Rabs_no_R0;exact hlvneq.
           apply hu.
           unfold ge.
@@ -1436,15 +1436,15 @@ Qed.
 
 Lemma tech13 : forall (An:nat -> R) (k:R)
   ( f := fun n : nat => Rabs (An (S n) / An n)),
-  0 <= k < 1 ->
+  R0 <= k < R1 ->
   Un_cv f k ->
   exists k0 : R,
-    k < k0 < 1 /\
+    k < k0 < R1 /\
     (exists N : nat,
       (forall n:nat, (N <= n)%nat -> f n < k0)).
 Proof.
   intros u k f hk hu.
-  exists (k + (1 - k) / 2).
+  exists (k + (R1 - k) / (IZR 2)).
   split.
   {
     split.
@@ -1453,35 +1453,35 @@ Proof.
       apply Rplus_lt_compat_l.
       unfold Rdiv.
       apply Rmult_lt_0_compat.
-      2:apply Rinv_0_lt_compat; prove_sup0.
+      2:apply Rinv_0_lt_compat; exact Rlt_0_2.
       apply Rplus_lt_reg_l with k.
       rewrite Rplus_0_r.
       unfold Rminus.
-      rewrite (Rplus_comm 1).
+      rewrite (Rplus_comm R1).
       rewrite <- Rplus_assoc.
       rewrite Rplus_opp_r.
       rewrite Rplus_0_l.
       apply hk.
     }
     {
-      apply Rmult_lt_reg_l with 2.
-      1:prove_sup0.
+      apply Rmult_lt_reg_l with (IZR 2).
+      1:exact Rlt_0_2.
       unfold Rdiv.
       rewrite Rmult_1_r.
       rewrite Rmult_plus_distr_l.
-      pattern 2 at 1; rewrite Rmult_comm.
+      pattern (IZR 2) at 1; rewrite Rmult_comm.
       rewrite Rmult_assoc.
       rewrite <- Rinv_l_sym.
       2:discrR.
       rewrite Rmult_1_r.
       unfold Rminus.
-      rewrite (Rplus_comm 1).
+      rewrite (Rplus_comm R1).
       rewrite <- Rplus_assoc.
       pattern (-k);rewrite <- Rmult_1_l.
       rewrite <- Ropp_mult_distr_r.
       rewrite Ropp_mult_distr_l.
       rewrite <- Rmult_plus_distr_r.
-      unfold IZR at 1.
+      unfold IZR.
       unfold IPR, IPR_2.
       rewrite Rplus_assoc.
       rewrite Rplus_opp_r.
@@ -1490,15 +1490,16 @@ Proof.
       rewrite Rplus_comm.
       apply Rplus_lt_compat_l.
       apply hk.
+      exact Neq_2_0.
     }
   }
   {
     unfold Un_cv in hu.
-    assert (he : (0 < (1 - k) / 2)).
+    assert (he : (R0 < (R1 - k) / (IZR 2))).
     {
       unfold Rdiv.
       apply Rmult_lt_0_compat.
-      2:apply Rinv_0_lt_compat; prove_sup0.
+      2:apply Rinv_0_lt_compat; exact Rlt_0_2.
       apply Rplus_lt_reg_l with k.
       rewrite Rplus_0_r.
       unfold Rminus.
@@ -1550,7 +1551,7 @@ Proof.
   {
     unfold Un_cv in hu.
     unfold R_dist in hu.
-    assert (he: 0 < u n - l).
+    assert (he: R0 < u n - l).
     {
       apply Rplus_lt_reg_r with l.
       rewrite Rplus_0_l.
@@ -1662,9 +1663,9 @@ Definition cv_infty (Un:nat -> R) : Prop :=
   forall M:R,  exists N : nat, (forall n:nat, (N <= n)%nat -> M < Un n).
 
 Lemma cv_infty_cv_R0 : forall Un:nat -> R,
-    (forall n:nat, Un n <> 0) ->
+    (forall n:nat, Un n <> R0) ->
     cv_infty Un ->
-    Un_cv (fun n:nat => / Un n) 0.
+    Un_cv (fun n:nat => / Un n) R0.
 Proof.
 
   intros u hneq hinf.
@@ -1767,7 +1768,7 @@ Definition pow_fact x n := x ^ n / INR (fact n).
 
 Definition pow_fact_abs x n := Rabs x ^ n / INR (fact n).
 
-Lemma cv_pfa_pf : forall x, Un_cv (pow_fact_abs x) 0 -> Un_cv (pow_fact x) 0.
+Lemma cv_pfa_pf : forall x, Un_cv (pow_fact_abs x) R0 -> Un_cv (pow_fact x) R0.
 Proof.
   intros x h.
 
@@ -1814,11 +1815,11 @@ Lemma cv_fsn : cv_infty fsn.
 Proof.
   unfold cv_infty.
   intro M.
-  destruct (total_order_T M 0) as [ [ hM | hM ] | hM ].
+  destruct (total_order_T M R0) as [ [ hM | hM ] | hM ].
   {
     exists 0%nat.
     intros n hn.
-    apply Rlt_trans with 0.
+    apply Rlt_trans with R0.
     { exact hM. }
     {
       unfold fsn.
@@ -1865,7 +1866,7 @@ Qed.
 
 Definition fsn_inv n := / INR (S n).
 
-Lemma cv_fsn_inv : Un_cv fsn_inv 0.
+Lemma cv_fsn_inv : Un_cv fsn_inv R0.
 Proof.
   apply cv_infty_cv_R0.
   {
@@ -1881,7 +1882,7 @@ Proof.
 Qed.
 
 Lemma pow_fact_abs_mn_pos : forall x M n,
-  0 < Rabs x -> 0 < pow_fact_abs_mn x M n.
+  R0 < Rabs x -> R0 < pow_fact_abs_mn x M n.
 Proof.
   intros x M n h.
   unfold pow_fact_abs_mn.
@@ -1899,9 +1900,9 @@ Proof.
 Qed.
 
 Lemma cv_pow_fact_abs_mn : forall x M,
-  x <> 0 ->
+  x <> R0 ->
   up (Rabs x) = Z.of_nat M ->
-  Un_cv (pow_fact_abs_mn x M) 0.
+  Un_cv (pow_fact_abs_mn x M) R0.
 Proof.
   intros x M hx hM.
   assert (hxa := Rabs_pos_lt x hx).
@@ -2113,7 +2114,7 @@ Proof.
 
 
 
-  assert (H10: Un_cv Vn 0).
+  assert (H10: Un_cv Vn R0).
   {
 
 
@@ -2125,7 +2126,7 @@ Proof.
                 generalize cv_fsn_inv;intro Htata.
                 unfold Un_cv in Htata.
                 unfold R_dist in Htata.
-                assert ( H13 : 0 < eps1 / (Rabs x * Un 0%nat)).
+                assert ( H13 : R0 < eps1 / (Rabs x * Un 0%nat)).
                 {
                   unfold Rdiv.
                   apply Rmult_lt_0_compat.
@@ -2149,7 +2150,7 @@ Proof.
                   destruct Htata as [ N H14 ].
                   exists N.
                   intros n H15.
-                  replace (Rabs x * (Un 0%nat / INR (S n)) - 0) with  (Rabs x * Un 0%nat * (/ INR (S n) - 0)).
+                  replace (Rabs x * (Un 0%nat / INR (S n)) - R0) with  (Rabs x * Un 0%nat * (/ INR (S n) - R0)).
                   2:{
                     unfold Rdiv.
                     unfold Rminus.
@@ -2171,8 +2172,8 @@ Proof.
                     }
                     {
                       intro eq.
-                      apply Rlt_irrefl with 0.
-                      pattern 0 at 2;rewrite <- eq.
+                      apply Rlt_irrefl with R0.
+                      pattern R0 at 2;rewrite <- eq.
                       unfold Un.
                       apply pow_fact_abs_mn_pos.
                       exact hxa.
@@ -2214,8 +2215,8 @@ Proof.
                       }
                       {
                         intro eq.
-                        apply Rlt_irrefl with 0.
-                        pattern 0 at 2;rewrite <- eq.
+                        apply Rlt_irrefl with R0.
+                        pattern R0 at 2;rewrite <- eq.
                         unfold Un.
                         apply pow_fact_abs_mn_pos.
                         exact hxa.
@@ -2236,10 +2237,10 @@ Proof.
             destruct H10 as [ N1 H11 ].
             exists (S N1).
             intros n H12.
-            cut (forall n:nat, 0 < Vn n).
+            cut (forall n:nat, R0 < Vn n).
             {
               intro H13.
-              apply Rle_lt_trans with (Rabs (Vn (pred n) - 0)).
+              apply Rle_lt_trans with (Rabs (Vn (pred n) - R0)).
               {
                 rewrite Rabs_right.
                 {
@@ -2318,7 +2319,7 @@ Proof.
 Qed.
 
 Lemma cv_speed_pow_fact : forall (x:R),
-  Un_cv (pow_fact x) 0.
+  Un_cv (pow_fact x) R0.
 Proof.
   intros x.
   apply cv_pfa_pf.
@@ -2326,7 +2327,7 @@ Proof.
   intros e he.
   unfold R_dist.
 
-  destruct (Req_dec x 0) as [ hx | hx ].
+  destruct (Req_dec x R0) as [ hx | hx ].
   {
     subst x.
     unfold pow_fact_abs.

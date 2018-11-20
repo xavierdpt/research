@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XArithProp.vo
+ALL: XSeqProp.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -39,6 +39,14 @@ XSplitRmult.vo: XSplitRmult.v XSplitAbsolu.vo
 XArithProp.vo: XArithProp.v XSplitRmult.vo
 	C:\Coq\bin\coqc XArithProp.v
 
+XRfunctions.vo: XRfunctions.v XArithProp.vo
+	C:\Coq\bin\coqc XRfunctions.v
+
+XRseries.vo: XRseries.v XRfunctions.vo
+	C:\Coq\bin\coqc XRseries.v
+
+XSeqProp.vo: XSeqProp.v XRseries.vo
+	C:\Coq\bin\coqc XSeqProp.v
 
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v

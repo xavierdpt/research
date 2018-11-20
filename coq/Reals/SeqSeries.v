@@ -8,10 +8,10 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
+Require Import XRbase.
+Require Import XRfunctions.
 Require Import Max.
-Require Export Rseries.
+Require Export XRseries.
 Require Export SeqProp.
 Require Export Rcomplete.
 Require Export PartSum.

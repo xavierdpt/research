@@ -1,37 +1,51 @@
-Require Import Rbase.
-Require Import Rfunctions.
+Require Import XRbase.
+Require Import XRfunctions.
 Require Import Compare.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Implicit Type r : R.
 
-Remark Rlt_0_half : 0 < / 2.
+Lemma Rlt_0_2 : R0 < IZR 2.
+Proof.
+unfold IZR.
+unfold IPR.
+unfold IPR_2.
+pattern R0 ; rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_1.
+exact Rlt_0_1.
+Qed.
+
+Remark Rlt_0_half : R0 < / (IZR 2).
 Proof.
   apply Rinv_0_lt_compat.
   apply Rlt_0_2.
 Qed.
 
-Remark Rlt_half_1 : / 2 < 1.
+Remark Rlt_half_1 : / (IZR 2) < R1.
 Proof.
   rewrite <- Rinv_1.
   apply Rinv_lt_contravar.
-  rewrite Rmult_1_l. apply Rlt_0_2.
-  pattern 2;rewrite <- Rmult_1_r. rewrite double.
-  pattern 1 at 1;rewrite <- Rplus_0_r. apply Rplus_lt_compat_l.
+  rewrite Rmult_1_l.
+  apply Rlt_0_2.
+  pattern (IZR 2);rewrite <- Rmult_1_r.
+  rewrite double.
+  pattern R1 at 1;rewrite <- Rplus_0_r.
+  apply Rplus_lt_compat_l.
   apply Rlt_0_1.
 Qed.
 
-Remark half_half :/ 2 + / 2 = 1.
+Remark half_half : / (IZR 2) + / (IZR 2) = R1.
 Proof.
-  pattern (/ 2);rewrite <- Rmult_1_r.
+  pattern (/ (IZR 2));rewrite <- Rmult_1_r.
   rewrite <- Rmult_plus_distr_l.
   rewrite <- double.
   rewrite Rmult_1_r.
   rewrite Rinv_l.
   reflexivity.
   intro eq.
-  apply Rlt_irrefl with 0.
-  pattern 0 at 2;rewrite <- eq.
+  apply Rlt_irrefl with R0.
+  pattern R0 at 2;rewrite <- eq.
   apply Rlt_0_2.
 Qed.
 
@@ -77,7 +91,7 @@ Proof.
   exact p.
 Qed.
 
-Lemma Rplus_le_compat_0_l : forall u v, 0 <= v -> u <= u + v.
+Lemma Rplus_le_compat_0_l : forall u v, R0 <= v -> u <= u + v.
 Proof.
   intros u v h.
   pattern u at 1;rewrite <- Rplus_0_r.
@@ -85,7 +99,7 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rplus_le_compat_0_r : forall u v, 0 <= v -> u <= v + u.
+Lemma Rplus_le_compat_0_r : forall u v, R0 <= v -> u <= v + u.
 Proof.
   intros u v h.
   rewrite Rplus_comm.
@@ -133,7 +147,7 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rminus_diag : forall r, r-r=0.
+Lemma Rminus_diag : forall r, r-r=R0.
 Proof.
   intro r.
   unfold Rminus.
@@ -157,11 +171,11 @@ Proof.
   }
 Qed.
 
-Lemma sum_pow_neq_0: forall x y n, 0 <= x -> 0 < y -> x + y^n = 0 -> False.
+Lemma sum_pow_neq_0: forall x y n, R0 <= x -> R0 < y -> x + y^n = R0 -> False.
 Proof.
   intros x y n hx hy heq.
-  apply Rlt_irrefl with 0.
-  pattern 0 at 2;rewrite <- heq.
+  apply Rlt_irrefl with R0.
+  pattern R0 at 2;rewrite <- heq.
   apply Rle_lt_trans with x.
   { exact hx. }
   {
@@ -227,7 +241,7 @@ Proof.
 Qed.
 
 Lemma Rgen_two_power :
-  forall b:R, exists N : nat, b <= 2 ^ N.
+  forall b:R, exists N : nat, b <= (IZR 2) ^ N.
 Proof.
   intros.
   destruct (archimed b) as [H0 H1].
@@ -237,7 +251,7 @@ Proof.
     apply Rge_le in H1.
     exists N.
     unfold IZR. unfold IPR. unfold IPR_2.
-    apply Rle_trans with (1 + INR N * 1).
+    apply Rle_trans with (R1 + INR N * R1).
     {
       apply Rle_trans with (INR N).
       { exact H1. }
@@ -253,14 +267,14 @@ Proof.
   }
 Qed.
 
-Lemma Neq_2_0 : 2 <> 0.
+Lemma Neq_2_0 : IZR 2 <> R0.
 Proof.
-  intro eq. apply Rlt_irrefl with 0. pattern 0 at 2;rewrite <- eq.
+  intro eq. apply Rlt_irrefl with R0. pattern R0 at 2;rewrite <- eq.
   exact Rlt_0_2.
 Qed.
 
 Lemma Rgen_half_power :
-  forall b:R, 0 < b -> exists N : nat, (/ 2) ^ N <= b.
+  forall b:R, R0 < b -> exists N : nat, (/ (IZR 2)) ^ N <= b.
 Proof.
   intros.
   generalize Rgen_two_power;intro gtp.
@@ -288,12 +302,12 @@ Section sequence.
 
   Definition Un_cv (U:nat->R) (l:R) : Prop :=
     forall eps:R,
-      eps > 0 ->
+      eps > R0 ->
       exists N : nat, (forall n:nat, (n >= N)%nat -> R_dist (U n) l < eps).
 
   Definition Cauchy_crit (U : nat -> R) : Prop :=
     forall eps:R,
-      eps > 0 ->
+      eps > R0 ->
       exists N : nat,
         (forall n m:nat,
           (n >= N)%nat -> (m >= N)%nat -> R_dist (U n) (U m) < eps).
@@ -342,20 +356,19 @@ Section sequence.
     }
   Qed.
 
-  Remark Hi2pn: forall n, 0 < (/ 2)^n.
+  Remark Hi2pn: forall n, R0 < (/ (IZR 2))^n.
   Proof.
     intros n.
     apply pow_lt.
     apply Rinv_0_lt_compat.
-    apply IZR_lt.
-    constructor.
+    exact Rlt_0_2.
   Qed.
 
-  Definition Un_partial (u u':nat->R) := forall n, u n = 0 \/ u n = u' n.
+  Definition Un_partial (u u':nat->R) := forall n, u n = R0 \/ u n = u' n.
 
-  Definition pos (u:nat->R) := forall n, 0 <= u n.
+  Definition pos (u:nat->R) := forall n, R0 <= u n.
 
-  Lemma posn : forall u n, pos u -> 0 <= u n.
+  Lemma posn : forall u n, pos u -> R0 <= u n.
   Proof.
     intros u n hpos.
     apply hpos.
@@ -383,7 +396,7 @@ Section sequence.
   Qed.
 
 
-  Definition u_half_pow (n:nat) := (/ 2)^n.
+  Definition u_half_pow (n:nat) := (/ (IZR 2))^n.
 
   Lemma u_half_pow_pos : pos u_half_pow.
   Proof.
@@ -396,7 +409,7 @@ Section sequence.
   Qed.
 
   Fixpoint serie(u:nat->R) (n:nat) := match n with
-  | O => 0
+  | O => R0
   | S n' => u n + (serie u n')
   end.
 
@@ -451,7 +464,7 @@ Section sequence.
     exact Rlt_0_half.
   Qed.
 
-  Lemma s_half_pow_pos : forall n,  0 <= s_half_pow n.
+  Lemma s_half_pow_pos : forall n,  R0 <= s_half_pow n.
   Proof.
     intro n.
     unfold s_half_pow.
@@ -471,7 +484,7 @@ Section sequence.
     }
   Qed.
 
-  Lemma s_half_pow_le_n : forall n,  s_half_pow n <= 1 - (/ 2) ^ n.
+  Lemma s_half_pow_le_n : forall n,  s_half_pow n <= R1 - (/ (IZR 2)) ^ n.
   Proof.
     intro n.
     unfold s_half_pow.
@@ -487,7 +500,7 @@ Section sequence.
       unfold u_half_pow at 1. 
       apply Rplus_le_compat_l_minus.
       simpl.
-      pose (hsn:=(/2)^n).
+      pose (hsn:=(/ (IZR 2))^n).
       fold hsn.
       fold hsn in i.
       unfold Rminus.
@@ -496,15 +509,15 @@ Section sequence.
       rewrite <- Rmult_plus_distr_r.
       rewrite half_half.
       rewrite Rmult_1_l.
-      fold (1-hsn).
+      fold (R1-hsn).
       exact i.
     }
   Qed.
 
-  Lemma s_half_pow_lt_1 : forall n,  s_half_pow n < 1.
+  Lemma s_half_pow_lt_1 : forall n,  s_half_pow n < R1.
   Proof.
     intro n.
-    apply Rle_lt_trans with (1 - (/2)^n).
+    apply Rle_lt_trans with (R1 - (/ (IZR 2))^n).
     { apply s_half_pow_le_n. }
     {
       unfold Rminus.
@@ -544,7 +557,7 @@ Section sequence.
   Qed.
 
   Lemma s_half_pow_pos_partial : forall u, Un_partial u u_half_pow ->
-    forall n,  0 <= (serie u) n.
+    forall n,  R0 <= (serie u) n.
   Proof.
     intros u h n.
     unfold Un_partial in h.
@@ -560,17 +573,17 @@ Section sequence.
   Qed.
 
   Lemma s_half_pow_le_n_partial : forall u, Un_partial u u_half_pow ->
-    forall n,  (serie u) n <= 1 - (/ 2) ^ n.
+    forall n,  (serie u) n <= R1 - (/ (IZR 2)) ^ n.
   Proof.
     intros u h n.
     unfold Un_partial in h.
     induction n as [ | n i ].
     { simpl. rewrite Rminus_diag. right. reflexivity. }
     { simpl. destruct (h (S n)) as [ h' | h' ].
-      { rewrite h'. rewrite Rplus_0_l. apply Rle_trans with (1 - (/ 2) ^ n).
+      { rewrite h'. rewrite Rplus_0_l. apply Rle_trans with (R1 - (/ (IZR 2)) ^ n).
         { exact i. }
         { unfold Rminus. apply Rplus_le_compat_l. apply Ropp_le_contravar.
-          pattern ( (/ 2) ^ n) at 2;rewrite <- Rmult_1_l.
+          pattern ( (/ (IZR 2)) ^ n) at 2;rewrite <- Rmult_1_l.
           apply Rmult_le_compat_r.
           apply pow_le. left. exact Rlt_0_half.
           left. exact Rlt_half_1.
@@ -579,7 +592,7 @@ Section sequence.
       {
         rewrite h'. clear h'.
         apply Rplus_le_compat_l_minus.
-        apply Rle_trans with (1 - (/ 2) ^ n).
+        apply Rle_trans with (R1 - (/ (IZR 2)) ^ n).
         { exact i. }
         {
           unfold Rminus.
@@ -600,10 +613,10 @@ Section sequence.
 
 
   Lemma s_half_pow_lt_1_partial : forall u, Un_partial u u_half_pow ->
-    forall n,  (serie u) n <= 1.
+    forall n,  (serie u) n <= R1.
   Proof.
     intros u h n.
-    apply Rle_trans with (1 - (/2)^n).
+    apply Rle_trans with (R1 - (/ (IZR 2))^n).
     { apply s_half_pow_le_n_partial. exact h. }
     {
       unfold Rminus.
@@ -620,8 +633,8 @@ Section sequence.
   Definition crit_test (u : nat->R ) (l e : R) (n:nat) := if Rle_lt_dec (u n) (l - e) then false else true.
 
   Fixpoint crit (u : nat->R ) (l e : R) (n:nat) := match n with
-    | O => 0
-    | S n' => if crit_test u l e n' then (/ 2)^n else 0
+    | O => R0
+    | S n' => if crit_test u l e n' then (/ (IZR 2))^n else R0
     end.
 
   Lemma crit_partial : forall u l e, Un_partial (crit u l e) u_half_pow.
@@ -636,7 +649,7 @@ Section sequence.
   Qed.
 
   Lemma crit_rewrite_l : forall u l e n,
-      u n <= l - e -> crit u l e (S n) = 0.
+      u n <= l - e -> crit u l e (S n) = R0.
   Proof.
     intros u l e n h.
     simpl.
@@ -647,7 +660,7 @@ Section sequence.
   Qed.
 
   Lemma crit_rewrite_r : forall u l e n,
-      l - e < u n  -> crit u l e (S n) = (/ 2)^(S n).
+      l - e < u n  -> crit u l e (S n) = (/ (IZR 2))^(S n).
   Proof.
     intros u l e n h.
     simpl.
@@ -689,7 +702,7 @@ Section sequence.
   Qed.
 
   Lemma crit_bound_r : forall (u : nat -> R) (l e : R) (m n : nat),
-    s_crit u l e (m + n) <= s_crit u l e m + (/ 2) ^ m - (/ 2) ^ (m + n).
+    s_crit u l e (m + n) <= s_crit u l e m + (/ (IZR 2)) ^ m - (/ (IZR 2)) ^ (m + n).
   Proof.
     intros u l e m n.
     induction n as [ | n i ].
@@ -709,7 +722,7 @@ Section sequence.
         unfold s_crit at 1.
         rewrite serie_Sn.
         apply Rplus_le_compat_r_minus.
-        apply Rle_trans with (s_crit u l e m + (/ 2) ^ m - (/ 2) ^ (m + n)).
+        apply Rle_trans with (s_crit u l e m + (/ (IZR 2)) ^ m - (/ (IZR 2)) ^ (m + n)).
         { exact i. }
         {
           clear i.
@@ -720,7 +733,7 @@ Section sequence.
           rewrite <- Ropp_plus_distr.
           apply Ropp_le_contravar.
           apply Rplus_le_compat_l_minus.
-          pose (p:=(/ 2)^(m+n)).
+          pose (p:=(/ (IZR 2))^(m+n)).
           fold p.
           unfold Rminus.
           pattern p at 1;rewrite <- Rmult_1_l.
@@ -741,7 +754,7 @@ Section sequence.
     }
   Qed.
 
-  Lemma s_crit_pos : forall u l e n, 0 <= s_crit u l e n.
+  Lemma s_crit_pos : forall u l e n, R0 <= s_crit u l e n.
   Proof.
     intros u l e n.
     specialize (crit_bound_l u l e 0 n);intro h.
@@ -751,7 +764,7 @@ Section sequence.
     exact h.
   Qed.
 
-  Lemma crit_bound_O_r : forall u l e n, s_crit u l e n <= 1 - (/2)^n.
+  Lemma crit_bound_O_r : forall u l e n, s_crit u l e n <= R1 - (/ (IZR 2))^n.
   Proof.
     intros u l e n.
     specialize (crit_bound_r u l e 0 n);intro h.
@@ -765,8 +778,8 @@ Section sequence.
   Definition crit_exist u l e x := exists n : nat, s_crit u l e n  = x.
 
   Lemma crit_technic_3 : forall (u : nat -> R) (l e : R),
-    is_upper_bound (crit_exist u l e) 0 ->
-    forall n : nat, s_crit u l e n = 0.
+    is_upper_bound (crit_exist u l e) R0 ->
+    forall n : nat, s_crit u l e n = R0.
   Proof.
     intros u l e h n.
     unfold is_upper_bound in h.
@@ -775,7 +788,7 @@ Section sequence.
     { apply s_crit_pos. }
   Qed.
 
-  Lemma crit_0 : forall u l e n,  crit u l e (S n) = 0 -> u n <= l - e.
+  Lemma crit_0 : forall u l e n,  crit u l e (S n) = R0 -> u n <= l - e.
   Proof.
     intros u l e n h.
     simpl in h.
@@ -783,15 +796,15 @@ Section sequence.
     destruct (Rle_lt_dec (u n) (l - e)).
     { assumption. }
     {
-      exfalso. apply Rlt_irrefl with 0.
-      pattern 0 at 2;rewrite <- h.
+      exfalso. apply Rlt_irrefl with R0.
+      pattern R0 at 2;rewrite <- h.
       rewrite tech_pow_Rmult.
       apply pow_lt.
       exact Rlt_0_half.
     }
   Qed.
 
-  Lemma crit_0_inv : forall u l e n,  u n <= l - e -> crit u l e (S n) = 0.
+  Lemma crit_0_inv : forall u l e n,  u n <= l - e -> crit u l e (S n) = R0.
   Proof.
     intros u l e n h.
     simpl.
@@ -802,7 +815,7 @@ Section sequence.
   Qed.
 
   Lemma crit_technic_1 : forall (u : nat -> R) (l e : R),
-    (forall n : nat, s_crit u l e n = 0) ->
+    (forall n : nat, s_crit u l e n = R0) ->
     forall n : nat, u n <= l - e.
   Proof.
     intros u l e h n.
@@ -842,7 +855,7 @@ Section sequence.
   Qed.
 
 
-  Lemma Rlt_abs_half_1 : Rabs (/2) < 1.
+  Lemma Rlt_abs_half_1 : Rabs (/ (IZR 2)) < R1.
   Proof.
     rewrite Rabs_pos_eq.
     - apply Rlt_half_1.
@@ -853,7 +866,7 @@ Section sequence.
   Lemma scrit_le_0 : forall (u : nat -> R) (l e : R) (N:nat),
     Un_growing u ->
     u N <= l - e ->
-    s_crit u l e N = 0.
+    s_crit u l e N = R0.
   Proof.
       intros.
       induction N as [ | N i ].
@@ -883,7 +896,7 @@ Section sequence.
   Proof.
     intros u l e.
     unfold bound.
-    exists 1.
+    exists R1.
     unfold is_upper_bound.
     intros x h.
     unfold crit_exist in h.
@@ -896,7 +909,7 @@ Section sequence.
   Lemma crit_before_0 : forall u l e N n,
     Un_growing u ->
     u N <= l - e -> (n <= N)%nat ->
-    s_crit u l e n = 0.
+    s_crit u l e n = R0.
   Proof.
     intros u l e N n hg hN hn.
     generalize dependent n.
@@ -943,7 +956,7 @@ Section sequence.
   Qed.
 
   (* (/ 2)^n can be made as small as we want *)
-  Lemma small_half_pow : forall m : R, 0 < m -> exists n : nat, (/ 2) ^ n < m.
+  Lemma small_half_pow : forall m : R, R0 < m -> exists n : nat, (/ (IZR 2)) ^ n < m.
   Proof.
     generalize Rgen_half_power;intro rhp.
     intros m hm.
@@ -954,7 +967,6 @@ Section sequence.
     {
       subst m.
       exists (S N).
-      Search( (/ _)^_).
       rewrite <- Rinv_pow.
       2:exact Neq_2_0.
       rewrite <- Rinv_pow.
@@ -1023,11 +1035,11 @@ Section sequence.
   (* This proof shows that for any positive m and increasing sequence u, if (/2)^n is smaller than m and
      u n is small enough for crit_exist, then (/2)^n is an upper bound of crit_exist. *)
   Lemma crit_technic_d : forall (u : nat -> R) (l e m : R) (n : nat),
-    0 < m ->
+    R0 < m ->
     Un_growing u ->
-    (/ 2) ^ n < m ->
+    (/ (IZR 2)) ^ n < m ->
     u n <= l - e ->
-    is_upper_bound (crit_exist u l e) ((/ 2) ^ n).
+    is_upper_bound (crit_exist u l e) ((/ (IZR 2)) ^ n).
   Proof.
     intros u l e m n hm hu hn hun.
 
@@ -1040,7 +1052,7 @@ Section sequence.
     destruct hcrit as [ncrit heq].
     subst x.
     (* Because u n <= l - e and u is increasing, s_crit u l e n = 0 *)
-    assert (scrit_n_0:s_crit u l e n = 0).
+    assert (scrit_n_0:s_crit u l e n = R0).
     { apply scrit_le_0. exact hu. exact hun. }
     clear hun.
     
@@ -1053,12 +1065,12 @@ Section sequence.
         apply fill_n in H.
         destruct H.
         subst ncrit.
-        apply Rle_trans with (s_crit u l e n + (/ 2) ^ n - (/ 2) ^ (n + x)).
+        apply Rle_trans with (s_crit u l e n + (/ (IZR 2)) ^ n - (/ (IZR 2)) ^ (n + x)).
         { apply crit_bound_r. }
         {
           rewrite scrit_n_0.
           rewrite Rplus_0_l.
-          pattern ((/ 2)^n) at 2;rewrite <- Rplus_0_r.
+          pattern ((/ (IZR 2))^n) at 2;rewrite <- Rplus_0_r.
           apply Rplus_le_compat_l.
           rewrite <- Ropp_0.
           apply Ropp_le_contravar.
@@ -1100,7 +1112,7 @@ Section sequence.
   (* If m is a positive least upper bound of crit_exist and u is increasing, there is N such that u N > l - e *)
   Lemma crit_technic_c : forall (u : nat -> R) (l e m : R),
     Un_growing u ->
-    0 < m ->
+    R0 < m ->
     is_lub (crit_exist u l e) m ->
     exists N : nat, u N > l - e.
   Proof.
@@ -1116,7 +1128,7 @@ Section sequence.
     unfold is_lub in hlub.
     apply proj2 in hlub.
     (* We will show that (/2)^N is an upper bound of crit_exist *)
-    specialize (hlub ((/ 2)^N)).
+    specialize (hlub ((/ (IZR 2))^N)).
 
     (* If x < y, then it is not the case that y <= x *)
     apply Rnot_le_lt.
@@ -1146,14 +1158,14 @@ Section sequence.
     apply completeness.
     { apply crit_bounded. }
     {
-      exists 0.
+      exists R0.
       unfold crit_exist.
       exists 0%nat.
       constructor.
     }
   Qed.
 
-  Lemma crit_flat : forall u l e, is_upper_bound (crit_exist u l e) 0 -> forall n, s_crit u l e n = 0.
+  Lemma crit_flat : forall u l e, is_upper_bound (crit_exist u l e) R0 -> forall n, s_crit u l e n = R0.
   Proof.
     intros u l e h n.
     unfold is_upper_bound in h.
@@ -1164,13 +1176,13 @@ Section sequence.
 
   Lemma crit_lub_pos : forall u l e m,
     is_lub (EUn u) l ->
-    e > 0 ->
+    e > R0 ->
     is_lub (crit_exist u l e) m ->
-    m > 0.
+    m > R0.
   Proof.
     intros u l e m hlub he h.
     destruct h as [hl hr].
-    destruct (Rtotal_order m 0) as [ hm | [ hm | hm ] ].
+    destruct (Rtotal_order m R0) as [ hm | [ hm | hm ] ].
     { (* m < 0 *)
       exfalso.
       unfold is_upper_bound in hl.
@@ -1310,7 +1322,7 @@ Section sequence.
     }
   Qed.
 
-  Definition Cauchy_crit_simpl u := forall eps : R, eps > 0 ->
+  Definition Cauchy_crit_simpl u := forall eps : R, eps > R0 ->
     exists N : nat, forall m : nat, (m >= N)%nat -> R_dist (u N) (u m) < eps.
 
   Lemma Cauchy_simpler : forall u, Cauchy_crit u -> Cauchy_crit_simpl u.
@@ -1328,8 +1340,8 @@ Section sequence.
     { exact hm. }
   Qed.
 
-  Lemma exists_positive : exists e, 0 < e.
-  Proof. exists 1. exact Rlt_0_1. Qed.
+  Lemma exists_positive : exists e, R0 < e.
+  Proof. exists R1. exact Rlt_0_1. Qed.
 
   Lemma cauchy_bound : forall u, Cauchy_crit u -> bound (EUn u).
   Proof.
@@ -1404,14 +1416,14 @@ End Isequence.
 Definition cstu (x:R) := fun n:nat => x.
 
 Lemma GP_infinite :
-  forall x:R, Rabs x < 1 -> Pser (cstu 1) x (/ (1 - x)).
+  forall x:R, Rabs x < R1 -> Pser (cstu R1) x (/ (R1 - x)).
 Proof.
   intros x hx.
   unfold Pser.
   unfold cstu.
   unfold infinite_sum.
   intros e he.
-  destruct (Req_dec x 0) as [ heq | hneq ].
+  destruct (Req_dec x R0) as [ heq | hneq ].
   {
     subst x.
     exists 0%nat.
@@ -1435,17 +1447,17 @@ Proof.
     }
   }
   {
-    assert (hneqm:1-x<>0).
+    assert (hneqm:R1-x<>R0).
     {
       apply Rminus_eq_contra.
       apply Rlt_dichotomy_converse.
       right.
       unfold Rgt.
-      apply (Rle_lt_trans x (Rabs x) 1).
+      apply (Rle_lt_trans x (Rabs x) R1).
       { apply RRle_abs. }
       { exact hx. }
     }
-    assert (H2 : 0 < e * (Rabs (1 - x) * Rabs (/ x))).
+    assert (H2 : R0 < e * (Rabs (R1 - x) * Rabs (/ x))).
     {
       apply Rmult_lt_0_compat.
       { exact he. }
@@ -1466,12 +1478,12 @@ Proof.
       specialize pow_lt_1_zero as hpow.
       specialize (hpow x).
       specialize (hpow hx).
-      specialize (hpow (e * (Rabs (1 - x) * Rabs (/ x)))).
+      specialize (hpow (e * (Rabs (R1 - x) * Rabs (/ x)))).
       specialize (hpow H2).
       destruct hpow as [N H3].
       exists N.
       intros n hnn.
-      assert (H5 : sum_f_R0 (fun n0:nat => 1 * x ^ n0) n = sum_f_R0 (fun n0:nat => x ^ n0) n).
+      assert (H5 : sum_f_R0 (fun n0:nat => R1 * x ^ n0) n = sum_f_R0 (fun n0:nat => x ^ n0) n).
       {
         clear hnn.
         induction n as [ | n i ].
@@ -1489,7 +1501,7 @@ Proof.
       }
       {
         rewrite H5;clear H5.
-        apply Rmult_lt_reg_l with (Rabs (1 - x)).
+        apply Rmult_lt_reg_l with (Rabs (R1 - x)).
         {
           apply Rabs_pos_lt.
           exact hneqm.
@@ -1499,8 +1511,8 @@ Proof.
           rewrite <- Rabs_mult.
           rewrite Rmult_minus_distr_l.
           assert (H6:
-            ((1 - x) * sum_f_R0 (fun n0:nat => x ^ n0) n =
-              - (sum_f_R0 (fun n0:nat => x ^ n0) n * (x - 1)))).
+            ((R1 - x) * sum_f_R0 (fun n0:nat => x ^ n0) n =
+              - (sum_f_R0 (fun n0:nat => x ^ n0) n * (x - R1)))).
           {
             unfold Rminus.
             rewrite Ropp_mult_distr_r.
@@ -1516,7 +1528,7 @@ Proof.
             rewrite gpf;clear gpf.
             rewrite Rinv_r.
             {
-              assert (H7:(- (x ^ (n + 1) - 1) - 1 = - x ^ (n + 1))).
+              assert (H7:(- (x ^ (n + 1) - R1) - R1 = - x ^ (n + 1))).
               {
                 unfold Rminus.
                 rewrite Ropp_plus_distr.
@@ -1532,7 +1544,7 @@ Proof.
                 rewrite plus_comm.
                 simpl.
                 rewrite Rabs_mult.
-                apply (Rlt_le_trans _ (Rabs x * (e * (Rabs (1 - x) * Rabs (/ x)))) _).
+                apply (Rlt_le_trans _ (Rabs x * (e * (Rabs (R1 - x) * Rabs (/ x)))) _).
                 {
                   apply Rmult_lt_compat_l.
                   {
@@ -1546,8 +1558,8 @@ Proof.
                 }
                 {
                   assert (H8:
-                    (Rabs x * (e * (Rabs (1 - x) * Rabs (/ x))) =
-                      Rabs x * Rabs (/ x) * (e * Rabs (1 - x)))).
+                    (Rabs x * (e * (Rabs (R1 - x) * Rabs (/ x))) =
+                      Rabs x * Rabs (/ x) * (e * Rabs (R1 - x)))).
                   {
                     rewrite Rmult_assoc.
                     apply Rmult_eq_compat_l.
