@@ -8,11 +8,11 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import PartSum.
-Local Open Scope R_scope.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XPartSum.
+Local Open Scope XR_scope.
 
   (**********)
 Lemma sum_N_predN :

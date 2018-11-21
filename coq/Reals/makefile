@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XBinomial.vo
+ALL: XCauchy_prod.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -59,5 +59,15 @@ XAltSeries.vo: XAltSeries.v XPartSum.vo
 
 XBinomial.vo: XBinomial.v XAltSeries.vo
 	C:\Coq\bin\coqc XBinomial.v
+
+XRsigma.vo: XRsigma.v XBinomial.vo
+	C:\Coq\bin\coqc XRsigma.v
+
+XRprod.vo: XRprod.v XRsigma.vo
+	C:\Coq\bin\coqc XRprod.v
+
+XCauchy_prod.vo: XCauchy_prod.v XRprod.vo
+	C:\Coq\bin\coqc XCauchy_prod.v
+
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v

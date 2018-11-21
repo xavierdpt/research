@@ -8,13 +8,13 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import PartSum.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XPartSum.
 Require Import Omega.
 Require Import Setoid Morphisms. 
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Set Implicit Arguments.
 
@@ -201,7 +201,13 @@ Section Sigma.
       (low <= k)%nat ->
       (k < high)%nat -> sigma low high - sigma low k = sigma (S k) high.
   Proof.
-    intros low high k H1 H2; symmetry ; rewrite (sigma_split H1 H2); ring.
+    intros low high k H1 H2; symmetry ; rewrite (sigma_split H1 H2).
+unfold Rminus.
+rewrite Rplus_comm.
+rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_l.
+reflexivity.
   Qed.
 
   Theorem sigma_diff_neg :
@@ -209,7 +215,13 @@ Section Sigma.
       (low <= k)%nat ->
       (k < high)%nat -> sigma low k - sigma low high = - sigma (S k) high.
   Proof.
-    intros low high k H1 H2; rewrite (sigma_split H1 H2); ring.
+    intros low high k H1 H2; rewrite (sigma_split H1 H2).
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
   Qed.
 
   Theorem sigma_first :

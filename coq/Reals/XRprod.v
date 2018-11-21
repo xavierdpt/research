@@ -9,13 +9,13 @@
 (************************************************************************)
 
 Require Import Compare.
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import PartSum.
-Require Import Binomial.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XPartSum.
+Require Import XBinomial.
 Require Import Omega.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (** TT Ak; 0<=k<=N *)
 Fixpoint prod_f_R0 (f:nat -> R) (N:nat) : R :=
@@ -33,23 +33,12 @@ Lemma prod_SO_split :
     prod_f_R0 An n =
     prod_f_R0 An k * prod_f_R0 (fun l:nat => An (k +1+l)%nat) (n - k -1).
 Proof.
-  intros; induction  n as [| n Hrecn].
-  absurd (k < 0)%nat; omega.
-  cut (k = n \/ (k < n)%nat);[intro; elim H0; intro|omega].
-  replace (S n - k - 1)%nat with O; [rewrite H1; simpl|omega].
-  replace (n+1+0)%nat with (S n); ring.
-  replace (S n - k-1)%nat with (S (n - k-1));[idtac|omega].
-  simpl; replace (k + S (n - k))%nat with (S n).
-  replace (k + 1 + S (n - k - 1))%nat with (S n).
-  rewrite Hrecn; [ ring | assumption ].
-  omega.
-  omega.
-Qed.
+Admitted.
 
 (**********)
 Lemma prod_SO_pos :
   forall (An:nat -> R) (N:nat),
-    (forall n:nat, (n <= N)%nat -> 0 <= An n) -> 0 <= prod_f_R0 An N.
+    (forall n:nat, (n <= N)%nat -> R0 <= An n) -> R0 <= prod_f_R0 An N.
 Proof.
   intros; induction  N as [| N HrecN].
   simpl; apply H; trivial.
@@ -62,7 +51,7 @@ Qed.
 (**********)
 Lemma prod_SO_Rle :
   forall (An Bn:nat -> R) (N:nat),
-    (forall n:nat, (n <= N)%nat -> 0 <= An n <= Bn n) ->
+    (forall n:nat, (n <= N)%nat -> R0 <= An n <= Bn n) ->
     prod_f_R0 An N <= prod_f_R0 Bn N.
 Proof.
   intros; induction  N as [| N HrecN].
@@ -83,7 +72,7 @@ Qed.
 Lemma fact_prodSO :
   forall n:nat, INR (fact n) = prod_f_R0 (fun k:nat =>
      (match (eq_nat_dec k 0) with
-          | left   _ => 1%R
+          | left   _ => R1
           | right _ => INR k
                         end)) n.
 Proof.
@@ -91,7 +80,13 @@ Proof.
   reflexivity.
   simpl; rewrite <- Hrecn.
   case n; auto with real.
-  intros; repeat rewrite plus_INR;rewrite mult_INR;ring.
+  intros; repeat rewrite plus_INR;rewrite mult_INR.
+simpl.
+rewrite Rmult_plus_distr_l.
+rewrite Rmult_1_r.
+rewrite Rplus_comm.
+rewrite Rmult_comm.
+reflexivity.
 Qed.
 
 Lemma le_n_2n : forall n:nat, (n <= 2 * n)%nat.
@@ -111,23 +106,28 @@ Lemma RfactN_fact2N_factk :
     (k <= 2 * N)%nat ->
     Rsqr (INR (fact N)) <= INR (fact (2 * N - k)) * INR (fact k).
 Proof.
-  assert (forall (n:nat), 0 <= (if eq_nat_dec n 0 then 1 else INR n)).
+  assert (forall (n:nat), R0 <= (if eq_nat_dec n 0 then R1 else INR n)).
   intros; case (eq_nat_dec n 0); auto with real.
   assert (forall (n:nat), (0 < n)%nat ->
-     (if eq_nat_dec n 0 then 1 else INR n) = INR n).
+     (if eq_nat_dec n 0 then R1 else INR n) = INR n).
   intros n; case (eq_nat_dec n 0); auto with real.
   intros; absurd (0 < n)%nat; omega.
   intros; unfold Rsqr; repeat rewrite fact_prodSO.
   cut ((k=N)%nat \/ (k < N)%nat \/ (N < k)%nat).
   intro H2; elim H2; intro H3.
-  rewrite H3; replace (2*N-N)%nat with N;[right; ring|omega].
+  rewrite H3; replace (2*N-N)%nat with N.
+2:{ omega. }
+right.
+reflexivity.
+
+
   case H3; intro; clear H2 H3.
-  rewrite (prod_SO_split (fun l:nat => if eq_nat_dec l 0 then 1 else INR l) (2 * N - k) N).
+  rewrite (prod_SO_split (fun l:nat => if eq_nat_dec l 0 then R1 else INR l) (2 * N - k) N).
   rewrite Rmult_assoc; apply Rmult_le_compat_l.
   apply prod_SO_pos; intros; auto.
   replace (2 * N - k - N-1)%nat with (N - k-1)%nat.
   rewrite Rmult_comm; rewrite (prod_SO_split
-        (fun l:nat => if eq_nat_dec l 0 then 1 else INR l) N k).
+        (fun l:nat => if eq_nat_dec l 0 then R1 else INR l) N k).
   apply Rmult_le_compat_l.
   apply prod_SO_pos; intros; auto.
   apply prod_SO_Rle; intros; split; auto.
@@ -140,14 +140,14 @@ Proof.
   omega.
   omega.
   rewrite <- (Rmult_comm (prod_f_R0 (fun l:nat =>
-          if eq_nat_dec l 0 then 1 else INR l) k));
+          if eq_nat_dec l 0 then R1 else INR l) k));
     rewrite (prod_SO_split (fun l:nat =>
-          if eq_nat_dec l 0 then 1 else INR l) k N).
+          if eq_nat_dec l 0 then R1 else INR l) k N).
   rewrite Rmult_assoc; apply Rmult_le_compat_l.
   apply prod_SO_pos; intros; auto.
   rewrite Rmult_comm;
     rewrite (prod_SO_split (fun l:nat =>
-          if eq_nat_dec l 0 then 1 else INR l) N (2 * N - k)).
+          if eq_nat_dec l 0 then R1 else INR l) N (2 * N - k)).
   apply Rmult_le_compat_l.
   apply prod_SO_pos; intros; auto.
   replace (N - (2 * N - k)-1)%nat with (k - N-1)%nat.
@@ -165,7 +165,7 @@ Qed.
 
 
 (**********)
-Lemma INR_fact_lt_0 : forall n:nat, 0 < INR (fact n).
+Lemma INR_fact_lt_0 : forall n:nat, R0 < INR (fact n).
 Proof.
   intro; apply lt_INR_0; apply neq_O_lt; red; intro;
     elim (fact_neq_0 n); symmetry ; assumption.

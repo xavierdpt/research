@@ -16,9 +16,9 @@ Require Export XSeqProp.
 Require Export XRcomplete.
 Require Export XPartSum.
 Require Export XAltSeries.
-Require Export Binomial.
-Require Export Rsigma.
-Require Export Rprod.
+Require Export XBinomial.
+Require Export XRsigma.
+Require Export XRprod.
 Require Export Cauchy_prod.
 Require Export Alembert.
 Local Open Scope R_scope.
