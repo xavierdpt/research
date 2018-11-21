@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XSeqProp.vo
+ALL: XRcomplete.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -47,6 +47,9 @@ XRseries.vo: XRseries.v XRfunctions.vo
 
 XSeqProp.vo: XSeqProp.v XRseries.vo
 	C:\Coq\bin\coqc XSeqProp.v
+
+XRcomplete.vo: XRcomplete.v XSeqProp.vo
+	C:\Coq\bin\coqc XRcomplete.v
 
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v

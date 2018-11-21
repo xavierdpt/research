@@ -1,12 +1,12 @@
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import SeqProp.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XSeqProp.
 Require Import Max.
 Require Import Nat.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
-Lemma lt_0_5 : 0 < 5.
+Lemma lt_0_5 : R0 < IZR 5.
 Proof.
   apply Rplus_lt_0_compat.
   apply Rlt_0_1.
@@ -19,23 +19,49 @@ Proof.
   apply Rlt_0_1.
 Qed.
 
-Lemma neq_5_0 : 5 <> 0.
+Lemma neq_5_0 : IZR 5 <> IZR 0.
 Proof.
   apply IZR_neq. intro h. inversion h.
 Qed.
 
-Lemma technic1 : forall eps, eps / 5 + 3 * (eps / 5) + eps / 5 = eps.
+Lemma technic1 : forall eps, eps / (IZR 5) + (IZR 3) * (eps / (IZR 5)) + eps / (IZR 5) = eps.
 Proof.
   intro eps.
-  replace eps with (5 * (eps / 5)) at 4.
-  { ring. (* TODO *) }
+  replace eps with ((IZR 5) * (eps / (IZR 5))) at 4.
+  {
+  unfold Rdiv.
+  rewrite <- Rmult_assoc.
+  rewrite (Rmult_comm _ eps).
+  rewrite Rplus_assoc.
+  rewrite Rmult_assoc.
+  rewrite <- Rmult_plus_distr_l.
+  rewrite <- Rmult_plus_distr_l.
+  pattern (/ IZR 5) at 1;rewrite <- Rmult_1_l.
+  pattern (/ IZR 5) at 3;rewrite <- Rmult_1_l.
+  rewrite <- Rmult_plus_distr_r.
+  rewrite <- Rmult_plus_distr_r.
+  replace R1 with (IZR 1).
+  rewrite <- plus_IZR.
+  rewrite <- plus_IZR.
+  simpl.
+  rewrite Rinv_r.
+  rewrite Rmult_1_r.
+  rewrite Rmult_comm.
+  rewrite Rmult_assoc.
+  rewrite Rinv_l.
+  rewrite Rmult_1_r.
+  reflexivity.
+  exact neq_5_0.
+  exact neq_5_0.
+  reflexivity.
+  }
     unfold Rdiv. (* Rdiv = (r1, r2) => r1 * / r2 *)
     rewrite <- Rmult_assoc. (*  r1 * r2 * r3 = r1 * (r2 * r3) *)
     apply Rinv_r_simpl_m. (* r1 <> 0 -> r1 * r2 * / r1 = r2 *)
     { apply neq_5_0. }
 Qed.
 
-Lemma technic2 : forall eps, 0 < eps ->  0 < eps / 5.
+Lemma technic2 : forall eps, R0 < eps ->  R0 < eps / (IZR 5).
 Proof.
   intros eps h.
   unfold Rdiv. (* Rdiv = (r1, r2) => r1 * / r2 *)
@@ -69,36 +95,73 @@ Qed.
 
 Local Close Scope nat_scope.
 
-Lemma technic5 : forall x, x / 3 + x / 3 + x / 3 = x.
+Lemma technic5 : forall x, x / (IZR 3) + x / (IZR 3) + x / (IZR 3) = x.
 Proof.
   intro x.
-  pattern x at 4; replace x with (3 * (x / 3)).
-  ring.
+  pattern x at 4; replace x with ((IZR 3) * (x / (IZR 3))).
+  {
+  unfold Rdiv.
+  rewrite <- Rmult_plus_distr_r.
+  rewrite <- Rmult_plus_distr_r.
+  pattern x at 1 2 3;rewrite <- Rmult_1_r.
+  rewrite <- Rmult_plus_distr_l.
+  rewrite <- Rmult_plus_distr_l.
+  replace R1 with (IZR 1).
+  rewrite <- plus_IZR.
+  rewrite <- plus_IZR.
+  simpl.
+  rewrite (Rmult_comm x).
+  rewrite Rmult_assoc.
+  reflexivity.
+  reflexivity.
+  }
   unfold Rdiv.
   rewrite <- Rmult_assoc.
   apply Rinv_r_simpl_m.
-  discrR.
+  replace R0 with (IZR 0).
+  apply IZR_neq.
+  intro eq;inversion eq.
+  reflexivity.
 Qed.
 
-Lemma technic6 : forall x, x > 0 -> 0 < x / 3.
+Lemma technic6 : forall x, x > R0 -> R0 < x / (IZR 3).
 Proof.
   intros x h.
   unfold Rdiv.
   apply Rmult_lt_0_compat.
   apply h.
   apply Rinv_0_lt_compat.
-  prove_sup0.
+  apply Rplus_lt_0_compat.
+  apply Rlt_0_1.
+  unfold IPR_2.
+  apply Rplus_lt_0_compat.
+  apply Rlt_0_1.
+  apply Rlt_0_1.
 Qed.
 
-Lemma technic7 : forall x, 3 * x = x + x + x.
+Lemma technic7 : forall x, (IZR 3) * x = x + x + x.
 Proof.
   intro x.
-  ring.
+  pattern x at 2 3 4;rewrite <- Rmult_1_l.
+  rewrite <- Rmult_plus_distr_r.
+  rewrite <- Rmult_plus_distr_r.
+  replace R1 with (IZR 1) ; [ idtac | reflexivity ].
+  rewrite <- plus_IZR.
+  rewrite <- plus_IZR.
+  simpl.
+  reflexivity.
 Qed.
 
 Lemma insert_in_minus : forall a b c, a - c = a - b + (b - c).
 Proof.
-  intros. ring.
+  intros.
+  unfold Rminus.
+  repeat rewrite Rplus_assoc.
+  apply Rplus_eq_compat_l.
+  repeat rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  reflexivity.
 Qed.
 
 Theorem R_complete :
@@ -139,20 +202,20 @@ Proof.
     unfold Un_cv.
     intros eps H0.
 
-    cut (0 < eps / 3).
+    cut (R0 < eps / (IZR 3)).
     {
 
       intro H4.
 
       unfold Un_cv in hinf.
       unfold Rgt in hinf at 1.
-      specialize (hinf (eps / 3)).
+      specialize (hinf (eps / (IZR 3))).
       specialize (hinf H4).
       destruct hinf as [x0 H2].
 
       unfold Un_cv in hsup.
       unfold Rgt in hsup at 1.
-      specialize (hsup (eps / 3)).
+      specialize (hsup (eps / (IZR 3))).
       specialize (hsup H4).
       destruct hsup as [x H1].
 
@@ -225,7 +288,7 @@ Proof.
         rewrite (insert_in_minus (Usup n) l (Uinf n) ).
         apply Rabs_triang.
       }
-      apply Rlt_le_trans with (eps / 3 + eps / 3 + eps / 3).
+      apply Rlt_le_trans with (eps / (IZR 3) + eps / (IZR 3) + eps / (IZR 3)).
       {
         apply Rplus_lt_compat.
         apply Rplus_lt_compat.
@@ -262,14 +325,14 @@ Proof.
 
   apply cond_eq. (* 0 < e -> | x - y | < e ) -> x = y *)
   intros eps H0.
-  cut (0 < eps / 5).
+  cut (R0 < eps / (IZR 5)).
   {
     intro H1.
     unfold Un_cv in hsup, hinf.
     unfold R_dist in hsup, hinf.
 
-    specialize (hsup (eps / 5)).
-    specialize (hinf (eps / 5)).
+    specialize (hsup (eps / (IZR 5))).
+    specialize (hinf (eps / (IZR 5))).
 
     specialize (hsup H1).
     specialize (hinf H1).
@@ -280,7 +343,7 @@ Proof.
     unfold Cauchy_crit in H.
     unfold R_dist in H.
 
-    destruct (H (eps / 5) H1) as [N3 H6].
+    destruct (H (eps / (IZR 5)) H1) as [N3 H6].
     set (N := max (max N1 N2) N3).
     apply Rle_lt_trans with (Rabs (lsup - Usup N) + Rabs (Usup N - linf)).
     {
@@ -339,8 +402,8 @@ Proof.
             intros H9 H10.
             rewrite <- H9 in H8 |- *.
             rewrite <- H10 in H7 |- *.
-            destruct (H7 (eps / 5) H1) as [k2 H11].
-            destruct (H8 (eps / 5) H1) as [k1 H12].
+            destruct (H7 (eps / (IZR 5)) H1) as [k2 H11].
+            destruct (H8 (eps / (IZR 5)) H1) as [k1 H12].
 
             apply Rle_lt_trans with
               (Rabs (Usup N - U (N + k2)%nat) + Rabs (U (N + k2)%nat - Uinf N)).
@@ -374,7 +437,13 @@ Proof.
             (- (U (N + k1)%nat - Uinf N)) with
             (Uinf N - U (N + k1)%nat).
             { apply H12. }
-            { ring. }
+            {
+			unfold Rminus.
+			rewrite Ropp_plus_distr.
+			rewrite Ropp_involutive.
+			rewrite Rplus_comm.
+			reflexivity.
+			}
           }
           unfold Uinf. unfold sequence_lb.
           reflexivity.

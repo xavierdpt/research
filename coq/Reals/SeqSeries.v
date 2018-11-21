@@ -12,7 +12,7 @@ Require Import XRbase.
 Require Import XRfunctions.
 Require Import Max.
 Require Export XRseries.
-Require Export SeqProp.
+Require Export XSeqProp.
 Require Export Rcomplete.
 Require Export PartSum.
 Require Export AltSeries.
