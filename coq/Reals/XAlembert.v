@@ -23,8 +23,8 @@ Local Open Scope XR_scope.
 
 Lemma Alembert_C1 :
   forall An:nat -> R,
-    (forall n:nat, 0 < An n) ->
-    Un_cv (fun n:nat => Rabs (An (S n) / An n)) 0 ->
+    (forall n:nat, R0 < An n) ->
+    Un_cv (fun n:nat => Rabs (An (S n) / An n)) R0 ->
     { l:R | Un_cv (fun N:nat => sum_f_R0 An N) l }.
 Proof.
   intros An H H0.
@@ -33,10 +33,10 @@ Proof.
       { l:R | Un_cv (fun N:nat => sum_f_R0 An N) l }).
   intro X; apply X.
   apply completeness.
-  unfold Un_cv in H0; unfold bound; cut (0 < / 2);
-    [ intro | apply Rinv_0_lt_compat; prove_sup0 ].
-  elim (H0 (/ 2) H1); intros.
-  exists (sum_f_R0 An x + 2 * An (S x)).
+  unfold Un_cv in H0; unfold bound; cut (R0 < / R2);
+    [ intro | apply Rinv_0_lt_compat; exact Rlt_0_2 ].
+  elim (H0 (/ R2) H1); intros.
+  exists (sum_f_R0 An x + R2 * An (S x)).
   unfold is_upper_bound; intros; unfold EUn in H3; destruct H3 as (x1,->).
   destruct (lt_eq_lt_dec x1 x) as [[| -> ]|].
   replace (sum_f_R0 An x) with
@@ -45,66 +45,99 @@ Proof.
     rewrite Rplus_assoc; apply Rplus_le_compat_l.
   left; apply Rplus_lt_0_compat.
   apply tech1; intros; apply H.
-  apply Rmult_lt_0_compat; [ prove_sup0 | apply H ].
+  apply Rmult_lt_0_compat; [ exact Rlt_0_2 | apply H ].
   symmetry ; apply tech2; assumption.
   pattern (sum_f_R0 An x) at 1; rewrite <- Rplus_0_r;
     apply Rplus_le_compat_l.
-  left; apply Rmult_lt_0_compat; [ prove_sup0 | apply H ].
+  left; apply Rmult_lt_0_compat; [ exact Rlt_0_2 | apply H ].
   replace (sum_f_R0 An x1) with
     (sum_f_R0 An x + sum_f_R0 (fun i:nat => An (S x + i)%nat) (x1 - S x)).
   apply Rplus_le_compat_l.
   cut
     (sum_f_R0 (fun i:nat => An (S x + i)%nat) (x1 - S x) <=
-      An (S x) * sum_f_R0 (fun i:nat => (/ 2) ^ i) (x1 - S x)).
+      An (S x) * sum_f_R0 (fun i:nat => (/ R2) ^ i) (x1 - S x)).
   intro;
     apply Rle_trans with
-      (An (S x) * sum_f_R0 (fun i:nat => (/ 2) ^ i) (x1 - S x)).
+      (An (S x) * sum_f_R0 (fun i:nat => (/ R2) ^ i) (x1 - S x)).
   assumption.
   rewrite <- (Rmult_comm (An (S x))); apply Rmult_le_compat_l.
   left; apply H.
   rewrite tech3.
-  replace (1 - / 2) with (/ 2).
+  replace (R1 - / R2) with (/ R2).
   unfold Rdiv; rewrite Rinv_involutive.
-  pattern 2 at 3; rewrite <- Rmult_1_r; rewrite <- (Rmult_comm 2);
+  pattern R2 at 3; rewrite <- Rmult_1_r; rewrite <- (Rmult_comm R2);
     apply Rmult_le_compat_l.
-  left; prove_sup0.
-  left; apply Rplus_lt_reg_l with ((/ 2) ^ S (x1 - S x)).
-  replace ((/ 2) ^ S (x1 - S x) + (1 - (/ 2) ^ S (x1 - S x))) with 1;
-    [ idtac | ring ].
-  rewrite <- (Rplus_comm 1); pattern 1 at 1; rewrite <- Rplus_0_r;
+  left; exact Rlt_0_2.
+  left; apply Rplus_lt_reg_l with ((/ R2) ^ S (x1 - S x)).
+  replace ((/ R2) ^ S (x1 - S x) + (R1 - (/ R2) ^ S (x1 - S x))) with R1.
+    2:{
+unfold Rminus.
+rewrite Rplus_comm.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
+}
+  rewrite <- (Rplus_comm R1); pattern R1 at 1; rewrite <- Rplus_0_r;
     apply Rplus_lt_compat_l.
-  apply pow_lt; apply Rinv_0_lt_compat; prove_sup0.
-  discrR.
-  apply Rmult_eq_reg_l with 2.
+  apply pow_lt; apply Rinv_0_lt_compat. exact Rlt_0_2.
+  exact Neq_2_0.
+  apply Rmult_eq_reg_l with R2.
   rewrite Rmult_minus_distr_l; rewrite <- Rinv_r_sym.
-  ring.
-  discrR.
-  discrR.
-  replace 1 with (/ 1);
+  rewrite Rmult_1_r.
+  unfold R2.
+  unfold Rminus.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_r.
+  reflexivity.
+  exact Neq_2_0.
+  exact Neq_2_0.
+  replace R1 with (/ R1);
     [ apply tech7; discrR | apply Rinv_1 ].
   replace (An (S x)) with (An (S x + 0)%nat).
-  apply (tech6 (fun i:nat => An (S x + i)%nat) (/ 2)).
-  left; apply Rinv_0_lt_compat; prove_sup0.
-  intro; cut (forall n:nat, (n >= x)%nat -> An (S n) < / 2 * An n).
+  exact Neq_2_0.
+rewrite plus_comm. simpl. reflexivity.
+exact R1_neq_R0.
+intro eq. unfold R2 in eq. pattern R1 at 3 in eq;rewrite <- Rplus_0_l in eq.
+apply Rplus_eq_reg_r in eq.
+apply R1_neq_R0. exact eq.
+generalize tech6;intro t.
+pose (f := fun i : nat => An (S x + i)%nat).
+fold f.
+specialize (t f).
+specialize (t (/ R2)).
+specialize (t (x1 - S x)%nat).
+replace (f 0) with (An (S x)) in t.
+2:{ unfold f. rewrite plus_comm. simpl. reflexivity. }
+apply t.
+  left; apply Rinv_0_lt_compat. exact Rlt_0_2.
+  intro; cut (forall n:nat, (n >= x)%nat -> An (S n) < / R2 * An n).
   intro H4; replace (S x + S i)%nat with (S (S x + i)).
-  apply H4; unfold ge; apply tech8.
-  apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR; do 2 rewrite S_INR; ring.
+unfold f. rewrite <- plus_n_Sm.
+  apply H4. unfold ge; apply tech8.
+  apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR; do 2 rewrite S_INR.
+{
+repeat rewrite Rplus_assoc. reflexivity.
+}
   intros; unfold R_dist in H2; apply Rmult_lt_reg_l with (/ An n).
   apply Rinv_0_lt_compat; apply H.
   do 2 rewrite (Rmult_comm (/ An n)); rewrite Rmult_assoc;
     rewrite <- Rinv_r_sym.
   rewrite Rmult_1_r;
-    replace (An (S n) * / An n) with (Rabs (Rabs (An (S n) / An n) - 0)).
+    replace (An (S n) * / An n) with (Rabs (Rabs (An (S n) / An n) - R0)).
   apply H2; assumption.
   unfold Rminus; rewrite Ropp_0; rewrite Rplus_0_r;
     rewrite Rabs_Rabsolu; rewrite Rabs_right.
   unfold Rdiv; reflexivity.
-  left; unfold Rdiv; change (0 < An (S n) * / An n);
+  left; unfold Rdiv; change (R0 < An (S n) * / An n);
     apply Rmult_lt_0_compat; [ apply H | apply Rinv_0_lt_compat; apply H ].
   intro H5; assert (H8 := H n); rewrite H5 in H8;
     elim (Rlt_irrefl _ H8).
-  replace (S x + 0)%nat with (S x); [ reflexivity | ring ].
-  symmetry ; apply tech2; assumption.
+generalize tech2;intro t.
+specialize (t An x x1).
+symmetry. apply t.
+assumption.
   exists (sum_f_R0 An 0); unfold EUn; exists 0%nat; reflexivity.
   intros (x,H1).
   exists x; apply Un_cv_crit_lub;
@@ -116,33 +149,47 @@ Defined.
 
 Lemma Alembert_C2 :
   forall An:nat -> R,
-    (forall n:nat, An n <> 0) ->
-    Un_cv (fun n:nat => Rabs (An (S n) / An n)) 0 ->
+    (forall n:nat, An n <> R0) ->
+    Un_cv (fun n:nat => Rabs (An (S n) / An n)) R0 ->
     { l:R | Un_cv (fun N:nat => sum_f_R0 An N) l }.
 Proof.
   intros.
-  set (Vn := fun i:nat => (2 * Rabs (An i) + An i) / 2).
-  set (Wn := fun i:nat => (2 * Rabs (An i) - An i) / 2).
-  cut (forall n:nat, 0 < Vn n).
-  intro; cut (forall n:nat, 0 < Wn n).
-  intro; cut (Un_cv (fun n:nat => Rabs (Vn (S n) / Vn n)) 0).
-  intro; cut (Un_cv (fun n:nat => Rabs (Wn (S n) / Wn n)) 0).
+  set (Vn := fun i:nat => (R2 * Rabs (An i) + An i) / R2).
+  set (Wn := fun i:nat => (R2 * Rabs (An i) - An i) / R2).
+  cut (forall n:nat, R0 < Vn n).
+  intro; cut (forall n:nat, R0 < Wn n).
+  intro; cut (Un_cv (fun n:nat => Rabs (Vn (S n) / Vn n)) R0).
+  intro; cut (Un_cv (fun n:nat => Rabs (Wn (S n) / Wn n)) R0).
   intro; pose proof (Alembert_C1 Vn H1 H3) as (x,p).
   pose proof (Alembert_C1 Wn H2 H4) as (x0,p0).
   exists (x - x0); unfold Un_cv; unfold Un_cv in p;
-    unfold Un_cv in p0; intros; cut (0 < eps / 2).
-  intro H6; destruct (p (eps / 2) H6) as (x1,H8). clear p.
-  destruct (p0 (eps / 2) H6) as (x2,H9). clear p0.
+    unfold Un_cv in p0; intros; cut (R0 < eps / R2).
+  intro H6; destruct (p (eps / R2) H6) as (x1,H8). clear p.
+  destruct (p0 (eps / R2) H6) as (x2,H9). clear p0.
   set (N := max x1 x2).
   exists N; intros;
     replace (sum_f_R0 An n) with (sum_f_R0 Vn n - sum_f_R0 Wn n).
   unfold R_dist;
     replace (sum_f_R0 Vn n - sum_f_R0 Wn n - (x - x0)) with
-      (sum_f_R0 Vn n - x + - (sum_f_R0 Wn n - x0)); [ idtac | ring ];
+      (sum_f_R0 Vn n - x + - (sum_f_R0 Wn n - x0)).
+2:{
+unfold Rminus.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+reflexivity.
+}
       apply Rle_lt_trans with
 	(Rabs (sum_f_R0 Vn n - x) + Rabs (- (sum_f_R0 Wn n - x0))).
   apply Rabs_triang.
-  rewrite Rabs_Ropp; apply Rlt_le_trans with (eps / 2 + eps / 2).
+  rewrite Rabs_Ropp; apply Rlt_le_trans with (eps / R2 + eps / R2).
   apply Rplus_lt_compat.
   unfold R_dist in H8; apply H8; unfold ge; apply le_trans with N;
     [ unfold N; apply le_max_l | assumption ].
@@ -150,30 +197,46 @@ Proof.
     [ unfold N; apply le_max_r | assumption ].
   right; symmetry ; apply double_var.
   symmetry ; apply tech11; intro; unfold Vn, Wn;
-    unfold Rdiv; do 2 rewrite <- (Rmult_comm (/ 2));
-      apply Rmult_eq_reg_l with 2.
+    unfold Rdiv; do 2 rewrite <- (Rmult_comm (/ R2));
+      apply Rmult_eq_reg_l with R2.
   rewrite Rmult_minus_distr_l; repeat rewrite <- Rmult_assoc;
     rewrite <- Rinv_r_sym.
-  ring.
-  discrR.
-  discrR.
+symmetry.
+rewrite Rmult_1_l.
+unfold Rminus.
+rewrite Rmult_1_l.
+rewrite Rplus_comm.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+unfold R2 at 3.
+rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_1_l.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
+exact Neq_2_0.
+exact Neq_2_0.
   unfold Rdiv; apply Rmult_lt_0_compat;
-    [ assumption | apply Rinv_0_lt_compat; prove_sup0 ].
-  cut (forall n:nat, / 2 * Rabs (An n) <= Wn n <= 3 * / 2 * Rabs (An n)).
-  intro; cut (forall n:nat, / Wn n <= 2 * / Rabs (An n)).
-  intro; cut (forall n:nat, Wn (S n) / Wn n <= 3 * Rabs (An (S n) / An n)).
-  intro; unfold Un_cv; intros; unfold Un_cv in H0; cut (0 < eps / 3).
-  intro; elim (H0 (eps / 3) H8); intros.
+    [ assumption | apply Rinv_0_lt_compat; exact Rlt_0_2 ].
+  cut (forall n:nat, / R2 * Rabs (An n) <= Wn n <= R3 * / R2 * Rabs (An n)).
+  intro; cut (forall n:nat, / Wn n <= R2 * / Rabs (An n)).
+  intro; cut (forall n:nat, Wn (S n) / Wn n <= R3 * Rabs (An (S n) / An n)).
+  intro; unfold Un_cv; intros; unfold Un_cv in H0; cut (R0 < eps / R3).
+  intro; elim (H0 (eps / R3) H8); intros.
   exists x; intros.
   assert (H11 := H9 n H10).
   unfold R_dist; unfold Rminus; rewrite Ropp_0;
     rewrite Rplus_0_r; rewrite Rabs_Rabsolu; unfold R_dist in H11;
       unfold Rminus in H11; rewrite Ropp_0 in H11; rewrite Rplus_0_r in H11;
 	rewrite Rabs_Rabsolu in H11; rewrite Rabs_right.
-  apply Rle_lt_trans with (3 * Rabs (An (S n) / An n)).
+  apply Rle_lt_trans with (R3 * Rabs (An (S n) / An n)).
   apply H6.
-  apply Rmult_lt_reg_l with (/ 3).
-  apply Rinv_0_lt_compat; prove_sup0.
+  apply Rmult_lt_reg_l with (/ R3).
+  apply Rinv_0_lt_compat. exact Rlt_0_3
   rewrite <- Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | discrR ];
     rewrite Rmult_1_l; rewrite <- (Rmult_comm eps); unfold Rdiv in H11;
       exact H11.

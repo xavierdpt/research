@@ -3341,6 +3341,22 @@ rewrite Rmult_1_r.
 reflexivity.
 Qed.
 
+Remark R1_minus_half : R1 - / R2 = / R2.
+Proof.
+rewrite <- split_2 with R1.
+unfold Rdiv.
+pattern (/ R2) at 3;rewrite <- Rmult_1_l.
+rewrite <- Rmult_plus_distr_r.
+unfold Rminus.
+rewrite Ropp_mult_distr_l.
+rewrite <- Rmult_plus_distr_r.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_r.
+rewrite Rmult_1_l.
+reflexivity.
+Qed.
+
 Lemma split_3 : forall x, x / R3 + x / R3 + x / R3 = x.
 Proof.
 intro x.
