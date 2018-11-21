@@ -23,6 +23,11 @@ Notation "/ x" := (Rinv x) : XR_scope.
 
 Infix "<" := Rlt : XR_scope.
 
+Definition R2 := R1 + R1.
+Definition R3 := R2 + R1.
+Definition R4 := R2 + R2.
+Definition R5 := R3 + R2.
+
 Definition Rgt (r1 r2:R) : Prop := r2 < r1.
 Definition Rle (r1 r2:R) : Prop := r1 < r2 \/ r1 = r2.
 Definition Rge (r1 r2:R) : Prop := Rgt r1 r2 \/ r1 = r2.

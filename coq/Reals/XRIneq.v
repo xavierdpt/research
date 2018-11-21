@@ -10,6 +10,8 @@ Local Open Scope XR_scope.
 
 Implicit Type r : R.
 
+
+
 Lemma Rle_refl : forall r, r <= r.
 Proof.
   intros r.
@@ -3260,3 +3262,99 @@ Notation not_O_INR := not_0_INR (only parsing).
 Notation not_O_IZR := not_0_IZR (only parsing).
 Notation le_O_IZR := le_0_IZR (only parsing).
 Notation lt_O_IZR := lt_0_IZR (only parsing).
+
+Remark Rlt_0_2 : R0 < R2.
+Proof.
+unfold R2.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_1.
+exact Rlt_0_1.
+Qed.
+
+Remark Rlt_0_3 : R0 < R3.
+Proof.
+unfold R3.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_2.
+exact Rlt_0_1.
+Qed.
+
+Remark Neq_2_0 : R2 <> R0.
+Proof.
+apply not_eq_sym.
+apply Rlt_not_eq.
+exact Rlt_0_2.
+Qed.
+
+Remark Neq_3_0 : R3 <> R0.
+Proof.
+apply not_eq_sym.
+apply Rlt_not_eq.
+exact Rlt_0_3.
+Qed.
+
+Remark R2_1 :  R1 + R1 = R2.
+Proof.
+unfold R2.
+reflexivity.
+Qed.
+
+Remark R3_1 :  R1 + R1 + R1 = R3.
+Proof.
+unfold R3.
+unfold R2.
+reflexivity.
+Qed.
+
+Remark Rlt_0_4 : R0 < R4.
+Proof.
+unfold R4.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_2.
+exact Rlt_0_2.
+Qed.
+
+Remark Rlt_0_5 : R0 < R5.
+Proof.
+unfold R5.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_3.
+exact Rlt_0_2.
+Qed.
+
+Lemma split_2 : forall x, x / R2 + x / R2 = x.
+Proof.
+intro x.
+unfold Rdiv.
+rewrite <- Rmult_plus_distr_r.
+pattern x at 1 2 ; rewrite <- Rmult_1_r.
+rewrite <- Rmult_plus_distr_l.
+rewrite R2_1.
+rewrite Rmult_assoc.
+rewrite Rinv_r.
+2:exact Neq_2_0.
+rewrite Rmult_1_r.
+reflexivity.
+Qed.
+
+Lemma split_3 : forall x, x / R3 + x / R3 + x / R3 = x.
+Proof.
+intro x.
+unfold Rdiv.
+rewrite <- Rmult_plus_distr_r.
+rewrite <- Rmult_plus_distr_r.
+pattern x at 1 2 3 ; rewrite <- Rmult_1_r.
+rewrite <- Rmult_plus_distr_l.
+rewrite <- Rmult_plus_distr_l.
+rewrite R3_1.
+rewrite Rmult_assoc.
+rewrite Rinv_r.
+2:exact Neq_3_0.
+rewrite Rmult_1_r.
+reflexivity.
+Qed.
+
