@@ -8,18 +8,18 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import SeqProp.
-Require Import PartSum.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XSeqProp.
+Require Import XPartSum.
 Require Import Max.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (**********)
 (** * Formalization of alternated series *)
-Definition tg_alt (Un:nat -> R) (i:nat) : R := (-1) ^ i * Un i.
-Definition positivity_seq (Un:nat -> R) : Prop := forall n:nat, 0 <= Un n.
+Definition tg_alt (Un:nat -> R) (i:nat) : R := (-R1) ^ i * Un i.
+Definition positivity_seq (Un:nat -> R) : Prop := forall n:nat, R0 <= Un n.
 
 Lemma CV_ALT_step0 :
   forall Un:nat -> R,
@@ -36,8 +36,17 @@ Proof.
     rewrite Rmult_1_l.
   apply Rplus_le_reg_l with (Un (S (2 * S n))).
   rewrite Rplus_0_r;
-    replace (Un (S (2 * S n)) + (Un (2 * S n)%nat + -1 * Un (S (2 * S n)))) with
-      (Un (2 * S n)%nat); [ idtac | ring ].
+    replace (Un (S (2 * S n)) + (Un (2 * S n)%nat + -R1 * Un (S (2 * S n)))) with
+      (Un ( 2 * S n)%nat).
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+rewrite Rplus_comm.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
+}
   apply H.
   cut (forall n:nat, S n = (n + 1)%nat); [ intro | intro; ring ].
   rewrite (H0 n); rewrite (H0 (S (2 * n))); rewrite (H0 (2 * n)%nat); ring.
@@ -57,8 +66,16 @@ Proof.
     rewrite Rmult_1_l.
   apply Rplus_le_reg_l with (Un (S (2 * n))).
   rewrite Rplus_0_r;
-    replace (Un (S (2 * n)) + (-1 * Un (S (2 * n)) + Un (2 * S n)%nat)) with
-      (Un (2 * S n)%nat); [ idtac | ring ].
+    replace (Un (S (2 * n)) + (-R1 * Un (S (2 * n)) + Un (2 * S n)%nat)) with
+      (Un (2 * S n)%nat).
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
+}
   rewrite H0; apply H.
   cut (forall n:nat, S n = (n + 1)%nat); [ intro | intro; ring ].
   rewrite (H0 n); rewrite (H0 (S (2 * n))); rewrite (H0 (2 * n)%nat); ring.
@@ -69,14 +86,30 @@ Lemma CV_ALT_step2 :
   forall (Un:nat -> R) (N:nat),
     Un_decreasing Un ->
     positivity_seq Un ->
-    sum_f_R0 (fun i:nat => tg_alt Un (S i)) (S (2 * N)) <= 0.
+    sum_f_R0 (fun i:nat => tg_alt Un (S i)) (S (2 * N)) <= R0.
 Proof.
   intros; induction  N as [| N HrecN].
   simpl; unfold tg_alt; simpl; rewrite Rmult_1_r.
-  replace (-1 * -1 * Un 2%nat) with (Un 2%nat); [ idtac | ring ].
+  replace (-R1 * -R1 * Un 2%nat) with (Un 2%nat).
+  2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite <- Ropp_mult_distr_r.
+rewrite Ropp_involutive.
+rewrite Rmult_1_l.
+rewrite Rmult_1_l.
+reflexivity.
+  }
   apply Rplus_le_reg_l with (Un 1%nat); rewrite Rplus_0_r.
-  replace (Un 1%nat + (-1 * Un 1%nat + Un 2%nat)) with (Un 2%nat);
-    [ apply H | ring ].
+  replace (Un 1%nat + (-R1 * Un 1%nat + Un 2%nat)) with (Un 2%nat).
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
+}
+    apply H. 
   cut (S (2 * S N) = S (S (S (2 * N)))).
   intro; rewrite H1; do 2 rewrite tech5.
   apply Rle_trans with (sum_f_R0 (fun i:nat => tg_alt Un (S i)) (S (2 * N))).
@@ -89,8 +122,17 @@ Proof.
   intro; rewrite H2; rewrite pow_1_even; rewrite Rmult_1_l; rewrite <- H2.
   apply Rplus_le_reg_l with (Un (S (2 * S N))).
   rewrite Rplus_0_r;
-    replace (Un (S (2 * S N)) + (-1 * Un (S (2 * S N)) + Un (S (S (2 * S N)))))
-      with (Un (S (S (2 * S N)))); [ idtac | ring ].
+    replace (Un (S (2 * S N)) + (-R1 * Un (S (2 * S N)) + Un (S (S (2 * S N)))))
+      with (Un (S (S (2 * S N)))).
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
+}
+
   apply H.
   ring.
   apply HrecN.
@@ -101,13 +143,19 @@ Qed.
 Lemma CV_ALT_step3 :
   forall (Un:nat -> R) (N:nat),
     Un_decreasing Un ->
-    positivity_seq Un -> sum_f_R0 (fun i:nat => tg_alt Un (S i)) N <= 0.
+    positivity_seq Un -> sum_f_R0 (fun i:nat => tg_alt Un (S i)) N <= R0.
 Proof.
   intros; induction  N as [| N HrecN].
   simpl; unfold tg_alt; simpl; rewrite Rmult_1_r.
   apply Rplus_le_reg_l with (Un 1%nat).
-  rewrite Rplus_0_r; replace (Un 1%nat + -1 * Un 1%nat) with 0;
-    [ apply H0 | ring ].
+  rewrite Rplus_0_r; replace (Un 1%nat + -R1 * Un 1%nat) with R0.
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+rewrite Rplus_opp_r.
+reflexivity.
+}
+    apply H0.
   assert (H1 := even_odd_cor N).
   elim H1; intros.
   elim H2; intro.
@@ -120,8 +168,19 @@ Proof.
   unfold tg_alt; simpl.
   replace (x + (x + 0))%nat with (2 * x)%nat; [ idtac | ring ].
   rewrite pow_1_even.
-  replace (-1 * (-1 * (-1 * 1)) * Un (S (S (S (2 * x))))) with
-    (- Un (S (S (S (2 * x))))); [ idtac | ring ].
+  replace (-R1 * (-R1 * (-R1 * R1)) * Un (S (S (S (2 * x))))) with
+    (- Un (S (S (S (2 * x))))).
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_r.
+rewrite Rmult_1_l.
+rewrite <- Ropp_mult_distr_l.
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+rewrite Ropp_involutive.
+rewrite Rmult_1_l.
+reflexivity.
+}
   apply Rplus_le_reg_l with (Un (S (S (S (2 * x))))).
   rewrite Rplus_0_r; rewrite Rplus_opp_r.
   apply H0.
@@ -143,7 +202,9 @@ Proof.
   pattern (Un 0%nat) at 2; rewrite <- Rplus_0_r.
   apply Rplus_le_compat_l.
   apply CV_ALT_step3; assumption.
-  unfold tg_alt; simpl; ring.
+  unfold tg_alt; simpl.
+rewrite Rmult_1_l.
+reflexivity.
   apply lt_O_Sn.
 Qed.
 
@@ -152,7 +213,7 @@ Lemma CV_ALT :
   forall Un:nat -> R,
     Un_decreasing Un ->
     positivity_seq Un ->
-    Un_cv Un 0 ->
+    Un_cv Un R0 ->
     { l:R | Un_cv (fun N:nat => sum_f_R0 (tg_alt Un) N) l }.
 Proof.
   intros.
@@ -162,12 +223,16 @@ Proof.
   exists x.
   unfold Un_cv; unfold R_dist; unfold Un_cv in H1;
     unfold R_dist in H1; unfold Un_cv in p; unfold R_dist in p.
-  intros; cut (0 < eps / 2);
-    [ intro
-      | unfold Rdiv; apply Rmult_lt_0_compat;
-	[ assumption | apply Rinv_0_lt_compat; prove_sup0 ] ].
-  elim (H1 (eps / 2) H5); intros N2 H6.
-  elim (p (eps / 2) H5); intros N1 H7.
+  intros; cut (R0 < eps / (IZR 2)).
+    intro.
+    2:{
+unfold Rdiv. apply Rmult_lt_0_compat.
+	assumption.
+apply Rinv_0_lt_compat.
+apply Rlt_0_2.
+}
+  elim (H1 (eps / (IZR 2)) H5); intros N2 H6.
+  elim (p (eps / (IZR 2)) H5); intros N1 H7.
   set (N := max (S (2 * N1)) N2).
   exists N; intros.
   assert (H9 := even_odd_cor n).
@@ -188,16 +253,25 @@ Proof.
   unfold ge; apply le_trans with n.
   apply le_trans with N; [ unfold N; apply le_max_r | assumption ].
   apply le_n_Sn.
-  rewrite tech5; ring.
-  rewrite H12; apply Rlt_trans with (eps / 2).
+  rewrite tech5.
+unfold Rminus.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
+  rewrite H12; apply Rlt_trans with (eps / (IZR 2)).
   apply H7; assumption.
-  unfold Rdiv; apply Rmult_lt_reg_l with 2.
-  prove_sup0.
-  rewrite (Rmult_comm 2); rewrite Rmult_assoc; rewrite <- Rinv_l_sym;
+  unfold Rdiv; apply Rmult_lt_reg_l with (IZR 2).
+exact Rlt_0_2.
+  rewrite (Rmult_comm (IZR 2)); rewrite Rmult_assoc; rewrite <- Rinv_l_sym;
     [ rewrite Rmult_1_r | discrR ].
   rewrite double.
   pattern eps at 1; rewrite <- (Rplus_0_r eps); apply Rplus_lt_compat_l;
     assumption.
+exact Neq_2_0.
   elim H10; intro; apply le_double.
   rewrite <- H11; apply le_trans with N.
   unfold N; apply le_trans with (S (2 * N1));
@@ -218,7 +292,7 @@ Qed.
 Theorem alternated_series :
   forall Un:nat -> R,
     Un_decreasing Un ->
-    Un_cv Un 0 ->
+    Un_cv Un R0 ->
     { l:R | Un_cv (fun N:nat => sum_f_R0 (tg_alt Un) N) l }.
 Proof.
   intros; apply CV_ALT.
@@ -230,7 +304,7 @@ Qed.
 Theorem alternated_series_ineq :
   forall (Un:nat -> R) (l:R) (N:nat),
     Un_decreasing Un ->
-    Un_cv Un 0 ->
+    Un_cv Un R0 ->
     Un_cv (fun N:nat => sum_f_R0 (tg_alt Un) N) l ->
     sum_f_R0 (tg_alt Un) (S (2 * N)) <= l <= sum_f_R0 (tg_alt Un) (2 * N).
 Proof.
@@ -278,7 +352,7 @@ Qed.
 
 Definition PI_tg (n:nat) := / INR (2 * n + 1).
 
-Lemma PI_tg_pos : forall n:nat, 0 <= PI_tg n.
+Lemma PI_tg_pos : forall n:nat, R0 <= PI_tg n.
 Proof.
   intro; unfold PI_tg; left; apply Rinv_0_lt_compat; apply lt_INR_0;
     replace (2 * n + 1)%nat with (S (2 * n)); [ apply lt_O_Sn | ring ].
@@ -305,14 +379,19 @@ Proof.
     [ discriminate | ring ].
 Qed.
 
-Lemma PI_tg_cv : Un_cv PI_tg 0.
+Lemma PI_tg_cv : Un_cv PI_tg R0.
 Proof.
   unfold Un_cv; unfold R_dist; intros.
-  cut (0 < 2 * eps);
-    [ intro | apply Rmult_lt_0_compat; [ prove_sup0 | assumption ] ].
-  assert (H1 := archimed (/ (2 * eps))).
-  cut (0 <= up (/ (2 * eps)))%Z.
-  intro; assert (H3 := IZN (up (/ (2 * eps))) H2).
+  cut (R0 < (IZR 2) * eps).
+    intro.
+2:{
+apply Rmult_lt_0_compat.
+apply Rlt_0_2.
+assumption.
+}
+  assert (H1 := archimed (/ ((IZR 2) * eps))).
+  cut (0 <= up (/ ((IZR 2) * eps)))%Z.
+  intro; assert (H3 := IZN (up (/ ((IZR 2) * eps))) H2).
   elim H3; intros N H4.
   cut (0 < N)%nat.
   intro; exists N; intros.
@@ -342,23 +421,54 @@ Proof.
   assumption.
   apply Rle_lt_trans with (/ INR (2 * N)).
   apply Rinv_le_contravar.
-  rewrite mult_INR; apply Rmult_lt_0_compat;
-    [ simpl; prove_sup0 | apply lt_INR_0; assumption ].
+  rewrite mult_INR; apply Rmult_lt_0_compat.
+    simpl.
+pattern R0 ; rewrite <- Rplus_0_l.
+apply Rplus_lt_compat;exact Rlt_0_1.
+ apply lt_INR_0. assumption.
   apply le_INR.
   now apply mult_le_compat_l.
   rewrite mult_INR.
   apply Rmult_lt_reg_l with (INR N / eps).
   apply Rdiv_lt_0_compat with (2 := H).
   now apply (lt_INR 0).
-  replace (_ */ _) with (/(2 * eps)).
+  replace (_ */ _) with (/((IZR 2) * eps)).
   replace (_ / _ * _) with (INR N).
   rewrite INR_IZR_INZ.
   now rewrite <- H4.
-  field.
-  now apply Rgt_not_eq.
-  simpl (INR 2); field; split.
-  now apply Rgt_not_eq, (lt_INR 0).
-  now apply Rgt_not_eq.
+  unfold Rdiv.
+rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+reflexivity.
+apply Rgt_not_eq.
+assumption.
+  simpl (INR 2).
+change R1 with (IZR 1).
+rewrite <- plus_IZR.
+simpl.
+unfold Rdiv.
+rewrite Rinv_mult_distr.
+rewrite Rinv_mult_distr.
+repeat rewrite Rmult_assoc.
+rewrite (Rmult_comm (INR N)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+rewrite Rmult_comm.
+reflexivity.
+apply Rgt_not_eq.
+change R0 with (INR 0).
+apply lt_INR.
+assumption.
+exact Neq_2_0.
+apply Rgt_not_eq.
+change R0 with (INR 0).
+apply lt_INR.
+assumption.
+exact Neq_2_0.
+apply Rgt_not_eq.
+assumption.
   apply Rle_ge; apply PI_tg_pos.
   apply lt_le_trans with N; assumption.
   elim H1; intros H5 _.
@@ -366,11 +476,11 @@ Proof.
   assumption.
   rewrite H4 in H5.
   simpl in H5.
-  cut (0 < / (2 * eps)); [ intro | apply Rinv_0_lt_compat; assumption ].
+  cut (R0 < / ((IZR 2) * eps)); [ intro | apply Rinv_0_lt_compat; assumption ].
   elim (Rlt_irrefl _ (Rlt_trans _ _ _ H6 H5)).
   elim (lt_n_O _ H6).
   apply le_IZR.
-  left; apply Rlt_trans with (/ (2 * eps)).
+  left; apply Rlt_trans with (/ ((IZR 2) * eps)).
   apply Rinv_0_lt_compat; assumption.
   elim H1; intros; assumption.
 Qed.
@@ -384,29 +494,36 @@ Proof.
 Qed.
 
 (** Now, PI is defined *)
-Definition Alt_PI : R := 4 * (let (a,_) := exist_PI in a).
+Definition Alt_PI : R := (IZR 4) * (let (a,_) := exist_PI in a).
 
 (** We can get an approximation of PI with the following inequality *)
 Lemma Alt_PI_ineq :
   forall N:nat,
-    sum_f_R0 (tg_alt PI_tg) (S (2 * N)) <= Alt_PI / 4 <=
+    sum_f_R0 (tg_alt PI_tg) (S (2 * N)) <= Alt_PI / (IZR 4) <=
     sum_f_R0 (tg_alt PI_tg) (2 * N).
 Proof.
   intro; apply alternated_series_ineq.
   apply PI_tg_decreasing.
   apply PI_tg_cv.
   unfold Alt_PI; case exist_PI; intro.
-  replace (4 * x / 4) with x.
+  replace ((IZR 4) * x / (IZR 4)) with x.
   trivial.
-  unfold Rdiv; rewrite (Rmult_comm 4); rewrite Rmult_assoc;
+  unfold Rdiv; rewrite (Rmult_comm (IZR 4)); rewrite Rmult_assoc;
     rewrite <- Rinv_r_sym; [ rewrite Rmult_1_r; reflexivity | discrR ].
+change R0 with (IZR 0).
+apply IZR_neq.
+intro eq. inversion eq.
 Qed.
 
-Lemma Alt_PI_RGT_0 : 0 < Alt_PI.
+Lemma Alt_PI_RGT_0 : R0 < Alt_PI.
 Proof.
   assert (H := Alt_PI_ineq 0).
-  apply Rmult_lt_reg_l with (/ 4).
-  apply Rinv_0_lt_compat; prove_sup0.
+  apply Rmult_lt_reg_l with (/ (IZR 4)).
+  apply Rinv_0_lt_compat.
+change 4%Z with (2+2)%Z.
+rewrite plus_IZR.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat;exact Rlt_0_2.
   rewrite Rmult_0_r; rewrite Rmult_comm.
   elim H; clear H; intros H _.
   unfold Rdiv in H;
@@ -414,11 +531,38 @@ Proof.
   simpl; unfold tg_alt; simpl; rewrite Rmult_1_l;
     rewrite Rmult_1_r; apply Rplus_lt_reg_l with (PI_tg 1).
   rewrite Rplus_0_r;
-    replace (PI_tg 1 + (PI_tg 0 + -1 * PI_tg 1)) with (PI_tg 0);
-      [ unfold PI_tg | ring ].
+    replace (PI_tg 1 + (PI_tg 0 + -R1 * PI_tg 1)) with (PI_tg 0);
+      unfold PI_tg.
+2:{
+simpl.
+rewrite Rinv_1.
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+symmetry.
+rewrite Rplus_comm.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
+}
   simpl; apply Rinv_lt_contravar.
-  rewrite Rmult_1_l; replace (2 + 1) with 3; [ prove_sup0 | ring ].
-  rewrite Rplus_comm; pattern 1 at 1; rewrite <- Rplus_0_r;
-    apply Rplus_lt_compat_l; prove_sup0.
+  rewrite Rmult_1_l; replace (IZR 2 + R1) with (IZR 3).
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_1.
+exact Rlt_0_1.
+exact Rlt_0_1.
+change R1 with (IZR 1).
+rewrite <- plus_IZR.
+simpl.
+reflexivity.
+  rewrite Rplus_comm; pattern R1 at 1; rewrite <- Rplus_0_r;
+    apply Rplus_lt_compat_l.
+pattern R0;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat.
+exact Rlt_0_1.
+exact Rlt_0_1.
   assumption.
 Qed.

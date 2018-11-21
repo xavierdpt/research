@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XPartSum.vo
+ALL: XBinomial.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -54,5 +54,10 @@ XRcomplete.vo: XRcomplete.v XSeqProp.vo
 XPartSum.vo: XPartSum.v XRcomplete.vo
 	C:\Coq\bin\coqc XPartSum.v
 
+XAltSeries.vo: XAltSeries.v XPartSum.vo
+	C:\Coq\bin\coqc XAltSeries.v
+
+XBinomial.vo: XBinomial.v XAltSeries.vo
+	C:\Coq\bin\coqc XBinomial.v
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v

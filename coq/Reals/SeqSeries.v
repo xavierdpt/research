@@ -14,8 +14,8 @@ Require Import Max.
 Require Export XRseries.
 Require Export XSeqProp.
 Require Export XRcomplete.
-Require Export PartSum.
-Require Export AltSeries.
+Require Export XPartSum.
+Require Export XAltSeries.
 Require Export Binomial.
 Require Export Rsigma.
 Require Export Rprod.
