@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XCauchy_prod.vo
+ALL: XAlembert.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -68,6 +68,9 @@ XRprod.vo: XRprod.v XRsigma.vo
 
 XCauchy_prod.vo: XCauchy_prod.v XRprod.vo
 	C:\Coq\bin\coqc XCauchy_prod.v
+
+XAlembert.vo: XAlembert.v XCauchy_prod.vo
+	C:\Coq\bin\coqc XAlembert.v
 
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v

@@ -35,7 +35,13 @@ Proof.
   induction  N as [| N HrecN].
   reflexivity.
   do 3 rewrite tech5.
-  rewrite HrecN; ring.
+  rewrite HrecN.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+reflexivity.
 Qed.
 
   (* The main result *)
@@ -53,7 +59,16 @@ Proof.
   elim (lt_irrefl _ H).
   cut (N = 0%nat \/ (0 < N)%nat).
   intro; elim H0; intro.
-  rewrite H1; simpl; ring.
+  rewrite H1; simpl.
+rewrite Rmult_plus_distr_l.
+rewrite Rmult_plus_distr_r.
+rewrite Rmult_plus_distr_r.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+reflexivity.
   replace (pred (S N)) with (S (pred N)).
   do 5 rewrite tech5.
   rewrite Rmult_plus_distr_r; rewrite Rmult_plus_distr_l; rewrite (HrecN H1).
@@ -68,7 +83,19 @@ Proof.
       repeat rewrite Rplus_assoc; apply Rplus_eq_compat_l.
   rewrite <- minus_n_n; cut (N = 1%nat \/ (2 <= N)%nat).
   intro; elim H2; intro.
-  rewrite H3; simpl; ring.
+  rewrite H3; simpl.
+rewrite Rmult_plus_distr_r.
+rewrite Rmult_plus_distr_l.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+reflexivity.
   replace
     (sum_f_R0
       (fun k:nat =>
@@ -124,8 +151,11 @@ Proof.
       (fun k:nat =>
 	sum_f_R0 (fun l:nat => An (S (S (l + k))) * Bn (N - l)%nat)
         (pred (pred (N - k)))) (pred (pred N)));
-    set (Z2 := sum_f_R0 (fun i:nat => Bn (S i)) (pred N));
-      ring.
+    set (Z2 := sum_f_R0 (fun i:nat => Bn (S i)) (pred N)).
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+reflexivity.
   rewrite
     (sum_N_predN
       (fun k:nat =>
@@ -156,7 +186,8 @@ Proof.
   rewrite <- (scal_sum (fun l:nat => Bn (S l)) (pred (pred N)) (An (S N)));
     rewrite (sum_N_predN (fun l:nat => Bn (S l)) (pred N)).
   replace (S (pred N)) with N.
-  ring.
+rewrite Rmult_plus_distr_l.
+reflexivity.
   apply S_pred with 0%nat; assumption.
   apply lt_pred; apply lt_le_trans with 2%nat; [ apply lt_n_Sn | assumption ].
   apply sum_eq; intros; apply Rmult_comm.
@@ -176,15 +207,37 @@ Proof.
   replace (N - pred (N - i))%nat with (S i).
   reflexivity.
   rewrite pred_of_minus; apply INR_eq; repeat rewrite minus_INR.
-  rewrite S_INR; simpl; ring.
+  rewrite S_INR; simpl.
+unfold Rminus.
+repeat rewrite Ropp_plus_distr.
+repeat rewrite Ropp_involutive.
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
   apply le_trans with (pred (pred N)).
   assumption.
   apply le_trans with (pred N); apply le_pred_n.
   apply INR_le; rewrite minus_INR.
-  apply Rplus_le_reg_l with (INR i - 1).
-  replace (INR i - 1 + INR 1) with (INR i); [ idtac | simpl; ring ].
-  replace (INR i - 1 + (INR N - INR i)) with (INR N - INR 1);
-    [ idtac | simpl; ring ].
+  apply Rplus_le_reg_l with (INR i - R1).
+  replace (INR i - R1 + INR 1) with (INR i).
+2:{ simpl.
+unfold Rminus. rewrite Rplus_assoc. rewrite Rplus_opp_l. rewrite Rplus_0_r. reflexivity.
+}
+  replace (INR i - R1 + (INR N - INR i)) with (INR N - INR 1).
+2:{ 
+simpl.
+symmetry.
+unfold Rminus.
+rewrite Rplus_comm.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_assoc.
+rewrite Rplus_comm.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_l.
+reflexivity.
+}
   rewrite <- minus_INR.
   apply le_INR; apply le_trans with (pred (pred N)).
   assumption.
@@ -223,16 +276,47 @@ Proof.
   apply le_pred_n.
   apply INR_eq; rewrite pred_of_minus; do 3 rewrite S_INR; rewrite plus_INR;
     repeat rewrite minus_INR.
-  simpl; ring.
+  simpl.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+symmetry.
+unfold Rminus.
+repeat rewrite Rplus_assoc.
+rewrite (Rplus_comm (-R1)).
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_r.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
   apply le_trans with (pred (pred N)).
   assumption.
   apply le_trans with (pred N); apply le_pred_n.
   apply INR_le.
   rewrite minus_INR.
-  apply Rplus_le_reg_l with (INR i - 1).
-  replace (INR i - 1 + INR 1) with (INR i); [ idtac | simpl; ring ].
-  replace (INR i - 1 + (INR N - INR i)) with (INR N - INR 1);
-    [ idtac | simpl; ring ].
+  apply Rplus_le_reg_l with (INR i - R1).
+  replace (INR i - R1 + INR 1) with (INR i).
+2:{
+simpl.
+unfold Rminus.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
+}
+  replace (INR i - R1 + (INR N - INR i)) with (INR N - INR 1).
+2:{
+simpl.
+symmetry.
+unfold Rminus.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_l.
+reflexivity.
+}
   rewrite <- minus_INR.
   apply le_INR.
   apply le_trans with (pred (pred N)).
@@ -250,9 +334,17 @@ Proof.
   apply INR_le.
   rewrite pred_of_minus.
   repeat rewrite minus_INR.
-  apply Rplus_le_reg_l with (INR i - 1).
-  replace (INR i - 1 + INR 1) with (INR i); [ idtac | simpl; ring ].
-  replace (INR i - 1 + (INR N - INR i - INR 1)) with (INR N - INR 1 - INR 1).
+  apply Rplus_le_reg_l with (INR i - R1).
+  replace (INR i - R1 + INR 1) with (INR i).
+2:{
+simpl.
+unfold Rminus.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
+}
+  replace (INR i - R1 + (INR N - INR i - INR 1)) with (INR N - INR 1 - INR 1).
   repeat rewrite <- minus_INR.
   apply le_INR.
   apply le_trans with (pred (pred N)).
@@ -264,7 +356,17 @@ Proof.
   simpl; assumption.
   apply le_trans with 2%nat; [ apply le_n_Sn | assumption ].
   apply le_trans with 2%nat; [ apply le_n_Sn | assumption ].
-  simpl; ring.
+  simpl.
+unfold Rminus.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+symmetry.
+rewrite Rplus_comm.
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_l.
+rewrite Rplus_comm.
+reflexivity.
   apply le_trans with (pred (pred N)).
   assumption.
   apply le_trans with (pred N); apply le_pred_n.
@@ -314,12 +416,24 @@ Proof.
   replace (S N - S i0)%nat with (N - i0)%nat; [ idtac | reflexivity ].
   replace (S i0 + i)%nat with (S (i0 + i)).
   reflexivity.
-  apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR; rewrite S_INR; simpl; ring.
+  apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR; rewrite S_INR; simpl.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+reflexivity.
   cut ((N - i)%nat = pred (S N - i)).
   intro; rewrite H5; reflexivity.
   rewrite pred_of_minus.
   apply INR_eq; repeat rewrite minus_INR.
-  rewrite S_INR; simpl; ring.
+  rewrite S_INR; simpl.
+unfold Rminus.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
   apply le_trans with N.
   apply le_trans with (pred N).
   assumption.
@@ -332,7 +446,8 @@ Proof.
   apply le_trans with (pred N).
   assumption.
   apply le_pred_n.
-  apply INR_eq; rewrite S_INR; rewrite plus_INR; simpl; ring.
+  apply INR_eq; rewrite S_INR; rewrite plus_INR; simpl.
+reflexivity.
   apply le_trans with N.
   apply le_trans with (pred N).
   assumption.
@@ -355,7 +470,12 @@ Proof.
   apply le_pred_n.
   rewrite pred_of_minus.
   apply INR_eq; repeat rewrite minus_INR.
-  repeat rewrite S_INR; simpl; ring.
+  repeat rewrite S_INR; simpl.
+rewrite Rplus_0_l.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+reflexivity.
   apply le_trans with N.
   apply le_trans with (pred N).
   assumption.
@@ -368,7 +488,8 @@ Proof.
   apply le_trans with (pred N).
   assumption.
   apply le_pred_n.
-  apply INR_eq; rewrite S_INR; rewrite plus_INR; simpl; ring.
+  apply INR_eq; rewrite S_INR; rewrite plus_INR; simpl.
+reflexivity.
   apply le_trans with N.
   apply le_trans with (pred N).
   assumption.
@@ -400,13 +521,19 @@ Proof.
   apply sum_eq; intros.
   replace (i0 + S i)%nat with (S (i0 + i)).
   reflexivity.
-  apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR; rewrite S_INR; simpl; ring.
+  apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR; rewrite S_INR; simpl.
+repeat rewrite Rplus_assoc. reflexivity.
   cut (pred (N - i) = (N - S i)%nat).
   intro; rewrite H5; reflexivity.
   rewrite pred_of_minus.
   apply INR_eq.
   repeat rewrite minus_INR.
-  repeat rewrite S_INR; simpl; ring.
+  repeat rewrite S_INR; simpl.
+rewrite Rplus_0_l.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+reflexivity.
   apply le_trans with (S (pred (pred N))).
   apply le_n_S; assumption.
   replace (S (pred (pred N))) with (pred N).
@@ -430,7 +557,8 @@ Proof.
   assumption.
   apply le_pred_n.
   symmetry ; apply S_pred with 0%nat; assumption.
-  apply INR_eq; rewrite S_INR; rewrite plus_INR; simpl; ring.
+  apply INR_eq; rewrite S_INR; rewrite plus_INR; simpl.
+reflexivity.
   apply le_trans with (pred (pred N)).
   assumption.
   apply le_trans with (pred N); apply le_pred_n.
@@ -452,7 +580,14 @@ Proof.
   intro; rewrite H2; reflexivity.
   rewrite pred_of_minus.
   apply INR_eq; repeat rewrite minus_INR.
-  simpl; ring.
+  simpl.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r.
+rewrite Rplus_0_l.
+reflexivity.
   apply lt_le_S; assumption.
   rewrite <- pred_of_minus; apply le_pred_n.
   simpl; symmetry ; apply S_pred with 0%nat; assumption.

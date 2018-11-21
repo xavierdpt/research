@@ -19,7 +19,7 @@ Require Export XAltSeries.
 Require Export XBinomial.
 Require Export XRsigma.
 Require Export XRprod.
-Require Export Cauchy_prod.
+Require Export XCauchy_prod.
 Require Export Alembert.
 Local Open Scope R_scope.
 

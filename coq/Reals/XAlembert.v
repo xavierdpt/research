@@ -8,14 +8,14 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import SeqProp.
-Require Import PartSum.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XSeqProp.
+Require Import XPartSum.
 Require Import Max.
 
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (***************************************************)
 (* Various versions of the criterion of D'Alembert *)
