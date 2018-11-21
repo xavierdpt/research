@@ -13,7 +13,7 @@ Require Import XRfunctions.
 Require Import Max.
 Require Export XRseries.
 Require Export XSeqProp.
-Require Export Rcomplete.
+Require Export XRcomplete.
 Require Export PartSum.
 Require Export AltSeries.
 Require Export Binomial.
