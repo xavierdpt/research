@@ -1,8 +1,8 @@
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Export Rtrigo_fun.
-Require Export Rtrigo_def.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Export XRtrigo_fun.
+Require Export XRtrigo_def.
 Require Export Rtrigo_alt.
 Require Export Cos_rel.
 Require Export Cos_plus.

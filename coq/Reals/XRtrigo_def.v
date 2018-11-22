@@ -8,8 +8,8 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase Rfunctions SeqSeries Rtrigo_fun Max.
-Local Open Scope R_scope.
+Require Import XRbase XRfunctions XSeqSeries XRtrigo_fun Max.
+Local Open Scope XR_scope.
 
 (********************************)
 (** * Definition of exponential *)
@@ -17,7 +17,7 @@ Local Open Scope R_scope.
 Definition exp_in (x l:R) : Prop :=
   infinite_sum (fun i:nat => / INR (fact i) * x ^ i) l.
 
-Lemma exp_cof_no_R0 : forall n:nat, / INR (fact n) <> 0.
+Lemma exp_cof_no_R0 : forall n:nat, / INR (fact n) <> R0.
 Proof.
   intro.
   apply Rinv_neq_0_compat.
@@ -35,61 +35,66 @@ Defined.
 
 Definition exp (x:R) : R := proj1_sig (exist_exp x).
 
-Lemma pow_i : forall i:nat, (0 < i)%nat -> 0 ^ i = 0.
+Lemma pow_i : forall i:nat, (0 < i)%nat -> R0 ^ i = R0.
 Proof.
   intros; apply pow_ne_zero.
   red; intro; rewrite H0 in H; elim (lt_irrefl _ H).
 Qed.
 
-Lemma exist_exp0 : { l:R | exp_in 0 l }.
+Lemma exist_exp0 : { l:R | exp_in R0 l }.
 Proof.
-  exists 1.
+  exists R1.
   unfold exp_in; unfold infinite_sum; intros.
   exists 0%nat.
-  intros; replace (sum_f_R0 (fun i:nat => / INR (fact i) * 0 ^ i) n) with 1.
-  unfold R_dist; replace (1 - 1) with 0;
-    [ rewrite Rabs_R0; assumption | ring ].
+  intros; replace (sum_f_R0 (fun i:nat => / INR (fact i) * R0 ^ i) n) with R1.
+  unfold R_dist; replace (R1 - R1) with R0.
+    rewrite Rabs_R0; assumption.
+unfold Rminus. rewrite Rplus_opp_r. reflexivity.
   induction  n as [| n Hrecn].
-  simpl; rewrite Rinv_1; ring.
+  simpl; rewrite Rinv_1. rewrite Rmult_1_r. reflexivity.
   rewrite tech5.
   rewrite <- Hrecn.
   simpl.
-  ring.
+  rewrite Rmult_0_l.
+  rewrite Rmult_0_r.
+  rewrite Rplus_0_r.
+  reflexivity.
   unfold ge; apply le_O_n.
 Defined.
 
 (* Value of [exp 0] *)
-Lemma exp_0 : exp 0 = 1.
+Lemma exp_0 : exp R0 = R1.
 Proof.
-  cut (exp_in 0 (exp 0)).
-  cut (exp_in 0 1).
+  cut (exp_in R0 (exp R0)).
+  cut (exp_in R0 R1).
   unfold exp_in; intros; eapply uniqueness_sum.
   apply H0.
   apply H.
   exact (proj2_sig exist_exp0).
-  exact (proj2_sig (exist_exp 0)).
+  exact (proj2_sig (exist_exp R0)).
 Qed.
 
 (*****************************************)
 (** * Definition of hyperbolic functions *)
 (*****************************************)
-Definition cosh (x:R) : R := (exp x + exp (- x)) / 2.
-Definition sinh (x:R) : R := (exp x - exp (- x)) / 2.
+Definition cosh (x:R) : R := (exp x + exp (- x)) / R2.
+Definition sinh (x:R) : R := (exp x - exp (- x)) / R2.
 Definition tanh (x:R) : R := sinh x / cosh x.
 
-Lemma cosh_0 : cosh 0 = 1.
+Lemma cosh_0 : cosh R0 = R1.
 Proof.
   unfold cosh; rewrite Ropp_0; rewrite exp_0.
   unfold Rdiv; rewrite <- Rinv_r_sym; [ reflexivity | discrR ].
+  exact Neq_2_0.
 Qed.
 
-Lemma sinh_0 : sinh 0 = 0.
+Lemma sinh_0 : sinh R0 = R0.
 Proof.
   unfold sinh; rewrite Ropp_0; rewrite exp_0.
   unfold Rminus, Rdiv; rewrite Rplus_opp_r; apply Rmult_0_l.
 Qed.
 
-Definition cos_n (n:nat) : R := (-1) ^ n / INR (fact (2 * n)).
+Definition cos_n (n:nat) : R := (-R1) ^ n / INR (fact (2 * n)).
 
 Lemma simpl_cos_n :
   forall n:nat, cos_n (S n) / cos_n n = - / INR (2 * S n * (2 * n + 1)).
@@ -98,41 +103,69 @@ Proof.
   rewrite pow_add; unfold Rdiv; rewrite Rinv_mult_distr.
   rewrite Rinv_involutive.
   replace
-  ((-1) ^ n * (-1) ^ 1 * / INR (fact (2 * (n + 1))) *
-    (/ (-1) ^ n * INR (fact (2 * n)))) with
-  ((-1) ^ n * / (-1) ^ n * / INR (fact (2 * (n + 1))) * INR (fact (2 * n)) *
-    (-1) ^ 1); [ idtac | ring ].
+  ((-R1) ^ n * (-R1) ^ 1 * / INR (fact (2 * (n + 1))) *
+    (/ (-R1) ^ n * INR (fact (2 * n)))) with
+  ((-R1) ^ n * / (-R1) ^ n * / INR (fact (2 * (n + 1))) * INR (fact (2 * n)) *
+    (-R1) ^ 1).
+2:{
+simpl.
+rewrite Rmult_1_r.
+repeat rewrite Rmult_assoc.
+apply Rmult_eq_compat_l.
+rewrite (plus_comm _ 0).
+simpl.
+rewrite (plus_comm _ 0).
+simpl.
+rewrite (plus_comm _ 1).
+simpl.
+rewrite <- Ropp_mult_distr_r.
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_r.
+rewrite Rmult_1_l.
+rewrite <- Ropp_mult_distr_r.
+rewrite <- Ropp_mult_distr_r.
+apply Ropp_eq_compat.
+repeat rewrite <- Rmult_assoc.
+apply Rmult_eq_compat_r.
+rewrite Rmult_comm.
+reflexivity.
+}
   rewrite <- Rinv_r_sym.
   rewrite Rmult_1_l; unfold pow; rewrite Rmult_1_r.
   replace (2 * (n + 1))%nat with (S (S (2 * n))); [ idtac | ring ].
   do 2 rewrite fact_simpl; do 2 rewrite mult_INR;
     repeat rewrite Rinv_mult_distr; try (apply not_O_INR; discriminate).
-  rewrite <- (Rmult_comm (-1)).
+  rewrite <- (Rmult_comm (-R1)).
   repeat rewrite Rmult_assoc; rewrite <- Rinv_l_sym.
   rewrite Rmult_1_r.
   replace (S (2 * n)) with (2 * n + 1)%nat; [ idtac | ring ].
   rewrite mult_INR; rewrite Rinv_mult_distr.
-  ring.
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+reflexivity.
   apply not_O_INR; discriminate.
   replace (2 * n + 1)%nat with (S (2 * n));
   [ apply not_O_INR; discriminate | ring ].
   apply INR_fact_neq_0.
   apply INR_fact_neq_0.
   apply prod_neq_R0; [ apply not_O_INR; discriminate | apply INR_fact_neq_0 ].
-  apply pow_nonzero; discrR.
+  apply pow_nonzero.
+apply Ropp_neq_0_compat.
+exact R1_neq_R0.
   apply INR_fact_neq_0.
-  apply pow_nonzero; discrR.
+  apply pow_nonzero. apply Ropp_neq_0_compat.
+exact R1_neq_R0.
   apply Rinv_neq_0_compat; apply INR_fact_neq_0.
 Qed.
 
 Lemma archimed_cor1 :
-  forall eps:R, 0 < eps ->  exists N : nat, / INR N < eps /\ (0 < N)%nat.
+  forall eps:R, R0 < eps ->  exists N : nat, / INR N < eps /\ (0 < N)%nat.
 Proof.
   intros; cut (/ eps < IZR (up (/ eps))).
   intro; cut (0 <= up (/ eps))%Z.
   intro; assert (H2 := IZN _ H1); elim H2; intros; exists (max x 1).
   split.
-  cut (0 < IZR (Z.of_nat x)).
+  cut (R0 < IZR (Z.of_nat x)).
   intro; rewrite INR_IZR_INZ; apply Rle_lt_trans with (/ IZR (Z.of_nat x)).
   apply Rmult_le_reg_l with (IZR (Z.of_nat x)).
   assumption.
@@ -166,7 +199,7 @@ Proof.
   elim H0; intros; assumption.
 Qed.
 
-Lemma Alembert_cos : Un_cv (fun n:nat => Rabs (cos_n (S n) / cos_n n)) 0.
+Lemma Alembert_cos : Un_cv (fun n:nat => Rabs (cos_n (S n) / cos_n n)) R0.
 Proof.
   unfold Un_cv; intros.
   assert (H0 := archimed_cor1 eps H).
@@ -175,11 +208,11 @@ Proof.
     rewrite Ropp_0; rewrite Rplus_0_r; rewrite Rabs_Rabsolu;
       rewrite Rabs_Ropp; rewrite Rabs_right.
   rewrite mult_INR; rewrite Rinv_mult_distr.
-  cut (/ INR (2 * S n) < 1).
+  cut (/ INR (2 * S n) < R1).
   intro; cut (/ INR (2 * n + 1) < eps).
   intro; rewrite <- (Rmult_1_l eps).
   apply Rmult_gt_0_lt_compat; try assumption.
-  change (0 < / INR (2 * n + 1)); apply Rinv_0_lt_compat;
+  change (R0 < / INR (2 * n + 1)); apply Rinv_0_lt_compat;
     apply lt_INR_0.
   replace (2 * n + 1)%nat with (S (2 * n)); [ apply lt_O_Sn | ring ].
   apply Rlt_0_1.
@@ -219,10 +252,11 @@ Proof.
   apply lt_O_Sn.
 Qed.
 
-Lemma cosn_no_R0 : forall n:nat, cos_n n <> 0.
+Lemma cosn_no_R0 : forall n:nat, cos_n n <> R0.
 Proof.
   intro; unfold cos_n; unfold Rdiv; apply prod_neq_R0.
-  apply pow_nonzero; discrR.
+  apply pow_nonzero. apply Ropp_neq_0_compat.
+exact R1_neq_R0.
   apply Rinv_neq_0_compat.
   apply INR_fact_neq_0.
 Qed.
@@ -242,7 +276,7 @@ Qed.
 (** Definition of cosinus *)
 Definition cos (x:R) : R := let (a,_) := exist_cos (Rsqr x) in a.
 
-Definition sin_n (n:nat) : R := (-1) ^ n / INR (fact (2 * n + 1)).
+Definition sin_n (n:nat) : R := (-R1) ^ n / INR (fact (2 * n + 1)).
 
 Lemma simpl_sin_n :
   forall n:nat, sin_n (S n) / sin_n n = - / INR ((2 * S n + 1) * (2 * S n)).
@@ -251,20 +285,36 @@ Proof.
   rewrite pow_add; unfold Rdiv; rewrite Rinv_mult_distr.
   rewrite Rinv_involutive.
   replace
-  ((-1) ^ n * (-1) ^ 1 * / INR (fact (2 * (n + 1) + 1)) *
-    (/ (-1) ^ n * INR (fact (2 * n + 1)))) with
-  ((-1) ^ n * / (-1) ^ n * / INR (fact (2 * (n + 1) + 1)) *
-    INR (fact (2 * n + 1)) * (-1) ^ 1); [ idtac | ring ].
+  ((-R1) ^ n * (-R1) ^ 1 * / INR (fact (2 * (n + 1) + 1)) *
+    (/ (-R1) ^ n * INR (fact (2 * n + 1)))) with
+  ((-R1) ^ n * / (-R1) ^ n * / INR (fact (2 * (n + 1) + 1)) *
+    INR (fact (2 * n + 1)) * (-R1) ^ 1).
+2:{
+repeat rewrite Rmult_assoc.
+apply Rmult_eq_compat_l.
+repeat rewrite <- Rmult_assoc.
+rewrite Rmult_comm.
+repeat rewrite Rmult_assoc.
+apply Rmult_eq_compat_l.
+repeat rewrite <- Rmult_assoc.
+apply Rmult_eq_compat_r.
+rewrite Rmult_comm.
+reflexivity.
+}
   rewrite <- Rinv_r_sym.
   rewrite Rmult_1_l; unfold pow; rewrite Rmult_1_r;
     replace (2 * (n + 1) + 1)%nat with (S (S (2 * n + 1))).
   do 2 rewrite fact_simpl; do 2 rewrite mult_INR;
     repeat rewrite Rinv_mult_distr.
-  rewrite <- (Rmult_comm (-1)); repeat rewrite Rmult_assoc;
+  rewrite <- (Rmult_comm (-R1)); repeat rewrite Rmult_assoc;
     rewrite <- Rinv_l_sym.
   rewrite Rmult_1_r; replace (S (2 * n + 1)) with (2 * (n + 1))%nat.
   repeat rewrite mult_INR; repeat rewrite Rinv_mult_distr.
-  ring.
+{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+reflexivity.
+}
   apply not_O_INR; discriminate.
   replace (n + 1)%nat with (S n); [ apply not_O_INR; discriminate | ring ].
   apply not_O_INR; discriminate.
@@ -284,13 +334,17 @@ Proof.
   apply prod_neq_R0; [ apply not_O_INR; discriminate | apply INR_fact_neq_0 ].
   cut (forall n:nat, S (S n) = (n + 2)%nat);
     [ intros; rewrite (H (2 * n + 1)%nat); ring | intros; ring ].
-  apply pow_nonzero; discrR.
+  apply pow_nonzero.
+apply Ropp_neq_0_compat.
+exact R1_neq_R0.
   apply INR_fact_neq_0.
-  apply pow_nonzero; discrR.
+  apply pow_nonzero.
+apply Ropp_neq_0_compat.
+exact R1_neq_R0.
   apply Rinv_neq_0_compat; apply INR_fact_neq_0.
 Qed.
 
-Lemma Alembert_sin : Un_cv (fun n:nat => Rabs (sin_n (S n) / sin_n n)) 0.
+Lemma Alembert_sin : Un_cv (fun n:nat => Rabs (sin_n (S n) / sin_n n)) R0.
 Proof.
   unfold Un_cv; intros; assert (H0 := archimed_cor1 eps H).
   elim H0; intros; exists x.
@@ -298,11 +352,11 @@ Proof.
     rewrite Ropp_0; rewrite Rplus_0_r; rewrite Rabs_Rabsolu;
       rewrite Rabs_Ropp; rewrite Rabs_right.
   rewrite mult_INR; rewrite Rinv_mult_distr.
-  cut (/ INR (2 * S n) < 1).
+  cut (/ INR (2 * S n) < R1).
   intro; cut (/ INR (2 * S n + 1) < eps).
   intro; rewrite <- (Rmult_1_l eps); rewrite (Rmult_comm (/ INR (2 * S n + 1)));
     apply Rmult_gt_0_lt_compat; try assumption.
-  change (0 < / INR (2 * S n + 1)); apply Rinv_0_lt_compat;
+  change (R0 < / INR (2 * S n + 1)); apply Rinv_0_lt_compat;
     apply lt_INR_0; replace (2 * S n + 1)%nat with (S (2 * S n));
       [ apply lt_O_Sn | ring ].
   apply Rlt_0_1.
@@ -338,10 +392,12 @@ Proof.
   apply lt_O_Sn.
 Qed.
 
-Lemma sin_no_R0 : forall n:nat, sin_n n <> 0.
+Lemma sin_no_R0 : forall n:nat, sin_n n <> R0.
 Proof.
   intro; unfold sin_n; unfold Rdiv; apply prod_neq_R0.
-  apply pow_nonzero; discrR.
+  apply pow_nonzero.
+apply Ropp_neq_0_compat.
+exact R1_neq_R0.
   apply Rinv_neq_0_compat; apply INR_fact_neq_0.
 Qed.
 
@@ -375,18 +431,20 @@ Lemma sin_antisym : forall x:R, sin (- x) = - sin x.
 Proof.
   intro; unfold sin; replace (Rsqr (- x)) with (Rsqr x);
     [ idtac | apply Rsqr_neg ].
-  case (exist_sin (Rsqr x)); intros; ring.
+  case (exist_sin (Rsqr x)); intros.
+rewrite <- Ropp_mult_distr_l.
+reflexivity.
 Qed.
 
-Lemma sin_0 : sin 0 = 0.
+Lemma sin_0 : sin R0 = R0.
 Proof.
-  unfold sin; case (exist_sin (Rsqr 0)).
-  intros; ring.
+  unfold sin; case (exist_sin (Rsqr R0)).
+  intros. rewrite Rmult_0_l. reflexivity.
 Qed.
 
-Lemma exist_cos0 : { l:R | cos_in 0 l }.
+Lemma exist_cos0 : { l:R | cos_in R0 l }.
 Proof.
-  exists 1.
+  exists R1.
   unfold cos_in; unfold infinite_sum; intros; exists 0%nat.
   intros.
   unfold R_dist.
@@ -396,21 +454,24 @@ Proof.
   do 2 rewrite Rmult_1_r.
   unfold Rminus; rewrite Rplus_opp_r; rewrite Rabs_R0; assumption.
   rewrite tech5.
-  replace (cos_n (S n) * 0 ^ S n) with 0.
+  replace (cos_n (S n) * R0 ^ S n) with R0.
   rewrite Rplus_0_r.
   apply Hrecn; unfold ge; apply le_O_n.
-  simpl; ring.
+  simpl.
+rewrite Rmult_0_l.
+rewrite Rmult_0_r.
+reflexivity.
 Defined.
 
 (* Value of [cos 0] *)
-Lemma cos_0 : cos 0 = 1.
+Lemma cos_0 : cos R0 = R1.
 Proof.
-  cut (cos_in 0 (cos 0)).
-  cut (cos_in 0 1).
+  cut (cos_in R0 (cos R0)).
+  cut (cos_in R0 R1).
   unfold cos_in; intros; eapply uniqueness_sum.
   apply H0.
   apply H.
   exact (proj2_sig exist_cos0).
-  assert (H := proj2_sig (exist_cos (Rsqr 0))); unfold cos;
-    pattern 0 at 1; replace 0 with (Rsqr 0); [ exact H | apply Rsqr_0 ].
+  assert (H := proj2_sig (exist_cos (Rsqr R0))); unfold cos;
+    pattern R0 at 1; replace R0 with (Rsqr R0); [ exact H | apply Rsqr_0 ].
 Qed.

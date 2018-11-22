@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XSeqSeries.vo
+ALL: XRtrigo_alt.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -74,6 +74,15 @@ XAlembert.vo: XAlembert.v XCauchy_prod.vo
 	
 XSeqSeries.vo: XSeqSeries.v XAlembert.vo
 	C:\Coq\bin\coqc XSeqSeries.v
+
+XRtrigo_fun.vo: XRtrigo_fun.v XSeqSeries.vo
+	C:\Coq\bin\coqc XRtrigo_fun.v
+
+XRtrigo_def.vo: XRtrigo_def.v XRtrigo_fun.vo
+	C:\Coq\bin\coqc XRtrigo_def.v
+
+XRtrigo_alt.vo: XRtrigo_alt.v XRtrigo_def.vo
+	C:\Coq\bin\coqc XRtrigo_alt.v
 
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v
