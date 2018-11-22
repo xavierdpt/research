@@ -20,8 +20,8 @@ Require Export XBinomial.
 Require Export XRsigma.
 Require Export XRprod.
 Require Export XCauchy_prod.
-Require Export Alembert.
-Local Open Scope R_scope.
+Require Export XAlembert.
+Local Open Scope XR_scope.
 
 (**********)
 Lemma sum_maj1 :
@@ -53,8 +53,16 @@ Proof.
   unfold R_dist in H6; exists N0; intros.
   unfold R_dist;
     replace (sum_f_R0 (fun l:nat => An (S N + l)%nat) n - (l2 - sum_f_R0 An N))
-    with (sum_f_R0 An N + sum_f_R0 (fun l:nat => An (S N + l)%nat) n - l2);
-      [ idtac | ring ].
+    with (sum_f_R0 An N + sum_f_R0 (fun l:nat => An (S N + l)%nat) n - l2).
+2:{
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+reflexivity.
+}
   replace (sum_f_R0 An N + sum_f_R0 (fun l:nat => An (S N + l)%nat) n) with
   (sum_f_R0 An (S (N + n))).
   apply H6; unfold ge; apply le_trans with n.
@@ -74,7 +82,19 @@ Proof.
   intro; rewrite H11 in H10.
   apply H10.
   apply INR_eq; rewrite minus_INR.
-  do 2 rewrite S_INR; rewrite plus_INR; ring.
+  do 2 rewrite S_INR; rewrite plus_INR.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+rewrite (Rplus_comm R1).
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
   apply le_n_S; apply le_plus_l.
   apply sum_eq; intros.
   reflexivity.
@@ -92,8 +112,17 @@ Proof.
     (sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n -
       (l1 - sum_f_R0 (fun k:nat => fn k x) N)) with
     (sum_f_R0 (fun k:nat => fn k x) N +
-      sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n - l1);
-    [ idtac | ring ].
+      sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n - l1).
+2:{
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite (Rplus_comm (-l1)).
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+reflexivity.
+}
   replace
   (sum_f_R0 (fun k:nat => fn k x) N +
     sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n) with
@@ -116,7 +145,19 @@ Proof.
   intro; rewrite H10 in H9.
   apply H9.
   apply INR_eq; rewrite minus_INR.
-  do 2 rewrite S_INR; rewrite plus_INR; ring.
+  do 2 rewrite S_INR; rewrite plus_INR.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+rewrite (Rplus_comm R1).
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
   apply le_n_S; apply le_plus_l.
   apply sum_eq; intros.
   reflexivity.
@@ -131,8 +172,17 @@ Proof.
   unfold R_dist in H3; exists N0; intros.
   unfold R_dist;
     replace (sum_f_R0 (fun l:nat => An (S N + l)%nat) n - (l2 - sum_f_R0 An N))
-    with (sum_f_R0 An N + sum_f_R0 (fun l:nat => An (S N + l)%nat) n - l2);
-      [ idtac | ring ].
+    with (sum_f_R0 An N + sum_f_R0 (fun l:nat => An (S N + l)%nat) n - l2).
+2:{
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite (Rplus_comm (-l2)).
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+reflexivity.
+}
   replace (sum_f_R0 An N + sum_f_R0 (fun l:nat => An (S N + l)%nat) n) with
   (sum_f_R0 An (S (N + n))).
   apply H3; unfold ge; apply le_trans with n.
@@ -152,7 +202,19 @@ Proof.
   intro; rewrite H8 in H7.
   apply H7.
   apply INR_eq; rewrite minus_INR.
-  do 2 rewrite S_INR; rewrite plus_INR; ring.
+  do 2 rewrite S_INR; rewrite plus_INR.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+rewrite (Rplus_comm R1).
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
   apply le_n_S; apply le_plus_l.
   apply sum_eq; intros.
   reflexivity.
@@ -170,8 +232,17 @@ Proof.
   (sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n -
     (l1 - sum_f_R0 (fun k:nat => fn k x) N)) with
   (sum_f_R0 (fun k:nat => fn k x) N +
-    sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n - l1);
-  [ idtac | ring ].
+    sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n - l1).
+2:{
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite (Rplus_comm (-l1)).
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+reflexivity.
+}
   replace
   (sum_f_R0 (fun k:nat => fn k x) N +
     sum_f_R0 (fun l:nat => fn (S N + l)%nat x) n) with
@@ -195,7 +266,19 @@ Proof.
   intro; rewrite H8 in H7.
   apply H7.
   apply INR_eq; rewrite minus_INR.
-  do 2 rewrite S_INR; rewrite plus_INR; ring.
+  do 2 rewrite S_INR; rewrite plus_INR.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+rewrite (Rplus_comm R1).
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_r.
+reflexivity.
   apply le_n_S; apply le_plus_l.
   apply sum_eq; intros.
   reflexivity.
@@ -209,7 +292,7 @@ Qed.
 (** Comparaison of convergence for series *)
 Lemma Rseries_CV_comp :
   forall An Bn:nat -> R,
-    (forall n:nat, 0 <= An n <= Bn n) ->
+    (forall n:nat, R0 <= An n <= Bn n) ->
     { l:R | Un_cv (fun N:nat => sum_f_R0 Bn N) l } ->
     { l:R | Un_cv (fun N:nat => sum_f_R0 An N) l }.
 Proof.
@@ -261,33 +344,33 @@ Qed.
 Lemma Cesaro :
   forall (An Bn:nat -> R) (l:R),
     Un_cv Bn l ->
-    (forall n:nat, 0 < An n) ->
+    (forall n:nat, R0 < An n) ->
     cv_infty (fun n:nat => sum_f_R0 An n) ->
     Un_cv (fun n:nat => sum_f_R0 (fun k:nat => An k * Bn k) n / sum_f_R0 An n)
     l.
 Proof with trivial.
-  unfold Un_cv; intros; assert (H3 : forall n:nat, 0 < sum_f_R0 An n)...
+  unfold Un_cv; intros; assert (H3 : forall n:nat, R0 < sum_f_R0 An n)...
   intro; apply tech1...
-  assert (H4 : forall n:nat, sum_f_R0 An n <> 0)...
+  assert (H4 : forall n:nat, sum_f_R0 An n <> R0)...
   intro; red; intro; assert (H5 := H3 n); rewrite H4 in H5;
     elim (Rlt_irrefl _ H5)...
-  assert (H5 := cv_infty_cv_R0 _ H4 H1); assert (H6 : 0 < eps / 2)...
+  assert (H5 := cv_infty_cv_R0 _ H4 H1); assert (H6 : R0 < eps / R2)...
   unfold Rdiv; apply Rmult_lt_0_compat...
-  apply Rinv_0_lt_compat; prove_sup...
+  apply Rinv_0_lt_compat. exact Rlt_0_2.
   elim (H _ H6); clear H; intros N1 H;
     set (C := Rabs (sum_f_R0 (fun k:nat => An k * (Bn k - l)) N1));
       assert
         (H7 :
           exists N : nat,
-            (forall n:nat, (N <= n)%nat -> C / sum_f_R0 An n < eps / 2))...
-  case (Req_dec C 0); intro...
+            (forall n:nat, (N <= n)%nat -> C / sum_f_R0 An n < eps / R2))...
+  case (Req_dec C R0); intro...
   exists 0%nat; intros...
   rewrite H7; unfold Rdiv; rewrite Rmult_0_l; apply Rmult_lt_0_compat...
-  apply Rinv_0_lt_compat; prove_sup...
-  assert (H8 : 0 < eps / (2 * Rabs C))...
+  apply Rinv_0_lt_compat. exact Rlt_0_2.
+  assert (H8 : R0 < eps / (R2 * Rabs C))...
   unfold Rdiv; apply Rmult_lt_0_compat...
   apply Rinv_0_lt_compat; apply Rmult_lt_0_compat...
-  prove_sup...
+exact Rlt_0_2.
   apply Rabs_pos_lt...
   elim (H5 _ H8); intros; exists x; intros; assert (H11 := H9 _ H10);
     unfold R_dist in H11; unfold Rminus in H11; rewrite Ropp_0 in H11;
@@ -297,10 +380,15 @@ Proof with trivial.
   unfold Rdiv; rewrite Rabs_mult; apply Rmult_lt_reg_l with (/ Rabs C)...
   apply Rinv_0_lt_compat; apply Rabs_pos_lt...
   rewrite <- Rmult_assoc; rewrite <- Rinv_l_sym...
-  rewrite Rmult_1_l; replace (/ Rabs C * (eps * / 2)) with (eps / (2 * Rabs C))...
+  rewrite Rmult_1_l; replace (/ Rabs C * (eps * / R2)) with (eps / (R2 * Rabs C))...
   unfold Rdiv; rewrite Rinv_mult_distr...
-  ring...
-  discrR...
+  {
+repeat rewrite <- Rmult_assoc.
+rewrite Rmult_comm.
+repeat rewrite Rmult_assoc.
+reflexivity.
+}
+exact Neq_2_0.
   apply Rabs_no_R0...
   apply Rabs_no_R0...
   elim H7; clear H7; intros N2 H7; set (N := max N1 N2); exists (S N); intros;
@@ -335,7 +423,7 @@ Proof with trivial.
     (Rsum_abs (fun i:nat => An (S N1 + i)%nat * (Bn (S N1 + i)%nat - l))
       (n - S N1))...
   apply Rle_lt_trans with
-    (sum_f_R0 (fun i:nat => An (S N1 + i)%nat * (eps / 2)) (n - S N1) *
+    (sum_f_R0 (fun i:nat => An (S N1 + i)%nat * (eps / R2)) (n - S N1) *
       / sum_f_R0 An n)...
   do 2 rewrite <- (Rmult_comm (/ sum_f_R0 An n)); apply Rmult_le_compat_l...
   left; apply Rinv_0_lt_compat...
@@ -347,10 +435,12 @@ Proof with trivial.
   left; apply H; unfold ge; apply le_trans with (S N1);
     [ apply le_n_Sn | apply le_plus_l ]...
   apply Rle_ge; left...
-  rewrite <- (scal_sum (fun i:nat => An (S N1 + i)%nat) (n - S N1) (eps / 2));
-    unfold Rdiv; repeat rewrite Rmult_assoc; apply Rmult_lt_compat_l...
-  pattern (/ 2) at 2; rewrite <- Rmult_1_r; apply Rmult_lt_compat_l...
-  apply Rinv_0_lt_compat; prove_sup...
+  rewrite <- (scal_sum (fun i:nat => An (S N1 + i)%nat) (n - S N1) (eps / R2));
+    unfold Rdiv; repeat rewrite Rmult_assoc; apply Rmult_lt_compat_l.
+assumption.
+change (IZR 2) with R2.
+  pattern (/ R2) at 2. rewrite <- Rmult_1_r; apply Rmult_lt_compat_l...
+  apply Rinv_0_lt_compat. exact Rlt_0_2.
   rewrite Rmult_comm; apply Rmult_lt_reg_l with (sum_f_R0 An n)...
   rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym...
   rewrite Rmult_1_l; rewrite Rmult_1_r; rewrite (tech2 An N1 n)...
@@ -361,23 +451,36 @@ Proof with trivial.
   replace (sum_f_R0 (fun k:nat => An k * (Bn k - l)) n) with
   (sum_f_R0 (fun k:nat => An k * Bn k) n +
     sum_f_R0 (fun k:nat => An k * - l) n)...
-  rewrite <- (scal_sum An n (- l)); field... 
-  rewrite <- plus_sum; apply sum_eq; intros; ring...
+  rewrite <- (scal_sum An n (- l)).
+{
+unfold Rdiv.
+rewrite Rmult_plus_distr_r.
+unfold Rminus.
+apply Rplus_eq_compat_l.
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r...
+rewrite Rmult_1_r.
+reflexivity.
+}
+  rewrite <- plus_sum; apply sum_eq; intros.
+unfold Rminus.
+rewrite Rmult_plus_distr_l.
+reflexivity.
 Qed.
 
 Lemma Cesaro_1 :
   forall (An:nat -> R) (l:R),
     Un_cv An l -> Un_cv (fun n:nat => sum_f_R0 An (pred n) / INR n) l.
 Proof with trivial.
-  intros Bn l H; set (An := fun _:nat => 1)...
-  assert (H0 : forall n:nat, 0 < An n)...
+  intros Bn l H; set (An := fun _:nat => R1)...
+  assert (H0 : forall n:nat, R0 < An n)...
   intro; unfold An; apply Rlt_0_1...
-  assert (H1 : forall n:nat, 0 < sum_f_R0 An n)...
+  assert (H1 : forall n:nat, R0 < sum_f_R0 An n)...
   intro; apply tech1...
   assert (H2 : cv_infty (fun n:nat => sum_f_R0 An n))...
-  unfold cv_infty; intro; destruct (Rle_dec M 0) as [Hle|Hnle]...
-  exists 0%nat; intros; apply Rle_lt_trans with 0...
-  assert (H2 : 0 < M)...
+  unfold cv_infty; intro; destruct (Rle_dec M R0) as [Hle|Hnle]...
+  exists 0%nat; intros; apply Rle_lt_trans with R0...
+  assert (H2 : R0 < M)...
   auto with real...
   clear Hnle; set (m := up M); elim (archimed M); intros;
     assert (H5 : (0 <= m)%Z)...
@@ -399,12 +502,12 @@ Proof with trivial.
   unfold Rminus; do 2 rewrite <- (Rplus_comm (- l));
     apply Rplus_eq_compat_l...
   unfold An;
-    replace (sum_f_R0 (fun k:nat => 1 * Bn k) (pred n)) with
+    replace (sum_f_R0 (fun k:nat => R1 * Bn k) (pred n)) with
     (sum_f_R0 Bn (pred n))...
   rewrite sum_cte; rewrite Rmult_1_l; replace (S (pred n)) with n...
   apply S_pred with 0%nat; apply lt_le_trans with (S x)...
   apply lt_O_Sn...
-  apply sum_eq; intros; ring...
+  apply sum_eq; intros. rewrite Rmult_1_l. reflexivity.
   apply H5; unfold ge; apply le_S_n; replace (S (pred n)) with n...
   apply S_pred with 0%nat; apply lt_le_trans with (S x)...
   apply lt_O_Sn...
