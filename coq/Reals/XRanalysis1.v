@@ -8,9 +8,9 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Export Rlimit.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Export XRlimit.
 Require Export Rderiv.
 Local Open Scope R_scope.
 Implicit Type f : R -> R.

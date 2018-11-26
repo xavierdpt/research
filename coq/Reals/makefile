@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XRtrigo_alt.vo
+ALL: XRderiv.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -83,6 +83,18 @@ XRtrigo_def.vo: XRtrigo_def.v XRtrigo_fun.vo
 
 XRtrigo_alt.vo: XRtrigo_alt.v XRtrigo_def.vo
 	C:\Coq\bin\coqc XRtrigo_alt.v
+
+XCos_rel.vo: XCos_rel.v XRtrigo_alt.vo
+	C:\Coq\bin\coqc XCos_rel.v
+
+XCos_plus.vo: XCos_plus.v XCos_rel.vo
+	C:\Coq\bin\coqc XCos_plus.v
+
+XRlimit.vo: XRlimit.v XCos_plus.vo
+	C:\Coq\bin\coqc XRlimit.v
+
+XRderiv.vo: XRderiv.v XRlimit.vo
+	C:\Coq\bin\coqc XRderiv.v
 
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v

@@ -3,9 +3,9 @@ Require Import XRfunctions.
 Require Import XSeqSeries.
 Require Export XRtrigo_fun.
 Require Export XRtrigo_def.
-Require Export Rtrigo_alt.
-Require Export Cos_rel.
-Require Export Cos_plus.
+Require Export XRtrigo_alt.
+Require Export XCos_rel.
+Require Export XCos_plus.
 Require Import ZArith_base.
 Require Import Zcomplements.
 Require Import Fourier.

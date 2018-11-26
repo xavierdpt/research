@@ -13,12 +13,11 @@
 (*                                                       *)
 (*********************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rlimit.
-Require Import Fourier.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRlimit.
 Require Import Omega.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (*********)
 Definition D_x (D:R -> Prop) (y x:R) : Prop := D x /\ y <> x.
@@ -39,22 +38,22 @@ Proof.
   unfold continue_in; unfold D_in; unfold limit1_in;
     unfold limit_in; unfold Rdiv; simpl;
       intros; elim (H eps H0); clear H; intros; elim H;
-        clear H; intros; elim (Req_dec (d x0) 0); intro.
-  split with (Rmin 1 x); split.
-  elim (Rmin_Rgt 1 x 0); intros a b; apply (b (conj Rlt_0_1 H)).
+        clear H; intros; elim (Req_dec (d x0) R0); intro.
+  split with (Rmin R1 x); split.
+  elim (Rmin_Rgt R1 x R0); intros a b; apply (b (conj Rlt_0_1 H)).
   intros; elim H3; clear H3; intros;
-    generalize (let (H1, H2) := Rmin_Rgt 1 x (R_dist x1 x0) in H1);
+    generalize (let (H1, H2) := Rmin_Rgt R1 x (R_dist x1 x0) in H1);
       unfold Rgt; intro; elim (H5 H4); clear H5;
         intros; generalize (H1 x1 (conj H3 H6)); clear H1;
           intro; unfold D_x in H3; elim H3; intros.
   rewrite H2 in H1; unfold R_dist; unfold R_dist in H1;
     cut (Rabs (f x1 - f x0) < eps * Rabs (x1 - x0)).
   intro; unfold R_dist in H5;
-    generalize (Rmult_lt_compat_l eps (Rabs (x1 - x0)) 1 H0 H5);
+    generalize (Rmult_lt_compat_l eps (Rabs (x1 - x0)) R1 H0 H5);
       rewrite Rmult_1_r; intro; apply Rlt_trans with (r2 := eps * Rabs (x1 - x0));
         assumption.
   rewrite (Rminus_0_r ((f x1 - f x0) * / (x1 - x0))) in H1;
-    rewrite Rabs_mult in H1; cut (x1 - x0 <> 0).
+    rewrite Rabs_mult in H1; cut (x1 - x0 <> R0).
   intro; rewrite (Rabs_Rinv (x1 - x0) H9) in H1;
     generalize
       (Rmult_lt_compat_l (Rabs (x1 - x0)) (Rabs (f x1 - f x0) * / Rabs (x1 - x0))
@@ -64,26 +63,26 @@ Proof.
   apply Rabs_no_R0; auto.
   apply Rminus_eq_contra; auto.
 (**)
-  split with (Rmin (Rmin (/ 2) x) (eps * / Rabs (2 * d x0))); split.
-  cut (Rmin (/ 2) x > 0).
-  cut (eps * / Rabs (2 * d x0) > 0).
-  intros; elim (Rmin_Rgt (Rmin (/ 2) x) (eps * / Rabs (2 * d x0)) 0);
+  split with (Rmin (Rmin (/ R2) x) (eps * / Rabs (R2 * d x0))); split.
+  cut (Rmin (/ R2) x > R0).
+  cut (eps * / Rabs (R2 * d x0) > R0).
+  intros; elim (Rmin_Rgt (Rmin (/ R2) x) (eps * / Rabs (R2 * d x0)) R0);
     intros a b; apply (b (conj H4 H3)).
   apply Rmult_gt_0_compat; auto.
   unfold Rgt; apply Rinv_0_lt_compat; apply Rabs_pos_lt;
     apply Rmult_integral_contrapositive; split.
-  discrR.
+  exact Neq_2_0.
   assumption.
-  elim (Rmin_Rgt (/ 2) x 0); intros a b; cut (0 < 2).
-  intro; generalize (Rinv_0_lt_compat 2 H3); intro; fold (/ 2 > 0) in H4;
+  elim (Rmin_Rgt (/ R2) x R0); intros a b; cut (R0 < R2).
+  intro; generalize (Rinv_0_lt_compat R2 H3); intro; fold (/ R2 > R0) in H4;
     apply (b (conj H4 H)).
-  fourier.
+  exact Rlt_0_2.
   intros; elim H3; clear H3; intros;
     generalize
       (let (H1, H2) :=
-        Rmin_Rgt (Rmin (/ 2) x) (eps * / Rabs (2 * d x0)) (R_dist x1 x0) in
+        Rmin_Rgt (Rmin (/ R2) x) (eps * / Rabs (R2 * d x0)) (R_dist x1 x0) in
         H1); unfold Rgt; intro; elim (H5 H4); clear H5;
-      intros; generalize (let (H1, H2) := Rmin_Rgt (/ 2) x (R_dist x1 x0) in H1);
+      intros; generalize (let (H1, H2) := Rmin_Rgt (/ R2) x (R_dist x1 x0) in H1);
         unfold Rgt; intro; elim (H7 H5); clear H7;
           intros; clear H4 H5; generalize (H1 x1 (conj H3 H8));
             clear H1; intro; unfold D_x in H3; elim H3; intros;
@@ -138,68 +137,68 @@ Proof.
         (Rabs (d x0 * (x1 - x0)) + Rabs (x1 - x0) * eps) eps H1 H11).
   clear H1 H5 H3 H10; generalize (Rabs_pos_lt (d x0) H2); intro;
     unfold Rgt in H0;
-      generalize (Rmult_lt_compat_l eps (R_dist x1 x0) (/ 2) H0 H7);
+      generalize (Rmult_lt_compat_l eps (R_dist x1 x0) (/ R2) H0 H7);
         clear H7; intro;
           generalize
             (Rmult_lt_compat_l (Rabs (d x0)) (R_dist x1 x0) (
-              eps * / Rabs (2 * d x0)) H1 H6); clear H6; intro;
+              eps * / Rabs (R2 * d x0)) H1 H6); clear H6; intro;
             rewrite (Rmult_comm eps (R_dist x1 x0)) in H3; unfold R_dist in H3, H5;
               rewrite <- (Rabs_mult (d x0) (x1 - x0)) in H5;
-                rewrite (Rabs_mult 2 (d x0)) in H5; cut (Rabs 2 <> 0).
-  intro; fold (Rabs (d x0) > 0) in H1;
+                rewrite (Rabs_mult R2 (d x0)) in H5; cut (Rabs R2 <> R0).
+  intro; fold (Rabs (d x0) > R0) in H1;
     rewrite
-      (Rinv_mult_distr (Rabs 2) (Rabs (d x0)) H6
-        (Rlt_dichotomy_converse (Rabs (d x0)) 0 (or_intror (Rabs (d x0) < 0) H1)))
+      (Rinv_mult_distr (Rabs R2) (Rabs (d x0)) H6
+        (Rlt_dichotomy_converse (Rabs (d x0)) R0 (or_intror (Rabs (d x0) < R0) H1)))
       in H5;
-      rewrite (Rmult_comm (Rabs (d x0)) (eps * (/ Rabs 2 * / Rabs (d x0)))) in H5;
-        rewrite <- (Rmult_assoc eps (/ Rabs 2) (/ Rabs (d x0))) in H5;
-          rewrite (Rmult_assoc (eps * / Rabs 2) (/ Rabs (d x0)) (Rabs (d x0))) in H5;
+      rewrite (Rmult_comm (Rabs (d x0)) (eps * (/ Rabs R2 * / Rabs (d x0)))) in H5;
+        rewrite <- (Rmult_assoc eps (/ Rabs R2) (/ Rabs (d x0))) in H5;
+          rewrite (Rmult_assoc (eps * / Rabs R2) (/ Rabs (d x0)) (Rabs (d x0))) in H5;
             rewrite
               (Rinv_l (Rabs (d x0))
-                (Rlt_dichotomy_converse (Rabs (d x0)) 0 (or_intror (Rabs (d x0) < 0) H1)))
-              in H5; rewrite (let (H1, H2) := Rmult_ne (eps * / Rabs 2) in H1) in H5;
-                cut (Rabs 2 = 2).
+                (Rlt_dichotomy_converse (Rabs (d x0)) R0 (or_intror (Rabs (d x0) < R0) H1)))
+              in H5; rewrite (let (H1, H2) := Rmult_ne (eps * / Rabs R2) in H1) in H5;
+                cut (Rabs R2 = R2).
   intro; rewrite H7 in H5;
     generalize
-      (Rplus_lt_compat (Rabs (d x0 * (x1 - x0))) (eps * / 2)
-        (Rabs (x1 - x0) * eps) (eps * / 2) H5 H3); intro;
+      (Rplus_lt_compat (Rabs (d x0 * (x1 - x0))) (eps * / R2)
+        (Rabs (x1 - x0) * eps) (eps * / R2) H5 H3); intro;
       rewrite eps2 in H10; assumption.
-  unfold Rabs; destruct (Rcase_abs 2) as [Hlt|Hge]; auto.
-  cut (0 < 2).
-  intro H7; elim (Rlt_asym 0 2 H7 Hlt).
-  fourier.
+  unfold Rabs; destruct (Rcase_abs R2) as [Hlt|Hge]; auto.
+  cut (R0 < R2).
+  intro H7; elim (Rlt_asym R0 R2 H7 Hlt).
+exact Rlt_0_2.
   apply Rabs_no_R0.
-  discrR.
+  exact Neq_2_0.
 Qed.
 
 (*********)
 Lemma Dconst :
-  forall (D:R -> Prop) (y x0:R), D_in (fun x:R => y) (fun x:R => 0) D x0.
+  forall (D:R -> Prop) (y x0:R), D_in (fun x:R => y) (fun x:R => R0) D x0.
 Proof.
   unfold D_in; intros; unfold limit1_in;
     unfold limit_in; unfold Rdiv; intros;
       simpl; split with eps; split; auto.
   intros; rewrite (Rminus_diag_eq y y (eq_refl y)); rewrite Rmult_0_l;
-    unfold R_dist; rewrite (Rminus_diag_eq 0 0 (eq_refl 0));
-      unfold Rabs; case (Rcase_abs 0); intro.
-  absurd (0 < 0); auto.
-  red; intro; apply (Rlt_irrefl 0 H1).
+    unfold R_dist; rewrite (Rminus_diag_eq R0 R0 (eq_refl R0));
+      unfold Rabs; case (Rcase_abs R0); intro.
+  absurd (R0 < R0); auto.
+  red; intro; apply (Rlt_irrefl R0 H1).
   unfold Rgt in H0; assumption.
 Qed.
 
 (*********)
 Lemma Dx :
-  forall (D:R -> Prop) (x0:R), D_in (fun x:R => x) (fun x:R => 1) D x0.
+  forall (D:R -> Prop) (x0:R), D_in (fun x:R => x) (fun x:R => R1) D x0.
 Proof.
   unfold D_in; unfold Rdiv; intros; unfold limit1_in;
     unfold limit_in; intros; simpl; split with eps;
       split; auto.
   intros; elim H0; clear H0; intros; unfold D_x in H0; elim H0; intros;
     rewrite (Rinv_r (x - x0) (Rminus_eq_contra x x0 (sym_not_eq H3)));
-      unfold R_dist; rewrite (Rminus_diag_eq 1 1 (refl_equal 1));
-        unfold Rabs; case (Rcase_abs 0) as [Hlt|Hge].
-  absurd (0 < 0); auto.
-  red in |- *; intro; apply (Rlt_irrefl 0 Hlt).
+      unfold R_dist; rewrite (Rminus_diag_eq R1 R1 (refl_equal R1));
+        unfold Rabs; case (Rcase_abs R0) as [Hlt|Hge].
+  absurd (R0 < R0); auto.
+  red in |- *; intro; apply (Rlt_irrefl R0 Hlt).
   unfold Rgt in H; assumption.
 Qed.
 
@@ -225,7 +224,16 @@ Proof.
                   rewrite (Rmult_comm (/ (x1 - x0)) (f x1 - f x0 + (g x1 - g x0))) in H1;
                     cut (f x1 - f x0 + (g x1 - g x0) = f x1 + g x1 - (f x0 + g x0)).
   intro; rewrite H3 in H1; assumption.
-  ring.
+  unfold Rminus.
+  repeat rewrite Rplus_assoc.
+  apply Rplus_eq_compat_l.
+  symmetry.
+  rewrite Rplus_comm.
+  rewrite Ropp_plus_distr.
+  repeat rewrite Rplus_assoc.
+  apply Rplus_eq_compat_l.
+  rewrite Rplus_comm.
+  reflexivity.
 Qed.
 
 (*********)
@@ -269,7 +277,20 @@ Proof.
                                   cut
                                     ((f x1 - f x0) * g x0 + (g x1 - g x0) * f x1 = f x1 * g x1 - f x0 * g x0).
   intro; rewrite H3 in H1; assumption.
-  ring.
+unfold Rminus.
+repeat rewrite Rmult_plus_distr_r.
+rewrite Rplus_comm.
+rewrite Rmult_comm.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+repeat rewrite <- Rplus_assoc.
+rewrite Rmult_comm.
+rewrite <- Ropp_mult_distr_r.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_l.
+rewrite <- Ropp_mult_distr_l.
+reflexivity.
+
   unfold limit1_in; unfold limit_in; simpl; intros;
     split with eps; split; auto; intros; elim (R_dist_refl (g x0) (g x0));
       intros a b; rewrite (b (eq_refl (g x0))); unfold Rgt in H;
@@ -282,7 +303,7 @@ Lemma Dmult_const :
     D_in f df D x0 -> D_in (fun x:R => a * f x) (fun x:R => a * df x) D x0.
 Proof.
   intros;
-    generalize (Dmult D (fun _:R => 0) df (fun _:R => a) f x0 (Dconst D a x0) H);
+    generalize (Dmult D (fun _:R => R0) df (fun _:R => a) f x0 (Dconst D a x0) H);
       unfold D_in; intros; rewrite (Rmult_0_l (f x0)) in H0;
         rewrite (let (H1, H2) := Rplus_ne (a * df x0) in H2) in H0;
           assumption.
@@ -293,14 +314,29 @@ Lemma Dopp :
   forall (D:R -> Prop) (f df:R -> R) (x0:R),
     D_in f df D x0 -> D_in (fun x:R => - f x) (fun x:R => - df x) D x0.
 Proof.
-  intros; generalize (Dmult_const D f df x0 (-1) H); unfold D_in;
+  intros; generalize (Dmult_const D f df x0 (-R1) H); unfold D_in;
     unfold limit1_in; unfold limit_in;
       intros; generalize (H0 eps H1); clear H0; intro; elim H0;
         clear H0; intros; elim H0; clear H0; simpl;
           intros; split with x; split; auto.
   intros; generalize (H2 x1 H3); clear H2; intro.
-  replace (- f x1 - - f x0) with (-1 * f x1 - -1 * f x0) by ring.
-  replace (- df x0) with (-1 * df x0) by ring.
+  replace (- f x1 - - f x0) with (-R1 * f x1 - -R1 * f x0).
+2:{
+unfold Rminus.
+rewrite Ropp_involutive.
+rewrite Ropp_mult_distr_l.
+rewrite Ropp_involutive.
+rewrite Rmult_1_l.
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+reflexivity.
+}
+  replace (- df x0) with (-R1 * df x0).
+2:{
+rewrite <- Ropp_mult_distr_l.
+rewrite Rmult_1_l.
+reflexivity.
+}
   exact H2.
 Qed.
 
@@ -326,7 +362,7 @@ Proof.
   intros; cut (n0 = (S n0 - 1)%nat);
     [ intro a; rewrite <- a; clear a | simpl; apply minus_n_O ].
   generalize
-    (Dmult D (fun _:R => 1) (fun x:R => INR n0 * x ^ (n0 - 1)) (
+    (Dmult D (fun _:R => R1) (fun x:R => INR n0 * x ^ (n0 - 1)) (
       fun x:R => x) (fun x:R => x ^ n0) x0 (Dx D x0) (
         H D x0)); unfold D_in; unfold limit1_in;
     unfold limit_in; simpl; intros; elim (H0 eps H1);
@@ -339,8 +375,12 @@ Proof.
           rewrite <- (Rmult_assoc x0 (x0 ^ (n0 - 1)) (INR n0)) in H2;
             rewrite (tech_pow_Rmult x0 (n0 - 1)) in H2; elim (Peano_dec.eq_nat_dec n0 0) ; intros cond.
   rewrite cond in H2; rewrite cond; simpl in H2; simpl;
-    cut (1 + x0 * 1 * 0 = 1 * 1);
-      [ intro A; rewrite A in H2; assumption | ring ].
+    cut (R1 + x0 * R1 * R0 = R1 * R1).
+      intro A; rewrite A in H2; assumption.
+rewrite Rmult_0_r.
+rewrite Rplus_0_r.
+rewrite Rmult_1_r.
+reflexivity.
   cut (n0 <> 0%nat -> S (n0 - 1) = n0); [ intro | omega ];
     rewrite (H3 cond) in H2; rewrite (Rmult_comm (x0 ^ n0) (INR n0)) in H2;
       rewrite (tech_pow_Rplus x0 n0 n0) in H2; assumption.
@@ -379,7 +419,7 @@ Proof.
           simpl in H5, H7; intros; elim (H5 eps H8); elim (H7 eps H8);
             clear H5 H7; intros; elim H5; elim H7; clear H5 H7;
               intros; split with (Rmin x x1); split.
-  elim (Rmin_Rgt x x1 0); intros a b; apply (b (conj H9 H5)); clear a b.
+  elim (Rmin_Rgt x x1 R0); intros a b; apply (b (conj H9 H5)); clear a b.
   intros; elim H11; clear H11; intros; elim (Rmin_Rgt x x1 (R_dist x2 x0));
     intros a b; clear b; unfold Rgt in a; elim (a H12);
       clear H5 a; intros; unfold D_x, Dgf in H11, H7, H10;
@@ -430,6 +470,10 @@ Proof.
               intros; split with x; split; intros; auto.
   cut
     (dexpr x0 * (INR n * expr x0 ^ (n - 1)) =
-      INR n * expr x0 ^ (n - 1) * dexpr x0);
-    [ intro Rew; rewrite <- Rew; exact (H2 x1 H3) | ring ].
+      INR n * expr x0 ^ (n - 1) * dexpr x0).
+    intro Rew; rewrite <- Rew; exact (H2 x1 H3).
+repeat rewrite Rmult_assoc.
+rewrite Rmult_comm.
+repeat rewrite Rmult_assoc.
+reflexivity.
 Qed.
