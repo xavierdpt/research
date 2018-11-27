@@ -8,9 +8,9 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Local Open Scope R_scope.
+Require Import XRbase.
+Require Import XRfunctions.
+Local Open Scope XR_scope.
 
 Inductive Rlist : Type :=
 | nil : Rlist
@@ -30,7 +30,7 @@ Fixpoint Rlength (l:Rlist) : nat :=
 
 Fixpoint MaxRlist (l:Rlist) : R :=
   match l with
-    | nil => 0
+    | nil => R0
     | cons a l1 =>
       match l1 with
         | nil => a
@@ -40,7 +40,7 @@ Fixpoint MaxRlist (l:Rlist) : R :=
 
 Fixpoint MinRlist (l:Rlist) : R :=
   match l with
-    | nil => 1
+    | nil => R1
     | cons a l1 =>
       match l1 with
         | nil => a
@@ -73,7 +73,7 @@ Qed.
 Fixpoint AbsList (l:Rlist) (x:R) : Rlist :=
   match l with
     | nil => nil
-    | cons a l' => cons (Rabs (a - x) / 2) (AbsList l' x)
+    | cons a l' => cons (Rabs (a - x) / R2) (AbsList l' x)
   end.
 
 Lemma MinRlist_P1 : forall (l:Rlist) (x:R), In x l -> MinRlist l <= x.
@@ -99,7 +99,7 @@ Proof.
 Qed.
 
 Lemma AbsList_P1 :
-  forall (l:Rlist) (x y:R), In y l -> In (Rabs (y - x) / 2) (AbsList l x).
+  forall (l:Rlist) (x y:R), In y l -> In (Rabs (y - x) / R2) (AbsList l x).
 Proof.
   intros; induction  l as [| r l Hrecl].
   elim H.
@@ -109,7 +109,7 @@ Proof.
 Qed.
 
 Lemma MinRlist_P2 :
-  forall l:Rlist, (forall y:R, In y l -> 0 < y) -> 0 < MinRlist l.
+  forall l:Rlist, (forall y:R, In y l -> R0 < y) -> R0 < MinRlist l.
 Proof.
   intros; induction  l as [| r l Hrecl].
   apply Rlt_0_1.
@@ -124,7 +124,7 @@ Qed.
 
 Lemma AbsList_P2 :
   forall (l:Rlist) (x y:R),
-    In y (AbsList l x) ->  exists z : R, In z l /\ y = Rabs (z - x) / 2.
+    In y (AbsList l x) ->  exists z : R, In z l /\ y = Rabs (z - x) / R2.
 Proof.
   intros; induction  l as [| r l Hrecl].
   elim H.
@@ -152,7 +152,7 @@ Qed.
 
 Fixpoint pos_Rl (l:Rlist) (i:nat) : R :=
   match l with
-    | nil => 0
+    | nil => R0
     | cons a l' => match i with
                      | O => a
                      | S i' => pos_Rl l' i'
@@ -252,7 +252,7 @@ Fixpoint app_Rlist (l:Rlist) (f:R -> R) : Rlist :=
 Fixpoint mid_Rlist (l:Rlist) (x:R) : Rlist :=
   match l with
     | nil => nil
-    | cons a l' => cons ((x + a) / 2) (mid_Rlist l' a)
+    | cons a l' => cons ((x + a) / R2) (mid_Rlist l' a)
   end.
 
 Definition Rtail (l:Rlist) : Rlist :=
@@ -469,7 +469,9 @@ Proof.
     [ intro; reflexivity
       | intros; simpl; rewrite (H (insert l2 r)); rewrite RList_P10;
         apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR;
-          rewrite S_INR; ring ].
+          rewrite S_INR ].
+repeat rewrite <- Rplus_assoc.
+reflexivity.
 Qed.
 
 Lemma RList_P12 :
@@ -485,7 +487,7 @@ Qed.
 Lemma RList_P13 :
   forall (l:Rlist) (i:nat) (a:R),
     (i < pred (Rlength l))%nat ->
-    pos_Rl (mid_Rlist l a) (S i) = (pos_Rl l i + pos_Rl l (S i)) / 2.
+    pos_Rl (mid_Rlist l a) (S i) = (pos_Rl l i + pos_Rl l (S i)) / R2.
 Proof.
   simple induction l.
   intros; simpl in H; elim (lt_n_O _ H).
@@ -495,7 +497,7 @@ Proof.
   reflexivity.
   change
     (pos_Rl (mid_Rlist (cons r1 r2) r) (S i) =
-      (pos_Rl (cons r1 r2) i + pos_Rl (cons r1 r2) (S i)) / 2)
+      (pos_Rl (cons r1 r2) i + pos_Rl (cons r1 r2) (S i)) / R2)
    ; apply H0; simpl; apply lt_S_n; assumption.
 Qed.
 
@@ -688,9 +690,11 @@ Proof.
       (S (Rlength r0 + Rlength l2));
       [ reflexivity
         | simpl; apply INR_eq; rewrite S_INR; do 2 rewrite plus_INR;
-          rewrite S_INR; ring ]
+          rewrite S_INR ]
       | simpl; apply INR_eq; do 3 rewrite S_INR; do 2 rewrite plus_INR;
-        rewrite S_INR; ring ].
+        rewrite S_INR ].
+repeat rewrite <- Rplus_assoc. reflexivity.
+repeat rewrite <- Rplus_assoc. reflexivity.
 Qed.
 
 Lemma RList_P25 :

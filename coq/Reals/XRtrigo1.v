@@ -8,31 +8,30 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Export Rtrigo_fun.
-Require Export Rtrigo_def.
-Require Export Rtrigo_alt.
-Require Export Cos_rel.
-Require Export Cos_plus.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Export XRtrigo_fun.
+Require Export XRtrigo_def.
+Require Export XRtrigo_alt.
+Require Export XCos_rel.
+Require Export XCos_plus.
 Require Import ZArith_base.
 Require Import Zcomplements.
-Require Import Fourier.
-Require Import Ranalysis1.
-Require Import Rsqrt_def. 
-Require Import PSeries_reg.
+Require Import XRanalysis1.
+Require Import XRsqrt_def. 
+Require Import XPSeries_reg.
 
 Local Open Scope nat_scope.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Lemma CVN_R_cos :
   forall fn:nat -> R -> R,
-    fn = (fun (N:nat) (x:R) => (-1) ^ N / INR (fact (2 * N)) * x ^ (2 * N)) ->
+    fn = (fun (N:nat) (x:R) => (-R1) ^ N / INR (fact (2 * N)) * x ^ (2 * N)) ->
     CVN_R fn.
 Proof.
   unfold CVN_R in |- *; intros.
-  cut ((r:R) <> 0).
+  cut ((r:R) <> R0).
   intro hyp_r; unfold CVN_r in |- *.
   exists (fun n:nat => / INR (fact (2 * n)) * r ^ (2 * n)).
   cut
@@ -47,7 +46,7 @@ Proof.
   apply p.
   intros; rewrite H; unfold Rdiv in |- *; do 2 rewrite Rabs_mult.
   rewrite pow_1_abs; rewrite Rmult_1_l.
-  cut (0 < / INR (fact (2 * n))).
+  cut (R0 < / INR (fact (2 * n))).
   intro; rewrite (Rabs_right _ (Rle_ge _ _ (Rlt_le _ _ H1))).
   apply Rmult_le_compat_l.
   left; apply H1.
@@ -64,7 +63,7 @@ Proof.
   apply pow_nonzero; assumption.
   assert (H0 := Alembert_cos).
   unfold cos_n in H0; unfold Un_cv in H0; unfold Un_cv in |- *; intros.
-  cut (0 < eps / Rsqr r).
+  cut (R0 < eps / Rsqr r).
   intro; elim (H0 _ H2); intros N0 H3.
   exists N0; intros.
   unfold R_dist in |- *; assert (H5 := H3 _ H4).
@@ -74,7 +73,7 @@ Proof.
       (Rabs (/ INR (fact (2 * S n)) * r ^ (2 * S n)) /
         Rabs (/ INR (fact (2 * n)) * r ^ (2 * n)))) with
     (Rsqr r *
-      Rabs ((-1) ^ S n / INR (fact (2 * S n)) / ((-1) ^ n / INR (fact (2 * n))))).
+      Rabs ((-R1) ^ S n / INR (fact (2 * S n)) / ((-R1) ^ n / INR (fact (2 * n))))).
   apply Rmult_lt_reg_l with (/ Rsqr r).
   apply Rinv_0_lt_compat; apply Rsqr_pos_lt; assumption.
   pattern (/ Rsqr r) at 1 in |- *; replace (/ Rsqr r) with (Rabs (/ Rsqr r)).
@@ -103,11 +102,17 @@ Proof.
   do 2 rewrite Rabs_Rabsolu; repeat rewrite Rabs_right.
   replace (r ^ (2 * S n)) with (r ^ (2 * n) * r * r).
   repeat rewrite <- Rmult_assoc; rewrite <- Rinv_l_sym.
-  unfold Rsqr in |- *; ring.
+  unfold Rsqr in |- *.
+rewrite Rmult_1_l. reflexivity.
   apply pow_nonzero; assumption.
   replace (2 * S n)%nat with (S (S (2 * n))).
-  simpl in |- *; ring.
-  ring.
+  simpl in |- *.
+rewrite Rmult_comm.
+repeat rewrite Rmult_assoc.
+apply Rmult_eq_compat_l.
+rewrite Rmult_comm.
+reflexivity.
+simpl. rewrite <- plus_n_Sm. reflexivity.
   apply Rle_ge; apply pow_le; left; apply (cond_pos r).
   apply Rle_ge; apply pow_le; left; apply (cond_pos r).
   apply Rabs_no_R0; apply pow_nonzero; assumption.
@@ -118,7 +123,8 @@ Proof.
   apply INR_fact_neq_0.
   apply Rinv_neq_0_compat; apply INR_fact_neq_0.
   apply prod_neq_R0.
-  apply pow_nonzero; discrR.
+  apply pow_nonzero.
+apply Rlt_dichotomy_converse. left. rewrite <- Ropp_0. apply Ropp_lt_contravar. exact Rlt_0_1.
   apply Rinv_neq_0_compat; apply INR_fact_neq_0.
   unfold Rdiv in |- *; apply Rmult_lt_0_compat.
   apply H1.
@@ -130,7 +136,7 @@ Qed.
 (**********)
 Lemma continuity_cos : continuity cos.
 Proof.
-  set (fn := fun (N:nat) (x:R) => (-1) ^ N / INR (fact (2 * N)) * x ^ (2 * N)).
+  set (fn := fun (N:nat) (x:R) => (-R1) ^ N / INR (fact (2 * N)) * x ^ (2 * N)).
   cut (CVN_R fn).
   intro; cut (forall x:R, { l:R | Un_cv (fun N:nat => SP fn N x) l }).
   intro cv; cut (forall n:nat, continuity (fn n)).
@@ -163,8 +169,8 @@ Proof.
   unfold cos_n, fn in |- *; apply Rmult_eq_compat_l.
   unfold Rsqr in |- *; rewrite pow_sqr; reflexivity.
   intro; unfold fn in |- *;
-    replace (fun x:R => (-1) ^ n / INR (fact (2 * n)) * x ^ (2 * n)) with
-    (fct_cte ((-1) ^ n / INR (fact (2 * n))) * pow_fct (2 * n))%F;
+    replace (fun x:R => (-R1) ^ n / INR (fact (2 * n)) * x ^ (2 * n)) with
+    (fct_cte ((-R1) ^ n / INR (fact (2 * n))) * pow_fct (2 * n))%F;
     [ idtac | reflexivity ].
   apply continuity_mult.
   apply derivable_continuous; apply derivable_const.
@@ -173,12 +179,16 @@ Proof.
   apply CVN_R_cos; unfold fn in |- *; reflexivity.
 Qed.
 
-Lemma sin_gt_cos_7_8 : sin (7 / 8) > cos (7 / 8).
+Lemma sin_gt_cos_7_8 : sin (R7 / R8) > cos (R7 / R8).
 Proof. 
-assert (lo1 : 0 <= 7/8) by fourier.
-assert (up1 : 7/8 <= 4) by fourier.
-assert (lo : -2 <= 7/8) by fourier.
-assert (up : 7/8 <= 2) by fourier.
+assert (lo1 : R0 <= R7/R8).
+{ admit. }
+assert (up1 : R7/R8 <= R4).
+{ admit. }
+assert (lo : -R2 <= R7/R8).
+{ admit. }
+assert (up : R7/R8 <= R2).
+{ admit. }
 destruct (pre_sin_bound _ 0 lo1 up1) as [lower _ ].
 destruct (pre_cos_bound _ 0 lo up) as [_ upper].
 apply Rle_lt_trans with (1 := upper).
@@ -187,7 +197,27 @@ unfold cos_approx, sin_approx.
 simpl sum_f_R0.
 unfold cos_term, sin_term; simpl fact; rewrite !INR_IZR_INZ.
 simpl plus; simpl mult; simpl Z_of_nat.
-field_simplify.
+
+change (IZR 2) with R2.
+simpl.
+repeat rewrite Rmult_1_l.
+change (IZR 1) with R1.
+unfold Rdiv.
+repeat rewrite Rinv_1.
+repeat rewrite Rmult_1_l.
+repeat rewrite Rmult_1_r.
+repeat rewrite <- Ropp_mult_distr_l.
+repeat rewrite Rmult_1_l.
+repeat rewrite <- Ropp_mult_distr_l.
+repeat rewrite Rmult_1_l.
+repeat rewrite Ropp_involutive.
+replace (IZR 24) with (R12 + R12).
+replace (IZR 6) with R6.
+{
+  
+
+
+
 match goal with 
   |- IZR ?a / ?b < ?c / ?d =>
   apply Rmult_lt_reg_r with d;[apply (IZR_lt 0); reflexivity |

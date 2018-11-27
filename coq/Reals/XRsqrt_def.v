@@ -9,11 +9,11 @@
 (************************************************************************)
 
 Require Import Sumbool.
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Import Ranalysis1.
-Local Open Scope R_scope.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Import XRanalysis1.
+Local Open Scope XR_scope.
 
 Fixpoint Dichotomy_lb (x y:R) (P:R -> bool) (N:nat) {struct N} : R :=
   match N with
@@ -21,7 +21,7 @@ Fixpoint Dichotomy_lb (x y:R) (P:R -> bool) (N:nat) {struct N} : R :=
     | S n =>
       let down := Dichotomy_lb x y P n in
         let up := Dichotomy_ub x y P n in
-          let z := (down + up) / 2 in if P z then down else z
+          let z := (down + up) / R2 in if P z then down else z
   end
 
   with Dichotomy_ub (x y:R) (P:R -> bool) (N:nat) {struct N} : R :=
@@ -30,7 +30,7 @@ Fixpoint Dichotomy_lb (x y:R) (P:R -> bool) (N:nat) {struct N} : R :=
       | S n =>
         let down := Dichotomy_lb x y P n in
           let up := Dichotomy_ub x y P n in
-            let z := (down + up) / 2 in if P z then z else up
+            let z := (down + up) / R2 in if P z then z else up
     end.
 
 Definition dicho_lb (x y:R) (P:R -> bool) (N:nat) : R := Dichotomy_lb x y P N.
@@ -45,19 +45,19 @@ Proof.
   induction  n as [| n Hrecn].
   simpl; assumption.
   simpl.
-  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)).
-  unfold Rdiv; apply Rmult_le_reg_l with 2.
-  prove_sup0.
-  pattern 2 at 1; rewrite Rmult_comm.
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | discrR ].
+  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)).
+  unfold Rdiv; apply Rmult_le_reg_l with R2.
+  exact Rlt_0_2.
+  pattern R2 at 1; rewrite Rmult_comm.
+  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | exact Neq_2_0 ].
   rewrite Rmult_1_r.
   rewrite double.
   apply Rplus_le_compat_l.
   assumption.
-  unfold Rdiv; apply Rmult_le_reg_l with 2.
-  prove_sup0.
+  unfold Rdiv; apply Rmult_le_reg_l with R2.
+  exact Rlt_0_2.
   rewrite Rmult_comm.
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | discrR ].
+  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | exact Neq_2_0 ].
   rewrite Rmult_1_r.
   rewrite double.
   rewrite <- (Rplus_comm (Dichotomy_ub x y P n)).
@@ -72,12 +72,12 @@ Proof.
   unfold Un_growing.
   intro.
   simpl.
-  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)).
+  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)).
   right; reflexivity.
-  unfold Rdiv; apply Rmult_le_reg_l with 2.
-  prove_sup0.
-  pattern 2 at 1; rewrite Rmult_comm.
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | discrR ].
+  unfold Rdiv; apply Rmult_le_reg_l with R2.
+  exact Rlt_0_2.
+  pattern R2 at 1; rewrite Rmult_comm.
+  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | exact Neq_2_0 ].
   rewrite Rmult_1_r.
   rewrite double.
   apply Rplus_le_compat_l.
@@ -92,11 +92,11 @@ Proof.
   unfold Un_decreasing.
   intro.
   simpl.
-  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)).
-  unfold Rdiv; apply Rmult_le_reg_l with 2.
-  prove_sup0.
+  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)).
+  unfold Rdiv; apply Rmult_le_reg_l with R2.
+  exact Rlt_0_2.
   rewrite Rmult_comm.
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | discrR ].
+  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ idtac | exact Neq_2_0 ].
   rewrite Rmult_1_r.
   rewrite double.
   replace (Dichotomy_ub x y P n) with (dicho_up x y P n);
@@ -116,12 +116,12 @@ Proof.
   induction  n as [| n Hrecn].
   simpl; assumption.
   simpl.
-  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)).
+  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)).
   assumption.
-  unfold Rdiv; apply Rmult_le_reg_l with 2.
-  prove_sup0.
+  unfold Rdiv; apply Rmult_le_reg_l with R2.
+  exact Rlt_0_2.
   rewrite Rmult_comm.
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ rewrite Rmult_1_r | discrR ].
+  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ rewrite Rmult_1_r | exact Neq_2_0 ].
   rewrite double; apply Rplus_le_compat.
   assumption.
   pattern y at 2; replace y with (Dichotomy_ub x y P 0);
@@ -155,11 +155,11 @@ Proof.
   induction  n as [| n Hrecn].
   simpl; assumption.
   simpl.
-  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)).
-  unfold Rdiv; apply Rmult_le_reg_l with 2.
-  prove_sup0.
-  pattern 2 at 1; rewrite Rmult_comm.
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ rewrite Rmult_1_r | discrR ].
+  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)).
+  unfold Rdiv; apply Rmult_le_reg_l with R2.
+  exact Rlt_0_2.
+  pattern R2 at 1; rewrite Rmult_comm.
+  rewrite Rmult_assoc; rewrite <- Rinv_l_sym; [ rewrite Rmult_1_r | exact Neq_2_0 ].
   rewrite double; apply Rplus_le_compat.
   pattern x at 1; replace x with (Dichotomy_lb x y P 0);
     [ idtac | reflexivity ].
@@ -212,49 +212,86 @@ Qed.
 
 Lemma dicho_lb_dicho_up :
   forall (x y:R) (P:R -> bool) (n:nat),
-    x <= y -> dicho_up x y P n - dicho_lb x y P n = (y - x) / 2 ^ n.
+    x <= y -> dicho_up x y P n - dicho_lb x y P n = (y - x) / R2 ^ n.
 Proof.
   intros.
   induction  n as [| n Hrecn].
   simpl.
-  unfold Rdiv; rewrite Rinv_1; ring.
+  unfold Rdiv; rewrite Rinv_1. rewrite Rmult_1_r. reflexivity.
   simpl.
-  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)).
+  case (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)).
   unfold Rdiv.
   replace
-  ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) * / 2 - Dichotomy_lb x y P n)
-    with ((dicho_up x y P n - dicho_lb x y P n) / 2).
+  ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) * / R2 - Dichotomy_lb x y P n)
+    with ((dicho_up x y P n - dicho_lb x y P n) / R2).
   unfold Rdiv; rewrite Hrecn.
   unfold Rdiv.
   rewrite Rinv_mult_distr.
-  ring.
-  discrR.
-  apply pow_nonzero; discrR.
+{
+repeat rewrite Rmult_assoc.
+apply Rmult_eq_compat_l.
+rewrite Rmult_comm.
+reflexivity.
+}
+  exact Neq_2_0.
+  apply pow_nonzero.   exact Neq_2_0.
   pattern (Dichotomy_lb x y P n) at 2;
     rewrite (double_var (Dichotomy_lb x y P n));
-      unfold dicho_up, dicho_lb, Rminus, Rdiv; ring.
+      unfold dicho_up, dicho_lb, Rminus, Rdiv.
+{
+change (IZR 2) with R2.
+rewrite Ropp_plus_distr.
+rewrite Ropp_mult_distr_l.
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite <- Rplus_assoc.
+repeat rewrite <- Rmult_plus_distr_r.
+apply Rmult_eq_compat_r.
+repeat rewrite <- Rplus_assoc.
+apply Rplus_eq_compat_r.
+rewrite Rplus_comm.
+rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_l.
+reflexivity.
+}
   replace
-  (Dichotomy_ub x y P n - (Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2)
-    with ((dicho_up x y P n - dicho_lb x y P n) / 2).
+  (Dichotomy_ub x y P n - (Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2)
+    with ((dicho_up x y P n - dicho_lb x y P n) / R2).
   unfold Rdiv; rewrite Hrecn.
   unfold Rdiv.
   rewrite Rinv_mult_distr.
-  ring.
-  discrR.
-  apply pow_nonzero; discrR.
+{
+repeat rewrite Rmult_assoc.
+apply Rmult_eq_compat_l.
+rewrite Rmult_comm.
+reflexivity.
+}
+exact Neq_2_0.
+  apply pow_nonzero; exact Neq_2_0.
   pattern (Dichotomy_ub x y P n) at 1;
     rewrite (double_var (Dichotomy_ub x y P n));
-      unfold dicho_up, dicho_lb, Rminus, Rdiv; ring.
+      unfold dicho_up, dicho_lb, Rminus, Rdiv.
+change (IZR 2) with R2.
+rewrite Ropp_mult_distr_l.
+repeat rewrite <- Rplus_assoc.
+repeat rewrite <- Rmult_plus_distr_r.
+apply Rmult_eq_compat_r.
+rewrite Ropp_plus_distr.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+rewrite Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_r.
+reflexivity.
 Qed.
 
-Definition pow_2_n (n:nat) := 2 ^ n.
+Definition pow_2_n (n:nat) := R2 ^ n.
 
-Lemma pow_2_n_neq_R0 : forall n:nat, pow_2_n n <> 0.
+Lemma pow_2_n_neq_R0 : forall n:nat, pow_2_n n <> R0.
 Proof.
   intro.
   unfold pow_2_n.
   apply pow_nonzero.
-  discrR.
+  exact Neq_2_0.
 Qed.
 
 Lemma pow_2_n_growing : Un_growing pow_2_n.
@@ -263,22 +300,22 @@ Proof.
   intro.
   replace (S n) with (n + 1)%nat;
   [ unfold pow_2_n; rewrite pow_add | ring ].
-  pattern (2 ^ n) at 1; rewrite <- Rmult_1_r.
+  pattern (R2 ^ n) at 1; rewrite <- Rmult_1_r.
   apply Rmult_le_compat_l.
-  left; apply pow_lt; prove_sup0.
+  left; apply pow_lt; exact Rlt_0_2.
   simpl.
   rewrite Rmult_1_r.
-  pattern 1 at 1; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
+  pattern R1 at 1; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
     apply Rlt_0_1.
 Qed.
 
 Lemma pow_2_n_infty : cv_infty pow_2_n.
 Proof.
-  cut (forall N:nat, INR N <= 2 ^ N).
+  cut (forall N:nat, INR N <= R2 ^ N).
   intros.
   unfold cv_infty.
   intro.
-  destruct (total_order_T 0 M) as [[Hlt|<-]|Hgt].
+  destruct (total_order_T R0 M) as [[Hlt|<-]|Hgt].
   set (N := up M).
   cut (0 <= N)%Z.
   intro.
@@ -303,11 +340,11 @@ Proof.
   assert (H0 := archimed M); elim H0; intros.
   left; apply Rlt_trans with M; assumption.
   exists 0%nat; intros.
-  unfold pow_2_n; apply pow_lt; prove_sup0.
+  unfold pow_2_n; apply pow_lt; exact Rlt_0_2.
   exists 0%nat; intros.
-  apply Rlt_trans with 0.
+  apply Rlt_trans with R0.
   assumption.
-  unfold pow_2_n; apply pow_lt; prove_sup0.
+  unfold pow_2_n; apply pow_lt; exact Rlt_0_2.
   simple induction N.
   simpl.
   left; apply Rlt_0_1.
@@ -316,16 +353,16 @@ Proof.
   rewrite S_INR; rewrite pow_add.
   simpl.
   rewrite Rmult_1_r.
-  apply Rle_trans with (2 ^ n).
-  rewrite <- (Rplus_comm 1).
+  apply Rle_trans with (R2 ^ n).
+  rewrite <- (Rplus_comm R1).
   rewrite <- (Rmult_1_r (INR n)).
-  apply (poly n 1).
+  apply (poly n R1).
   apply Rlt_0_1.
-  pattern (2 ^ n) at 1; rewrite <- Rplus_0_r.
-  rewrite <- (Rmult_comm 2).
+  pattern (R2 ^ n) at 1; rewrite <- Rplus_0_r.
+  rewrite <- (Rmult_comm R2).
   rewrite double.
   apply Rplus_le_compat_l.
-  left; apply pow_lt; prove_sup0.
+  left; apply pow_lt; exact Rlt_0_2.
 Qed.
 
 Lemma cv_dicho :
@@ -335,7 +372,7 @@ Lemma cv_dicho :
 Proof.
   intros.
   assert (H2 := CV_minus _ _ _ _ H0 H1).
-  cut (Un_cv (fun i:nat => dicho_lb x y P i - dicho_up x y P i) 0).
+  cut (Un_cv (fun i:nat => dicho_lb x y P i - dicho_up x y P i) R0).
   intro.
   assert (H4 := UL_sequence _ _ _ H2 H3).
   symmetry ; apply Rminus_diag_uniq_sym; assumption.
@@ -344,14 +381,20 @@ Proof.
   assert (H4 := cv_infty_cv_R0 pow_2_n pow_2_n_neq_R0 pow_2_n_infty).
   destruct (total_order_T x y) as [[ Hlt | -> ]|Hgt].
   unfold Un_cv in H4; unfold R_dist in H4.
-  cut (0 < y - x).
+  cut (R0 < y - x).
   intro Hyp.
-  cut (0 < eps / (y - x)).
+  cut (R0 < eps / (y - x)).
   intro.
   elim (H4 (eps / (y - x)) H5); intros N H6.
   exists N; intros.
-  replace (dicho_lb x y P n - dicho_up x y P n - 0) with
-  (dicho_lb x y P n - dicho_up x y P n); [ idtac | ring ].
+  replace (dicho_lb x y P n - dicho_up x y P n - R0) with
+  (dicho_lb x y P n - dicho_up x y P n).
+2:{
+unfold Rminus.
+rewrite Ropp_0.
+rewrite Rplus_0_r.
+reflexivity.
+}
   rewrite <- Rabs_Ropp.
   rewrite Ropp_minus_distr'.
   rewrite dicho_lb_dicho_up.
@@ -361,22 +404,43 @@ Proof.
   apply Rinv_0_lt_compat; assumption.
   rewrite <- Rmult_assoc; rewrite <- Rinv_l_sym.
   rewrite Rmult_1_l.
-  replace (/ 2 ^ n) with (/ 2 ^ n - 0);
-  [ unfold pow_2_n, Rdiv in H6; rewrite <- (Rmult_comm eps); apply H6;
-    assumption
-    | ring ].
+  replace (/ R2 ^ n) with (/ R2 ^ n - R0).
+  unfold pow_2_n, Rdiv in H6; rewrite <- (Rmult_comm eps); apply H6;
+    assumption.
+ {
+unfold Rminus.
+rewrite Ropp_0.
+rewrite Rplus_0_r.
+reflexivity.
+}
   red; intro; rewrite H8 in Hyp; elim (Rlt_irrefl _ Hyp).
   apply Rle_ge.
   apply Rplus_le_reg_l with x; rewrite Rplus_0_r.
-  replace (x + (y - x)) with y; [ assumption | ring ].
+  replace (x + (y - x)) with y. assumption.
+{
+unfold Rminus. rewrite Rplus_comm.
+rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+reflexivity.
+}
   assumption.
   unfold Rdiv; apply Rmult_lt_0_compat;
     [ assumption | apply Rinv_0_lt_compat; assumption ].
   apply Rplus_lt_reg_l with x; rewrite Rplus_0_r.
-  replace (x + (y - x)) with y; [ assumption | ring ].
+  replace (x + (y - x)) with y. assumption.
+{
+unfold Rminus. rewrite Rplus_comm.
+rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+reflexivity.
+}
   exists 0%nat; intros.
-  replace (dicho_lb y y P n - dicho_up y y P n - 0) with
-  (dicho_lb y y P n - dicho_up y y P n); [ idtac | ring ].
+  replace (dicho_lb y y P n - dicho_up y y P n - R0) with
+  (dicho_lb y y P n - dicho_up y y P n).
+2:{
+unfold Rminus.
+rewrite Ropp_0.
+rewrite Rplus_0_r.
+reflexivity.
+}
   rewrite <- Rabs_Ropp.
   rewrite Ropp_minus_distr'.
   rewrite dicho_lb_dicho_up.
@@ -387,7 +451,7 @@ Proof.
 Qed.
 
 Definition cond_positivity (x:R) : bool :=
-  match Rle_dec 0 x with
+  match Rle_dec R0 x with
     | left _ => true
     | right _ => false
   end.
@@ -429,7 +493,7 @@ Proof.
   - assumption.
   - simpl.
     destruct
-        (sumbool_of_bool (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2))) as [Heq|Heq].
+        (sumbool_of_bool (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2))) as [Heq|Heq].
     + rewrite Heq.
       unfold dicho_lb in Hrecn; assumption.
     + rewrite Heq.
@@ -445,7 +509,7 @@ Proof.
   - assumption.
   - simpl.
     destruct
-      (sumbool_of_bool (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / 2))) as [Heq|Heq].
+      (sumbool_of_bool (P ((Dichotomy_lb x y P n + Dichotomy_ub x y P n) / R2))) as [Heq|Heq].
     + rewrite Heq.
       unfold dicho_lb in Hrecn; assumption.
     + rewrite  Heq.
@@ -453,8 +517,8 @@ Proof.
 Qed.
 
 (* A general purpose corollary. *)
-Lemma cv_pow_half : forall a, Un_cv (fun n => a/2^n) 0.
-intros a; unfold Rdiv; replace 0 with (a * 0) by ring.
+Lemma cv_pow_half : forall a, Un_cv (fun n => a/R2^n) R0.
+intros a; unfold Rdiv; replace R0 with (a * R0). 2:{ rewrite Rmult_0_r. reflexivity. }
 apply CV_mult.
  intros eps ep; exists 0%nat; rewrite R_dist_eq; intros n _; assumption.
 exact (cv_infty_cv_R0 pow_2_n pow_2_n_neq_R0 pow_2_n_infty).
@@ -464,7 +528,7 @@ Qed.
 Lemma IVT :
   forall (f:R -> R) (x y:R),
     continuity f ->
-    x < y -> f x < 0 -> 0 < f y -> { z:R | x <= z <= y /\ f z = 0 }.
+    x < y -> f x < R0 -> R0 < f y -> { z:R | x <= z <= y /\ f z = R0 }.
 Proof.
   intros.
   assert (x <= y) by (left; assumption).
@@ -488,18 +552,18 @@ Proof.
   right; reflexivity.
   set (Vn := fun n:nat => dicho_lb x y (fun z:R => cond_positivity (f z)) n).
   set (Wn := fun n:nat => dicho_up x y (fun z:R => cond_positivity (f z)) n).
-  cut ((forall n:nat, f (Vn n) <= 0) -> f x0 <= 0).
-  cut ((forall n:nat, 0 <= f (Wn n)) -> 0 <= f x0).
+  cut ((forall n:nat, f (Vn n) <= R0) -> f x0 <= R0).
+  cut ((forall n:nat, R0 <= f (Wn n)) -> R0 <= f x0).
   intros.
-  cut (forall n:nat, f (Vn n) <= 0).
-  cut (forall n:nat, 0 <= f (Wn n)).
+  cut (forall n:nat, f (Vn n) <= R0).
+  cut (forall n:nat, R0 <= f (Wn n)).
   intros.
   assert (H9 := H6 H8).
   assert (H10 := H5 H7).
   apply Rle_antisym; assumption.
   intro.
   unfold Wn.
-  cut (forall z:R, cond_positivity z = true <-> 0 <= z).
+  cut (forall z:R, cond_positivity z = true <-> R0 <= z).
   intro.
   assert (H8 := dicho_up_car x y (fun z:R => cond_positivity (f z)) n).
   elim (H7 (f (dicho_up x y (fun z:R => cond_positivity (f z)) n))); intros.
@@ -510,7 +574,7 @@ Proof.
   left; assumption.
   intro.
   unfold cond_positivity.
-  case (Rle_dec 0 z) as [Hle|Hnle].
+  case (Rle_dec R0 z) as [Hle|Hnle].
   split.
   intro; assumption.
   intro; reflexivity.
@@ -519,7 +583,7 @@ Proof.
   intro.
   contradiction.
   unfold Vn.
-  cut (forall z:R, cond_positivity z = false <-> z < 0).
+  cut (forall z:R, cond_positivity z = false <-> z < R0).
   intros.
   assert (H8 := dicho_lb_car x y (fun z:R => cond_positivity (f z)) n).
   left.
@@ -531,7 +595,7 @@ Proof.
   assumption.
   intro.
   unfold cond_positivity.
-  case (Rle_dec 0 z) as [Hle|Hnle].
+  case (Rle_dec R0 z) as [Hle|Hnle].
   split.
   intro feqt; discriminate feqt.
   intro; elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ Hle H7)).
@@ -541,11 +605,11 @@ Proof.
   cut (Un_cv Wn x0).
   intros.
   assert (H7 := continuity_seq f Wn x0 (H x0) H5).
-  destruct (total_order_T 0 (f x0)) as [[Hlt|<-]|Hgt].
+  destruct (total_order_T R0 (f x0)) as [[Hlt|<-]|Hgt].
   left; assumption.
   right; reflexivity.
   unfold Un_cv in H7; unfold R_dist in H7.
-  cut (0 < - f x0).
+  cut (R0 < - f x0).
   intro.
   elim (H7 (- f x0) H8); intros.
   cut (x2 >= x2)%nat; [ intro | unfold ge; apply le_n ].
@@ -564,7 +628,7 @@ Proof.
   cut (Un_cv Vn x0).
   intros.
   assert (H7 := continuity_seq f Vn x0 (H x0) H5).
-  destruct (total_order_T 0 (f x0)) as [[Hlt|<-]|Hgt].
+  destruct (total_order_T R0 (f x0)) as [[Hlt|<-]|Hgt].
   unfold Un_cv in H7; unfold R_dist in H7.
   elim (H7 (f x0) Hlt); intros.
   cut (x2 >= x2)%nat; [ intro | unfold ge; apply le_n ].
@@ -575,16 +639,26 @@ Proof.
   unfold Rminus in H10.
   assert (H11 := Rplus_lt_reg_l _ _ _ H10).
   assert (H12 := H6 x2).
-  cut (0 < f (Vn x2)).
+  cut (R0 < f (Vn x2)).
   intro.
   elim (Rlt_irrefl _ (Rlt_le_trans _ _ _ H13 H12)).
   rewrite <- (Ropp_involutive (f (Vn x2))).
   apply Ropp_0_gt_lt_contravar; assumption.
   apply Rplus_lt_reg_l with (f x0 - f (Vn x2)).
-  rewrite Rplus_0_r; replace (f x0 - f (Vn x2) + (f (Vn x2) - f x0)) with 0;
-    [ unfold Rminus; apply Rplus_lt_le_0_compat | ring ].
+  rewrite Rplus_0_r; replace (f x0 - f (Vn x2) + (f (Vn x2) - f x0)) with R0.
+    unfold Rminus; apply Rplus_lt_le_0_compat.
   assumption.
   apply Ropp_0_ge_le_contravar; apply Rle_ge; apply H6.
+{
+symmetry.
+unfold Rminus.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_r.
+rewrite Rplus_opp_l.
+reflexivity.
+}
   right; reflexivity.
   left; assumption.
   unfold Vn; assumption.
@@ -593,12 +667,12 @@ Qed.
 Lemma IVT_cor :
   forall (f:R -> R) (x y:R),
     continuity f ->
-    x <= y -> f x * f y <= 0 -> { z:R | x <= z <= y /\ f z = 0 }.
+    x <= y -> f x * f y <= R0 -> { z:R | x <= z <= y /\ f z = R0 }.
 Proof.
   intros.
-  destruct (total_order_T 0 (f x)) as [[Hltx|Heqx]|Hgtx].
-  destruct (total_order_T 0 (f y)) as [[Hlty|Heqy]|Hgty].
-  cut (0 < f x * f y);
+  destruct (total_order_T R0 (f x)) as [[Hltx|Heqx]|Hgtx].
+  destruct (total_order_T R0 (f y)) as [[Hlty|Heqy]|Hgty].
+  cut (R0 < f x * f y);
     [ intro; elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H1 H2))
       | apply Rmult_lt_0_compat; assumption ].
   exists y.
@@ -608,8 +682,8 @@ Proof.
   cut (x < y).
   intro.
   assert (H3 := IVT (- f)%F x y (continuity_opp f H) H2).
-  cut ((- f)%F x < 0).
-  cut (0 < (- f)%F y).
+  cut ((- f)%F x < R0).
+  cut (R0 < (- f)%F y).
   intros.
   destruct (H3 H5 H4) as (x0,[]).
   exists x0.
@@ -630,7 +704,7 @@ Proof.
   split.
   split; [ right; reflexivity | assumption ].
   symmetry ; assumption.
-  destruct (total_order_T 0 (f y)) as [[Hlty|Heqy]|Hgty].
+  destruct (total_order_T R0 (f y)) as [[Hlty|Heqy]|Hgty].
   cut (x < y).
   intro.
   apply IVT; assumption.
@@ -642,7 +716,7 @@ Proof.
   split.
   split; [ assumption | right; reflexivity ].
   symmetry ; assumption.
-  cut (0 < f x * f y).
+  cut (R0 < f x * f y).
   intro.
   elim (Rlt_irrefl _ (Rlt_le_trans _ _ _ H2 H1)).
   rewrite <- Rmult_opp_opp; apply Rmult_lt_0_compat;
@@ -652,20 +726,20 @@ Qed.
 (** We can now define the square root function as the reciprocal
    transformation of the square function *)
 Lemma Rsqrt_exists :
-  forall y:R, 0 <= y -> { z:R | 0 <= z /\ y = Rsqr z }.
+  forall y:R, R0 <= y -> { z:R | R0 <= z /\ y = Rsqr z }.
 Proof.
   intros.
   set (f := fun x:R => Rsqr x - y).
-  cut (f 0 <= 0).
+  cut (f R0 <= R0).
   intro.
   cut (continuity f).
   intro.
-  destruct (total_order_T y 1) as [[Hlt| -> ]|Hgt].
-  cut (0 <= f 1).
+  destruct (total_order_T y R1) as [[Hlt| -> ]|Hgt].
+  cut (R0 <= f R1).
   intro.
-  cut (f 0 * f 1 <= 0).
+  cut (f R0 * f R1 <= R0).
   intro.
-  assert (X := IVT_cor f 0 1 H1 (Rlt_le _ _ Rlt_0_1) H3).
+  assert (X := IVT_cor f R0 R1 H1 (Rlt_le _ _ Rlt_0_1) H3).
   elim X; intros t H4.
   exists t.
   elim H4; intros.
@@ -673,7 +747,7 @@ Proof.
   elim H5; intros; assumption.
   unfold f in H6.
   apply Rminus_diag_uniq_sym; exact H6.
-  rewrite Rmult_comm; pattern 0 at 2; rewrite <- (Rmult_0_r (f 1)).
+  rewrite Rmult_comm; pattern R0 at 2; rewrite <- (Rmult_0_r (f R1)).
   apply Rmult_le_compat_l; assumption.
   unfold f.
   rewrite Rsqr_1.
@@ -681,15 +755,15 @@ Proof.
   rewrite Rplus_0_r; rewrite Rplus_comm; unfold Rminus;
     rewrite Rplus_assoc; rewrite Rplus_opp_l; rewrite Rplus_0_r;
       left; assumption.
-  exists 1.
+  exists R1.
   split.
   left; apply Rlt_0_1.
   symmetry; apply Rsqr_1.
-  cut (0 <= f y).
+  cut (R0 <= f y).
   intro.
-  cut (f 0 * f y <= 0).
+  cut (f R0 * f y <= R0).
   intro.
-  assert (X := IVT_cor f 0 y H1 H H3).
+  assert (X := IVT_cor f R0 y H1 H H3).
   elim X; intros t H4.
   exists t.
   elim H4; intros.
@@ -697,7 +771,7 @@ Proof.
   elim H5; intros; assumption.
   unfold f in H6.
   apply Rminus_diag_uniq_sym; exact H6.
-  rewrite Rmult_comm; pattern 0 at 2; rewrite <- (Rmult_0_r (f y)).
+  rewrite Rmult_comm; pattern R0 at 2; rewrite <- (Rmult_0_r (f y)).
   apply Rmult_le_compat_l; assumption.
   unfold f.
   apply Rplus_le_reg_l with y.
@@ -723,7 +797,7 @@ Definition Rsqrt (y:nonnegreal) : R :=
   let (a,_) := Rsqrt_exists (nonneg y) (cond_nonneg y) in a.
 
 (**********)
-Lemma Rsqrt_positivity : forall x:nonnegreal, 0 <= Rsqrt x.
+Lemma Rsqrt_positivity : forall x:nonnegreal, R0 <= Rsqrt x.
 Proof.
   intro.
   destruct (Rsqrt_exists (nonneg x) (cond_nonneg x)) as (x0 & H1 & H2).

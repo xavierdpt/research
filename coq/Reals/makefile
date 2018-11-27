@@ -1,6 +1,6 @@
 .PHONY: ALL
 
-ALL: XRderiv.vo
+ALL: XRtrigo1.vo
 
 XRdefinitions.vo: XRdefinitions.v
 	C:\Coq\bin\coqc XRdefinitions.v
@@ -95,6 +95,27 @@ XRlimit.vo: XRlimit.v XCos_plus.vo
 
 XRderiv.vo: XRderiv.v XRlimit.vo
 	C:\Coq\bin\coqc XRderiv.v
+
+XRanalysis1.vo: XRanalysis1.v XRderiv.vo
+	C:\Coq\bin\coqc XRanalysis1.v
+
+XRsqrt_def.vo: XRsqrt_def.v XRanalysis1.vo
+	C:\Coq\bin\coqc XRsqrt_def.v
+
+XRList.vo: XRList.v XRsqrt_def.vo
+	C:\Coq\bin\coqc XRList.v
+
+XRtopology.vo: XRtopology.v XRList.vo
+	C:\Coq\bin\coqc XRtopology.v
+
+XMVT.vo: XMVT.v XRtopology.vo
+	C:\Coq\bin\coqc XMVT.v
+
+XPSeries_reg.vo: XPSeries_reg.v XMVT.vo
+	C:\Coq\bin\coqc XPSeries_reg.v
+
+XRtrigo1.vo: XRtrigo1.v XPSeries_reg.vo
+	C:\Coq\bin\coqc XRtrigo1.v
 
 #.vo: .v .vo
 #	C:\Coq\bin\coqc .v
