@@ -213,8 +213,161 @@ repeat rewrite Rmult_1_l.
 repeat rewrite Ropp_involutive.
 replace (IZR 24) with (R12 + R12).
 replace (IZR 6) with R6.
-{
-  
+
+2:{
+unfold R6.
+unfold R3.
+unfold R2.
+change R1 with (IZR 1).
+repeat rewrite <- plus_IZR.
+simpl.
+reflexivity.
+}
+
+2:{
+unfold R12.
+unfold R6.
+unfold R3.
+unfold R2.
+change R1 with (IZR 1).
+repeat rewrite <- plus_IZR.
+simpl.
+reflexivity.
+}
+
+repeat rewrite Ropp_mult_distr_l.
+apply Rmult_lt_reg_r with R2.
+
+2:{
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+
+apply Rmult_lt_reg_r with R8.
+2:{
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+
+apply Rmult_lt_reg_r with R8.
+2:{
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite (Rmult_comm (/ R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+rewrite Rmult_1_l.
+rewrite (Rmult_comm (/R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+rewrite (Rmult_comm (/R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+rewrite (Rmult_comm (/R8)).
+rewrite (Rmult_comm (/R8)).
+rewrite (Rmult_comm (/R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+repeat rewrite Rmult_assoc.
+
+apply Rmult_lt_reg_r with R8.
+2:{
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+
+apply Rmult_lt_reg_r with R8.
+2:{
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite Rinv_l.
+rewrite Rmult_1_r.
+rewrite (Rmult_comm (/R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+rewrite (Rmult_comm (/R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+rewrite (Rmult_comm (/R8)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+
+apply Rmult_lt_reg_r with R6.
+2:{
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite (Rmult_comm (/R6)).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+
+apply Rmult_lt_reg_r with (R12+R12).
+2:{
+
+rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite (Rmult_comm (/ (R12+R12))).
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r.
+rewrite Rmult_1_r.
+unfold R12.
+unfold R8.
+unfold R7.
+unfold R6.
+unfold R4.
+unfold R3.
+unfold R2.
+
+change R1 with (IZR 1).
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- plus_IZR.
+simpl.
+rewrite <- mult_IZR.
+simpl.
+rewrite <- mult_IZR.
+simpl.
+rewrite <- mult_IZR.
+simpl.
+rewrite <- mult_IZR.
+simpl.
+rewrite <- mult_IZR.
+simpl.
+repeat rewrite <- mult_IZR.
+simpl.
+repeat rewrite <- Ropp_mult_distr_l.
+repeat rewrite <- mult_IZR.
+simpl.
+repeat rewrite <- opp_IZR.
+repeat rewrite <- plus_IZR.
+simpl.
+repeat rewrite <- mult_IZR.
+simpl.
+repeat rewrite <- plus_IZR.
+simpl.
+
 
 
 
