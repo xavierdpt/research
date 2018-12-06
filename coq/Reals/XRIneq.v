@@ -21,12 +21,6 @@ Proof.
 Qed.
 Hint Immediate Rle_refl: rorders.
 
-Lemma Rge_refl : forall r, r >= r.
-Proof.  
- apply Rle_refl.
-Qed.
-Hint Immediate Rge_refl: rorders.
-
 Lemma Rlt_irrefl : forall r, ~ r < r.
 Proof.
   intros r h.
@@ -36,9 +30,6 @@ Proof.
 Qed.
 Hint Resolve Rlt_irrefl: real.
 
-Lemma Rgt_irrefl : forall r, ~ r > r.
-Proof. exact Rlt_irrefl. Qed.
-
 Lemma Rlt_not_eq : forall r1 r2, r1 < r2 -> r1 <> r2.
 Proof.
   intros x y h.
@@ -47,19 +38,19 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rgt_not_eq : forall r1 r2, r1 > r2 -> r1 <> r2.
+Lemma Rlt_not_eq' : forall r1 r2, r2 < r1 -> r1 <> r2.
 Proof.
   intros x y h.
-  intro eq. subst y.
+  red. intro eq. subst y. 
   apply Rlt_irrefl in h.
   exact h.
 Qed.
 
-Lemma Rlt_dichotomy_converse : forall r1 r2, r1 < r2 \/ r1 > r2 -> r1 <> r2.
+Lemma Rlt_dichotomy_converse : forall r1 r2, r1 < r2 \/ r2 < r1 -> r1 <> r2.
 Proof.
   intros x y [lt | gt].
   apply Rlt_not_eq. exact lt.
-  apply Rgt_not_eq. exact gt.
+  apply Rlt_not_eq'. exact gt.
 Qed.
 Hint Resolve Rlt_dichotomy_converse: real.
 
@@ -74,7 +65,7 @@ Qed.
 Hint Resolve Req_dec: real.
 
 (**********)
-Lemma Rtotal_order : forall r1 r2, r1 < r2 \/ r1 = r2 \/ r1 > r2.
+Lemma Rtotal_order : forall r1 r2, r1 < r2 \/ r1 = r2 \/ r2 < r1.
 Proof.
   intros x y.
   destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
@@ -83,7 +74,7 @@ Proof.
   right. right. exact gt.
 Qed.
 
-Lemma Rdichotomy : forall r1 r2, r1 <> r2 -> r1 < r2 \/ r1 > r2.
+Lemma Rdichotomy : forall r1 r2, r1 <> r2 -> r1 < r2 \/ r2 < r1.
 Proof.
   intros x y hneq.
   destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
@@ -99,44 +90,6 @@ Proof.
 Qed.
 Hint Resolve Rlt_le: real.
 
-Lemma Rgt_ge : forall r1 r2, r1 > r2 -> r1 >= r2.
-Proof.
-  intros x y h.
-  left. exact h.
-Qed.
-
-Lemma Rle_ge : forall r1 r2, r1 <= r2 -> r2 >= r1.
-Proof.
-  intros x y h.
-  destruct h as [lt | eq].
-  left. exact lt.
-  right. symmetry. exact eq.
-Qed.
-Hint Immediate Rle_ge: real.
-Hint Resolve Rle_ge: rorders.
-
-Lemma Rge_le : forall r1 r2, r1 >= r2 -> r2 <= r1.
-Proof.
-  intros x y h.
-  destruct h as [gt | eq].
-  left. exact gt.
-  right. symmetry. exact eq.
-Qed.
-Hint Resolve Rge_le: real.
-Hint Immediate Rge_le: rorders.
-
-Lemma Rlt_gt : forall r1 r2, r1 < r2 -> r2 > r1.
-Proof.
-  intros x y h. exact h.
-Qed.
-Hint Resolve Rlt_gt: rorders.
-
-Lemma Rgt_lt : forall r1 r2, r1 > r2 -> r2 < r1.
-Proof.
-  intros x y h. exact h.
-Qed.
-Hint Immediate Rgt_lt: rorders.
-
 Lemma Rnot_le_lt : forall r1 r2, ~ r1 <= r2 -> r2 < r1.
 Proof.
   intros x y hn.
@@ -147,59 +100,12 @@ Proof.
 Qed.
 Hint Immediate Rnot_le_lt: real.
 
-Lemma Rnot_ge_gt : forall r1 r2, ~ r1 >= r2 -> r2 > r1.
-Proof.
-  intros x y hn.
-  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
-  exact lt.
-  exfalso. apply hn. right. exact eq.
-  exfalso. apply hn. left. exact gt.
-Qed.
-
-Lemma Rnot_le_gt : forall r1 r2, ~ r1 <= r2 -> r1 > r2.
-Proof.
-  intros x y hn.
-  apply Rnot_le_lt. exact hn.
-Qed.
-
-Lemma Rnot_ge_lt : forall r1 r2, ~ r1 >= r2 -> r1 < r2.
-Proof.
-  intros x y hn.
-  apply Rnot_ge_gt.
-  exact hn.
-Qed.
-
 Lemma Rnot_lt_le : forall r1 r2, ~ r1 < r2 -> r2 <= r1.
 Proof.
   intros x y hn.
   destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
   contradiction.
   right. symmetry. exact eq.
-  left. exact gt.
-Qed.
-
-Lemma Rnot_gt_le : forall r1 r2, ~ r1 > r2 -> r1 <= r2.
-Proof.
-  intros x y hn.
-  apply Rnot_lt_le.
-  exact hn.
-Qed.
-
-Lemma Rnot_gt_ge : forall r1 r2, ~ r1 > r2 -> r2 >= r1.
-Proof.
-  intros x y hn.
-  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
-  left. exact lt.
-  right. symmetry. exact eq.
-  contradiction.
-Qed.
-
-Lemma Rnot_lt_ge : forall r1 r2, ~ r1 < r2 -> r1 >= r2.
-Proof.
-  intros x y hn.
-  destruct (Rtotal_order x y) as [ lt | [ eq | gt ] ].
-  contradiction.
-  right. exact eq.
   left. exact gt.
 Qed.
 
@@ -212,24 +118,6 @@ Proof.
 Qed.
 Hint Immediate Rlt_not_le: real.
 
-Lemma Rgt_not_le : forall r1 r2, r1 > r2 -> ~ r1 <= r2.
-Proof. exact Rlt_not_le. Qed.
-
-Lemma Rlt_not_ge : forall r1 r2, r1 < r2 -> ~ r1 >= r2.
-Proof.
-  intros x y hlt hge.
-  apply Rge_le in hge.
-  apply Rlt_not_le with x y.
-  destruct hge as [hlt' | eq].
-  exact hlt'.
-  subst y. apply Rlt_irrefl in hlt. contradiction.
-  left. exact hlt.
-Qed.
-Hint Immediate Rlt_not_ge: real.
-
-Lemma Rgt_not_ge : forall r1 r2, r2 > r1 -> ~ r1 >= r2.
-Proof. exact Rlt_not_ge. Qed.
-
 Lemma Rle_not_lt : forall r1 r2, r2 <= r1 -> ~ r1 < r2.
 Proof.
   intros x y hle hlt.
@@ -238,40 +126,11 @@ Proof.
   subst y. apply Rlt_irrefl in hlt. exact hlt.
 Qed.
 
-Lemma Rge_not_lt : forall r1 r2, r1 >= r2 -> ~ r1 < r2.
-Proof.
-  intros x y hge hlt.
-  apply Rlt_not_ge with x y.
-  exact hlt. exact hge.
-Qed.
-
-Lemma Rle_not_gt : forall r1 r2, r1 <= r2 -> ~ r1 > r2.
-Proof.
-  intros x y hle hgt.
-  apply Rge_not_lt with y x.
-  apply Rle_ge. exact hle.
-  exact hgt.
-Qed.
-
-Lemma Rge_not_gt : forall r1 r2, r2 >= r1 -> ~ r1 > r2.
-Proof.
-  intros x y hge hlt.
-  apply Rle_not_gt with x y.
-  apply Rge_le. exact hge.
-  exact hlt.
-Qed.
-
 Lemma Req_le : forall r1 r2, r1 = r2 -> r1 <= r2.
 Proof.
   intros x y eq. subst y. right. reflexivity.
 Qed.
 Hint Immediate Req_le: real.
-
-Lemma Req_ge : forall r1 r2, r1 = r2 -> r1 >= r2.
-Proof.
-  intros x y eq. subst y. right. reflexivity.
-Qed.
-Hint Immediate Req_ge: real.
 
 Lemma Req_le_sym : forall r1 r2, r2 = r1 -> r1 <= r2.
 Proof.
@@ -279,13 +138,7 @@ Proof.
 Qed.
 Hint Immediate Req_le_sym: real.
 
-Lemma Req_ge_sym : forall r1 r2, r2 = r1 -> r1 >= r2.
-Proof.
-  intros x y eq. right. symmetry. exact eq.
-Qed.
-Hint Immediate Req_ge_sym: real.
-
-Lemma Rgt_asym : forall r1 r2:R, r1 > r2 -> ~ r2 > r1.
+Lemma Rgt_asym : forall r1 r2:R, r2 < r1 -> ~ r1 < r2.
 Proof.
   intros x y hgt hlt.
   apply Rlt_asym in hlt. contradiction.
@@ -302,15 +155,6 @@ Proof.
 Qed.
 Hint Resolve Rle_antisym: real.
 
-Lemma Rge_antisym : forall r1 r2, r1 >= r2 -> r2 >= r1 -> r1 = r2.
-Proof.
-  intros x y hxy hyx.
-  apply Rge_le in hxy.
-  apply Rge_le in hyx.
-  apply Rle_antisym.
-  exact hyx. exact hxy.
-Qed.
-
 Lemma Rle_le_eq : forall r1 r2, r1 <= r2 /\ r2 <= r1 <-> r1 = r2.
 Proof.
   intros x y.
@@ -322,31 +166,11 @@ Proof.
   right. reflexivity.
 Qed.
 
-Lemma Rge_ge_eq : forall r1 r2, r1 >= r2 /\ r2 >= r1 <-> r1 = r2.
-Proof.
-  intros x y.
-  split.
-  intros [hxy hyx].
-  apply Rge_antisym. exact hxy. exact hyx.
-  intro eq. subst y. split.
-  right. reflexivity.
-  right. reflexivity.
-Qed.
-
-(** *** Compatibility with equality *)
-
 Lemma Rlt_eq_compat :
   forall r1 r2 r3 r4, r1 = r2 -> r2 < r4 -> r4 = r3 -> r1 < r3.
 Proof.
   intros x x' y y'.
   intros xx'eq hlt y'yeq.
-  subst x' y'. exact hlt.
-Qed.
-
-Lemma Rgt_eq_compat :
-  forall r1 r2 r3 r4, r1 = r2 -> r2 > r4 -> r4 = r3 -> r1 > r3.
-Proof.
-  intros x x' y y' eqx hlt eqy.
   subst x' y'. exact hlt.
 Qed.
 
@@ -359,22 +183,6 @@ Proof.
   left. apply Rlt_trans with y. exact ltxy. exact ltyz.
   subst z. left. exact ltxy.
   subst y. exact hyz.
-Qed.
-
-Lemma Rge_trans : forall r1 r2 r3, r1 >= r2 -> r2 >= r3 -> r1 >= r3.
-Proof.
-  intros x y z.
-  intros hxy hyz.
-  apply Rle_ge.
-  apply Rge_le in hxy.
-  apply Rge_le in hyz.
-  apply Rle_trans with y. exact hyz. exact hxy.
-Qed.
-
-Lemma Rgt_trans : forall r1 r2 r3, r1 > r2 -> r2 > r3 -> r1 > r3.
-Proof.
-  intros x y z hxy hyz.
-  apply Rlt_trans with y. exact hyz. exact hxy.
 Qed.
 
 Lemma Rle_lt_trans : forall r1 r2 r3, r1 <= r2 -> r2 < r3 -> r1 < r3.
@@ -391,21 +199,6 @@ Proof.
   destruct hyz as [ hyz | hyz ].
   apply Rlt_trans with y. exact hxy. exact hyz.
   subst y. exact hxy.
-Qed.
-
-Lemma Rge_gt_trans : forall r1 r2 r3, r1 >= r2 -> r2 > r3 -> r1 > r3.
-Proof.
-  intros x y z hge hgt.
-  apply Rge_le in hge.
-  apply Rlt_le_trans with y. exact hgt. exact hge.
-Qed.
-
-Lemma Rgt_ge_trans : forall r1 r2 r3, r1 > r2 -> r2 >= r3 -> r1 > r3.
-Proof.
-  intros x y z hxy hyz.
-  apply Rle_lt_trans with y.
-  apply Rge_le. exact hyz.
-  exact hxy.
 Qed.
 
 Lemma Rlt_dec : forall r1 r2, {r1 < r2} + {~ r1 < r2}.
@@ -428,26 +221,6 @@ Proof.
   subst y. apply Rlt_irrefl in gt. exact gt.
 Qed.
 
-Lemma Rgt_dec : forall r1 r2, {r1 > r2} + {~ r1 > r2}.
-Proof.
-intros x y. apply Rlt_dec.
-Qed.
-
-Lemma Rge_dec : forall r1 r2, {r1 >= r2} + {~ r1 >= r2}.
-Proof.
-  intros x y.
-  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
-
-  right. intro c. destruct c as [ c | c ].
-  apply Rlt_asym in c. contradiction.
-  subst y. apply Rlt_irrefl in lt. exact lt.
-
-  left. right. exact eq.
-
-  left. left. exact gt.
-
-Qed.
-
 Lemma Rlt_le_dec : forall r1 r2, {r1 < r2} + {r2 <= r1}.
 Proof.
   intros x y.
@@ -455,15 +228,6 @@ Proof.
   left. exact lt.
   right. right. symmetry. exact eq.
   right. left. exact gt. 
-Qed.
-
-Lemma Rgt_ge_dec : forall r1 r2, {r1 > r2} + {r2 >= r1}.
-Proof.
-  intros x y.
-  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
-  right. left. exact lt.
-  right. right. symmetry. exact eq.
-  left. exact gt.
 Qed.
 
 Lemma Rle_lt_dec : forall r1 r2, {r1 <= r2} + {r2 < r1}.
@@ -475,15 +239,6 @@ Proof.
   right. exact gt.
 Qed.
 
-Lemma Rge_gt_dec : forall r1 r2, {r1 >= r2} + {r2 > r1}.
-Proof.
-  intros x y.
-  destruct (total_order_T x y) as [ [ lt | eq ] | gt ].
-  right. exact lt.
-  left. right. exact eq.
-  left. left. exact gt.
-Qed.
-
 Lemma Rlt_or_le : forall r1 r2, r1 < r2 \/ r2 <= r1.
 Proof.
   intros x y.
@@ -492,27 +247,10 @@ Proof.
   right. exact r.
 Qed.
 
-Lemma Rgt_or_ge : forall r1 r2, r1 > r2 \/ r2 >= r1.
-Proof.
-
-  intros x y.
-  destruct (Rgt_ge_dec x y) as [ l | r ].
-  left. exact l.
-  right. exact r.
-Qed.
-
 Lemma Rle_or_lt : forall r1 r2, r1 <= r2 \/ r2 < r1.
 Proof.
   intros x y.
   destruct (Rle_lt_dec x y) as [ l | r ].
-  left. exact l.
-  right. exact r.
-Qed.
-
-Lemma Rge_or_gt : forall r1 r2, r1 >= r2 \/ r2 > r1.
-Proof.
-  intros x y.
-  destruct (Rge_gt_dec x y) as [ l | r ].
   left. exact l.
   right. exact r.
 Qed.
@@ -1213,14 +951,6 @@ Qed.
 
 (** Remark: [Rplus_lt_compat_l] is an axiom *)
 
-Lemma Rplus_gt_compat_l : forall r r1 r2, r1 > r2 -> r + r1 > r + r2.
-Proof.
-  intros x y z h.
-  apply Rplus_lt_compat_l.
-  exact h.
-Qed.
-Hint Resolve Rplus_gt_compat_l: real.
-
 Lemma Rplus_lt_compat_r : forall r r1 r2, r1 < r2 -> r1 + r < r2 + r.
 Proof.
   intros x y z h.
@@ -1231,27 +961,12 @@ Proof.
 Qed.
 Hint Resolve Rplus_lt_compat_r: real.
 
-Lemma Rplus_gt_compat_r : forall r r1 r2, r1 > r2 -> r1 + r > r2 + r.
-Proof.
-  intros x y z h.
-  apply Rplus_lt_compat_r.
-  exact h.
-Qed.
-
 Lemma Rplus_le_compat_l : forall r r1 r2, r1 <= r2 -> r + r1 <= r + r2.
 Proof.
   intros x y z [h | h].
   left. apply Rplus_lt_compat_l. exact h.
   subst y. right. reflexivity.
 Qed.
-
-Lemma Rplus_ge_compat_l : forall r r1 r2, r1 >= r2 -> r + r1 >= r + r2.
-Proof.
-  intros x y z [h | h].
-  left. apply Rplus_gt_compat_l. exact h.
-  right. subst y. reflexivity.
-Qed.
-Hint Resolve Rplus_ge_compat_l: real.
 
 Lemma Rplus_le_compat_r : forall r r1 r2, r1 <= r2 -> r1 + r <= r2 + r.
 Proof.
@@ -1260,13 +975,6 @@ Proof.
   right. subst y. reflexivity.
 Qed.
 Hint Resolve Rplus_le_compat_l Rplus_le_compat_r: real.
-
-Lemma Rplus_ge_compat_r : forall r r1 r2, r1 >= r2 -> r1 + r >= r2 + r.
-Proof.
-  intros x y z [h | h].
-  left. apply Rplus_gt_compat_r. exact h.
-  right. subst y. reflexivity.
-Qed.
 
 Lemma Rplus_lt_compat :
   forall r1 r2 r3 r4, r1 < r2 -> r3 < r4 -> r1 + r3 < r2 + r4.
@@ -1288,24 +996,6 @@ Proof.
 Qed.
 Hint Immediate Rplus_le_compat: real.
 
-Lemma Rplus_gt_compat :
-  forall r1 r2 r3 r4, r1 > r2 -> r3 > r4 -> r1 + r3 > r2 + r4.
-Proof.
-  intros w x y z hwx hyz.
-  apply (Rgt_trans _ (w+z) _).
-  apply Rplus_gt_compat_l. exact hyz.
-  apply Rplus_gt_compat_r. exact hwx.
-Qed.
-
-Lemma Rplus_ge_compat :
-  forall r1 r2 r3 r4, r1 >= r2 -> r3 >= r4 -> r1 + r3 >= r2 + r4.
-Proof.
-  intros w x y z hwx hyz.
-  apply (Rge_trans _ (w+z) _).
-  apply Rplus_ge_compat_l. exact hyz.
-  apply Rplus_ge_compat_r. exact hwx.
-Qed.
-
 Lemma Rplus_lt_le_compat :
   forall r1 r2 r3 r4, r1 < r2 -> r3 <= r4 -> r1 + r3 < r2 + r4.
 Proof.
@@ -1324,24 +1014,6 @@ Proof.
   subst w. apply Rplus_lt_compat_l. exact hyz.
 Qed.
 Hint Immediate Rplus_lt_le_compat Rplus_le_lt_compat: real.
-
-Lemma Rplus_gt_ge_compat :
-  forall r1 r2 r3 r4, r1 > r2 -> r3 >= r4 -> r1 + r3 > r2 + r4.
-Proof.
-  intros w x y z hwx hyz.
-  destruct hyz as [ hyz | hyz ].
-  apply Rplus_gt_compat. exact hwx. exact hyz.
-  subst z. apply Rplus_gt_compat_r. exact hwx.
-Qed.
-
-Lemma Rplus_ge_gt_compat :
-  forall r1 r2 r3 r4, r1 >= r2 -> r3 > r4 -> r1 + r3 > r2 + r4.
-Proof.
-  intros w x y z hwx hyz.
-  destruct hwx as [ hwx | hwx ].
-  apply Rplus_gt_compat. exact hwx. exact hyz.
-  subst w. apply Rplus_gt_compat_l. exact hyz.
-Qed.
 
 Lemma Rplus_lt_0_compat : forall r1 r2, R0 < r1 -> R0 < r2 -> R0 < r1 + r2.
 Proof.
@@ -1427,21 +1099,6 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rplus_gt_reg_l : forall r r1 r2, r + r1 > r + r2 -> r1 > r2.
-Proof.
-  intros x y z h.
-  apply Rplus_lt_reg_l with x.
-  exact h.
-Qed.
-
-Lemma Rplus_ge_reg_l : forall r r1 r2, r + r1 >= r + r2 -> r1 >= r2.
-Proof.
-  intros x y z h.
-  destruct h as [ h | h ].
-  left. apply Rplus_gt_reg_l with x. exact h.
-  right. apply Rplus_eq_reg_l with x. exact h.
-Qed.
-
 Lemma Rplus_le_reg_pos_r :
   forall r1 r2 r3, R0 <= r2 -> r1 + r2 <= r3 -> r1 <= r3.
 Proof.
@@ -1461,159 +1118,75 @@ Proof.
   subst y. rewrite Rplus_0_r in hxyz. exact hxyz.
 Qed.
 
-Lemma Rplus_ge_reg_neg_r :
-  forall r1 r2 r3, R0 >= r2 -> r1 + r2 >= r3 -> r1 >= r3.
+Lemma Rplus_le_reg_neg_r :
+  forall r1 r2 r3, r2 <= R0 -> r3 <= r1 + r2 -> r3 <= r1.
 Proof.
   intros x y z hy hxyz.
-  apply Rge_trans with (x+y).
-  pattern x at 1;rewrite <- Rplus_0_r with x.
-  apply Rplus_ge_compat_l. exact hy. exact hxyz.
+  apply Rle_trans with (x+y).
+  { assumption. }
+  {
+    pattern x at 2;rewrite <- Rplus_0_r with x.
+    apply Rplus_le_compat_l.
+    assumption.
+  }
 Qed.
 
-Lemma Rplus_gt_reg_neg_r : forall r1 r2 r3, R0 >= r2 -> r1 + r2 > r3 -> r1 > r3.
+Lemma Rplus_lt_reg_neg_r : forall r1 r2 r3, r2 <= R0 -> r3 < r1 + r2 -> r3 < r1.
 Proof.
   intros x y z hy hxyz.
   destruct hy as [ hy | hy ].
-  apply Rgt_trans with (x+y).
-  pattern x at 1;rewrite <- Rplus_0_r with x.
-  apply Rplus_gt_compat_l. exact hy. exact hxyz.
-  subst y. rewrite Rplus_0_r in hxyz. exact hxyz.
+  apply Rlt_trans with (x+y).
+  assumption.
+  pattern x at 2;rewrite <- Rplus_0_r.
+  apply Rplus_lt_compat_l. assumption.
+  subst y. rewrite Rplus_0_r in hxyz. assumption.
 Qed.
-
-Lemma Ropp_gt_lt_contravar : forall r1 r2, r1 > r2 -> - r1 < - r2.
-Proof.
-  intros x y h.
-  apply Rplus_lt_reg_l with x.
-  rewrite Rplus_opp_r.
-  apply Rplus_lt_reg_r with y.
-  rewrite Rplus_0_l.
-  rewrite Rplus_assoc.
-  rewrite Rplus_opp_l.
-  rewrite Rplus_0_r.
-  exact h.
-Qed.
-Hint Resolve Ropp_gt_lt_contravar.
-
-Lemma Ropp_lt_gt_contravar : forall r1 r2, r1 < r2 -> - r1 > - r2.
-Proof.
-  intros x y h.
-  apply Ropp_gt_lt_contravar. exact h.
-Qed.
-Hint Resolve Ropp_lt_gt_contravar: real.
 
 Lemma Ropp_lt_contravar : forall r1 r2, r2 < r1 -> - r1 < - r2.
 Proof.
   intros x y h.
-  apply Ropp_lt_gt_contravar.
-  exact h.
-Qed.
-Hint Resolve Ropp_lt_contravar: real.
-
-Lemma Ropp_gt_contravar : forall r1 r2, r2 > r1 -> - r1 > - r2.
-Proof.
-  intros x y h.
-  apply Ropp_lt_gt_contravar.
-  exact h.
-Qed.
-
-Lemma Ropp_le_ge_contravar : forall r1 r2, r1 <= r2 -> - r1 >= - r2.
-Proof.
-  intros x y h.
-  apply Rplus_ge_reg_l with x.
-  rewrite Rplus_opp_r.
-  rewrite Rplus_comm.
-  apply Rplus_ge_reg_l with y.
+  apply Rplus_lt_reg_r with x.
+  rewrite Rplus_opp_l.
+  apply Rplus_lt_reg_l with y.
   rewrite Rplus_0_r.
   rewrite <- Rplus_assoc.
   rewrite Rplus_opp_r.
   rewrite Rplus_0_l.
-  apply Rle_ge.
-  exact h.
+  assumption.
 Qed.
-Hint Resolve Ropp_le_ge_contravar: real.
-
-Lemma Ropp_ge_le_contravar : forall r1 r2, r1 >= r2 -> - r1 <= - r2.
-Proof.
-  intros x y h.
-  apply Rge_le.
-  apply Ropp_le_ge_contravar.
-  apply Rge_le.
-  exact h.
-Qed.
-Hint Resolve Ropp_ge_le_contravar: real.
+Hint Resolve Ropp_lt_contravar: real.
 
 Lemma Ropp_le_contravar : forall r1 r2, r2 <= r1 -> - r1 <= - r2.
 Proof.
   intros x y h.
-  apply Ropp_ge_le_contravar.
-  apply Rle_ge.
-  exact h.
+  apply Rplus_le_reg_r with x.
+  rewrite Rplus_opp_l.
+  apply Rplus_le_reg_l with y.
+  rewrite Rplus_0_r.
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_l.
+  assumption.
 Qed.
 Hint Resolve Ropp_le_contravar: real.
 
-Lemma Ropp_ge_contravar : forall r1 r2, r2 >= r1 -> - r1 >= - r2.
-Proof.
-  intros x y h.
-  apply Ropp_le_ge_contravar.
-  apply Rge_le.
-  exact h.
-Qed.
-
-Lemma Ropp_0_lt_gt_contravar : forall r, R0 < r -> R0 > - r.
-Proof.
-  intros x h.
-  rewrite <- Ropp_0.
-  apply Ropp_gt_contravar.
-  exact h.
-Qed.
-Hint Resolve Ropp_0_lt_gt_contravar: real.
-
-Lemma Ropp_0_gt_lt_contravar : forall r, R0 > r -> R0 < - r.
-Proof.
-  intros x h.
-  rewrite <- Ropp_0.
-  apply Ropp_gt_contravar.
-  exact h.
-Qed.
-Hint Resolve Ropp_0_gt_lt_contravar: real.
-
-Lemma Ropp_lt_gt_0_contravar : forall r, r > R0 -> - r < R0.
+Lemma Ropp_0_lt_contravar : forall r, R0 < r -> - r < R0.
 Proof.
   intros x h.
   rewrite <- Ropp_0.
   apply Ropp_lt_contravar.
-  exact h.
+  assumption.
 Qed.
-Hint Resolve Ropp_lt_gt_0_contravar: real.
+Hint Resolve Ropp_0_lt_contravar: real.
 
-Lemma Ropp_gt_lt_0_contravar : forall r, r < R0 -> - r > R0.
-Proof.
-  intros x h.
-  rewrite <- Ropp_0.
-  apply Ropp_lt_contravar.
-  exact h.
-Qed.
-Hint Resolve Ropp_gt_lt_0_contravar: real.
-
-Lemma Ropp_0_le_ge_contravar : forall r, R0 <= r -> R0 >= - r.
-Proof.
-  intros x h.
-  rewrite <- Ropp_0.
-  apply Ropp_ge_contravar.
-  apply Rle_ge.
-  exact h.
-Qed.
-Hint Resolve Ropp_0_le_ge_contravar: real.
-
-Lemma Ropp_0_ge_le_contravar : forall r, R0 >= r -> R0 <= - r.
+Lemma Ropp_0_le_contravar : forall r, R0 <= r -> -r <= R0.
 Proof.
   intros x h.
   rewrite <- Ropp_0.
   apply Ropp_le_contravar.
-  apply Rge_le.
-  exact h.
+  assumption.
 Qed.
-Hint Resolve Ropp_0_ge_le_contravar: real.
+Hint Resolve Ropp_0_le_contravar: real.
 
 Lemma Ropp_lt_cancel : forall r1 r2, - r2 < - r1 -> r1 < r2.
 Proof.
@@ -1625,15 +1198,6 @@ Proof.
 Qed.
 Hint Immediate Ropp_lt_cancel: real.
 
-Lemma Ropp_gt_cancel : forall r1 r2, - r2 > - r1 -> r1 > r2.
-Proof.
-  intros x y h.
-  rewrite <- Ropp_involutive with x.
-  rewrite <- Ropp_involutive with y.
-  apply Ropp_lt_contravar.
-  exact h.
-Qed.
-
 Lemma Ropp_le_cancel : forall r1 r2, - r2 <= - r1 -> r1 <= r2.
 Proof.
   intros x y h.
@@ -1643,15 +1207,6 @@ Proof.
   exact h.
 Qed.
 Hint Immediate Ropp_le_cancel: real.
-
-Lemma Ropp_ge_cancel : forall r1 r2, - r2 >= - r1 -> r1 >= r2.
-Proof.
-  intros x y h.
-  rewrite <- Ropp_involutive with x.
-  rewrite <- Ropp_involutive with y.
-  apply Ropp_ge_contravar.
-  exact h.
-Qed.
 
 Lemma Rmult_lt_compat_r : forall r r1 r2, R0 < r -> r1 < r2 -> r1 * r < r2 * r.
 Proof.
@@ -1663,22 +1218,6 @@ Proof.
   exact hyz.
 Qed.
 Hint Resolve Rmult_lt_compat_r.
-
-Lemma Rmult_gt_compat_r : forall r r1 r2, r > R0 -> r1 > r2 -> r1 * r > r2 * r.
-Proof.
-  intros x y z hx hyz.
-  apply Rmult_lt_compat_r.
-  exact hx.
-  exact hyz.
-Qed.
-
-Lemma Rmult_gt_compat_l : forall r r1 r2, r > R0 -> r1 > r2 -> r * r1 > r * r2.
-Proof.
-  intros x y z hx hyz.
-  apply Rmult_lt_compat_l.
-  exact hx.
-  exact hyz.
-Qed.
 
 Lemma Rmult_le_compat_l :
   forall r r1 r2, R0 <= r -> r1 <= r2 -> r * r1 <= r * r2.
@@ -1705,29 +1244,6 @@ Proof.
 Qed.
 Hint Resolve Rmult_le_compat_r: real.
 
-Lemma Rmult_ge_compat_l :
-  forall r r1 r2, r >= R0 -> r1 >= r2 -> r * r1 >= r * r2.
-Proof.
-  intros x y z hx hyz.
-  apply Rle_ge.
-  apply Rmult_le_compat_l.
-  apply Rge_le.
-  exact hx.
-  apply Rge_le.
-  exact hyz.
-Qed.
-
-Lemma Rmult_ge_compat_r :
-  forall r r1 r2, r >= R0 -> r1 >= r2 -> r1 * r >= r2 * r.
-Proof.
-  intros x y z hx hyz.
-  rewrite Rmult_comm with y x.
-  rewrite Rmult_comm with z x.
-  apply Rmult_ge_compat_l.
-  exact hx.
-  exact hyz.
-Qed.
-
 Lemma Rmult_le_compat :
   forall r1 r2 r3 r4,
     R0 <= r1 -> R0 <= r3 -> r1 <= r2 -> r3 <= r4 -> r1 * r3 <= r2 * r4.
@@ -1742,23 +1258,9 @@ Proof.
 Qed.
 Hint Resolve Rmult_le_compat: real.
 
-Lemma Rmult_ge_compat :
-  forall r1 r2 r3 r4,
-    r2 >= R0 -> r4 >= R0 -> r1 >= r2 -> r3 >= r4 -> r1 * r3 >= r2 * r4.
-Proof.
-  intros w x y z.
-  intros hx hz hwx hyz.
-  apply Rle_ge.
-  apply Rmult_le_compat;apply Rge_le.
-  exact hx.
-  exact hz.
-  exact hwx.
-  exact hyz.
-Qed.
-
 Lemma Rmult_gt_0_lt_compat :
   forall r1 r2 r3 r4,
-    r3 > R0 -> r2 > R0 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
+    R0 < r3 -> R0 < r2 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
 Proof.
   intros w x y z.
   intros hy hx hwx hyz.
@@ -1835,11 +1337,6 @@ Proof.
   exact hy.
 Qed.
 
-Lemma Rmult_gt_0_compat : forall r1 r2, r1 > R0 -> r2 > R0 -> r1 * r2 > R0.
-Proof.
-exact Rmult_lt_0_compat.
-Qed.
-
 Lemma Rmult_le_compat_neg_l :
   forall r r1 r2, r <= R0 -> r1 <= r2 -> r * r2 <= r * r1.
 Proof.
@@ -1855,33 +1352,20 @@ Proof.
 Qed.
 Hint Resolve Rmult_le_compat_neg_l: real.
 
-Lemma Rmult_le_ge_compat_neg_l :
-  forall r r1 r2, r <= R0 -> r1 <= r2 -> r * r1 >= r * r2.
-Proof.
-  intros x y z hx hyz.
-  apply Rle_ge.
-  apply Rmult_le_compat_neg_l.
-  exact hx.
-  exact hyz.
-Qed.
-Hint Resolve Rmult_le_ge_compat_neg_l: real.
-
 Lemma Rmult_lt_gt_compat_neg_l :
-  forall r r1 r2, r < R0 -> r1 < r2 -> r * r1 > r * r2.
+  forall r r1 r2, R0 < r -> r1 < r2 -> r * r1 < r * r2.
 Proof.
   intros x y z hx hyz.
   apply Ropp_lt_cancel.
-  rewrite Ropp_mult_distr_l.
-  rewrite Ropp_mult_distr_l.
+  repeat rewrite Ropp_mult_distr_r.
   apply Rmult_lt_compat_l.
-  rewrite <- Ropp_0.
+  assumption.
   apply Ropp_lt_contravar.
-  exact hx.
-  exact hyz.
+  assumption.
 Qed.
 
 Lemma Rmult_lt_reg_l : forall r r1 r2, R0 < r -> r * r1 < r * r2 -> r1 < r2.
-Proof. (* this one is not obvious *)
+Proof.
   intros x y z hx h.
   destruct (Rtotal_order y z) as [ lt | [ eq | gt ] ].
   {
@@ -1899,7 +1383,6 @@ Proof. (* this one is not obvious *)
     exact h.
     apply Rmult_lt_compat_l.
     exact hx.
-    apply Rgt_lt.
     exact gt.
   }
 Qed.
@@ -1913,18 +1396,13 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rmult_gt_reg_l : forall r r1 r2, R0 < r -> r * r1 < r * r2 -> r1 < r2.
-Proof.
-  exact Rmult_lt_reg_l.
-Qed.
-
 Lemma Rmult_le_reg_l : forall r r1 r2, R0 < r -> r * r1 <= r * r2 -> r1 <= r2.
 Proof.
   intros x y z hx hy.
   destruct hy as [ hy | hy ].
   left. apply Rmult_lt_reg_l with x. exact hx. exact hy.
   right. apply Rmult_eq_reg_l with x. exact hy.
-  apply Rgt_not_eq. exact hx.
+  apply Rlt_not_eq'. exact hx.
 Qed.
 
 Lemma Rmult_le_reg_r : forall r r1 r2, R0 < r -> r1 * r <= r2 * r -> r1 <= r2.
@@ -1937,7 +1415,7 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rlt_minus : forall r1 r2, r1 < r2 -> r1 - r2 < R0.
+Lemma Rlt_minus_0 : forall r1 r2, r1 < r2 -> r1 - r2 < R0.
 Proof.
   intros x y h.
   apply Rplus_lt_reg_r with y.
@@ -1948,46 +1426,28 @@ Proof.
   rewrite Rplus_0_r.
   exact h.
 Qed.
-Hint Resolve Rlt_minus: real.
+Hint Resolve Rlt_minus_0: real.
 
-Lemma Rgt_minus : forall r1 r2, r1 > r2 -> r1 - r2 > R0.
+Lemma Rlt_0_minus : forall r1 r2:R, r1 < r2 -> R0 < r2 - r1.
 Proof.
   intros x y h.
-  apply Rplus_lt_reg_r with (- (x-y)).
-  rewrite Rplus_opp_r.
-  rewrite Rplus_0_l.
-  rewrite Ropp_minus_distr.
-  apply Rlt_minus.
-  exact h.
-Qed.
-
-Lemma Rlt_Rminus : forall a b:R, a < b -> R0 < b - a.
-Proof.
-  intros x y h.
-  apply Rgt_minus.
-  exact h.
+  apply Ropp_lt_cancel.
+  unfold Rminus.
+  rewrite Ropp_plus_distr.
+  rewrite Ropp_involutive.
+  rewrite Ropp_0.
+  rewrite Rplus_comm.
+  apply Rlt_minus_0.
+  assumption.
 Qed.
 
 Lemma Rle_minus : forall r1 r2, r1 <= r2 -> r1 - r2 <= R0.
 Proof.
   intros x y h.
   destruct h as [h|h].
-  left. apply Rlt_minus. exact h.
+  left. apply Rlt_minus_0. exact h.
   subst y. right.
   rewrite Rminus_diag_eq. reflexivity. reflexivity.
-Qed.
-
-Lemma Rge_minus : forall r1 r2, r1 >= r2 -> r1 - r2 >= R0.
-Proof.
-  intros x y h.
-  apply Rle_ge.
-  apply Rplus_le_reg_l with (-(x-y)).
-  rewrite Rplus_opp_l.
-  rewrite Rplus_0_r.
-  rewrite Ropp_minus_distr.
-  apply Rle_minus.
-  apply Rge_le.
-  exact h.
 Qed.
 
 Lemma Rminus_lt : forall r1 r2, r1 - r2 < R0 -> r1 < r2.
@@ -1998,21 +1458,12 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rminus_gt : forall r1 r2, r1 - r2 > R0 -> r1 > r2.
-Proof.
-  intros x y h.
-  apply Rminus_lt.
-  apply Ropp_lt_cancel.
-  rewrite Ropp_minus_distr.
-  rewrite Ropp_0.
-  exact h.
-Qed.
-
 Lemma Rminus_gt_0_lt : forall a b, R0 < b - a -> a < b.
 Proof.
   intros x y h.
-  apply Rminus_gt.
-  exact h.
+  apply Rplus_lt_reg_r with (-x).
+  rewrite Rplus_opp_r.
+  assumption.
 Qed.
 
 Lemma Rminus_le : forall r1 r2, r1 - r2 <= R0 -> r1 <= r2.
@@ -2023,25 +1474,15 @@ Proof.
   exact h.
 Qed.
 
-Lemma Rminus_ge : forall r1 r2, r1 - r2 >= R0 -> r1 >= r2.
-Proof.
-  intros x y h.
-  apply Rle_ge.
-  apply Rplus_le_reg_r with (-y).
-  rewrite Rplus_opp_r.
-  apply Rge_le.
-  exact h.
-Qed.
-
 Lemma tech_Rplus : forall r (s:R), R0 <= r -> R0 < s -> r + s <> R0.
 Proof.
   intros x y hx hy.
   destruct hx as [hx | hx].
-  apply Rgt_not_eq.
+  apply Rlt_not_eq'.
   apply Rlt_trans with x. exact hx.
   pattern x at 1;rewrite <- Rplus_0_r with x.
   apply Rplus_lt_compat_l. exact hy.
-  subst x. rewrite Rplus_0_l. apply Rgt_not_eq. exact hy.
+  subst x. rewrite Rplus_0_l. apply Rlt_not_eq'. exact hy.
 Qed.
 Hint Immediate tech_Rplus: real.
 
@@ -2120,7 +1561,7 @@ Proof.
   apply Rmult_lt_reg_l with x.
   exact h. rewrite Rmult_0_r. rewrite Rinv_r.
   apply Rlt_0_1.
-  apply Rgt_not_eq.
+  apply Rlt_not_eq'.
   exact h.
 Qed.
 Hint Resolve Rinv_0_lt_compat: real.
@@ -2169,10 +1610,22 @@ Proof. (* using asserts would make the proof quite nicer here *)
   intros x y.
   intros hx hxy.
   destruct hx as [lt | eq].
+  2:{
+    subst x.
+    apply Rinv_lt_contravar.
+    rewrite Rmult_1_l.
+    apply Rlt_trans with R1.
+    apply Rlt_0_1.
+    exact hxy.
+    exact hxy.
+  }
   {
     apply Rmult_lt_reg_l with x.
-    apply Rlt_trans with R1.
-    apply Rlt_0_1. exact lt.
+    {
+      apply Rlt_trans with R1.
+      apply Rlt_0_1.
+      exact lt.
+    }
     rewrite Rinv_r.
     apply Rmult_lt_reg_l with y.
     apply Rlt_trans with R1.
@@ -2186,25 +1639,16 @@ Proof. (* using asserts would make the proof quite nicer here *)
     rewrite Rmult_1_l.
     rewrite Rmult_1_r.
     exact hxy.
-    apply Rgt_not_eq.
-    apply Rgt_trans with x.
-    exact hxy.
-    apply Rgt_trans with R1.
-    exact lt.
-    apply Rlt_0_1.
-    apply Rgt_not_eq.
-    apply Rgt_trans with R1.
-    exact lt.
-    apply Rlt_0_1.
-  }
-  {
-    subst x.
-    apply Rinv_lt_contravar.
-    rewrite Rmult_1_l.
+    apply Rlt_not_eq'.
     apply Rlt_trans with R1.
     apply Rlt_0_1.
+    apply Rlt_trans with x.
+    exact lt.
     exact hxy.
-    exact hxy.
+    apply Rlt_not_eq'.
+    apply Rlt_trans with R1.
+    apply Rlt_0_1.
+    exact lt.
   }
 Qed.
 Hint Resolve Rinv_1_lt_contravar: real.
@@ -2230,16 +1674,14 @@ Proof.
 Qed.
 Hint Resolve Rlt_plus_1: real.
 
-Lemma tech_Rgt_minus : forall r1 r2, R0 < r2 -> r1 > r1 - r2.
+Lemma tech_Rgt_minus : forall r1 r2, R0 < r2 -> r1 - r2 < r1.
 Proof.
   intros x y h.
-  apply Rlt_gt in h.
   apply Rplus_lt_reg_r with y.
-  apply Rgt_lt.
   unfold Rminus.
   rewrite Rplus_assoc.
   rewrite Rplus_opp_l.
-  apply Rplus_gt_compat_l.
+  apply Rplus_lt_compat_l.
   exact h.
 Qed.
 
@@ -2804,7 +2246,7 @@ Proof.
     rewrite plus_INR.
     reflexivity.
     apply Ropp_neq_0_compat.
-    apply Rgt_not_eq.
+    apply Rlt_not_eq'.
     apply Rlt_0_1.
 Qed.
 
@@ -2908,7 +2350,8 @@ Proof.
   apply Rlt_trans with (- IPR z).
   exact h.
   rewrite <- INR_IPR.
-  apply Ropp_lt_gt_0_contravar.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
   apply lt_0_INR.
   apply Pos2Nat.is_pos.
 Qed.
@@ -2919,7 +2362,7 @@ Proof.
   apply Z.lt_0_sub.
   apply lt_0_IZR.
   rewrite minus_IZR.
-  apply Rlt_Rminus.
+  apply Rlt_0_minus.
   exact h.
 Qed.
 
@@ -2933,7 +2376,8 @@ Proof.
   rewrite <- INR_IPR. apply lt_0_INR. apply Pos2Nat.is_pos.
   unfold IZR in h.
   exfalso. apply Rlt_irrefl with R0. pattern R0 at 1;rewrite <- h.
-  apply Ropp_lt_gt_0_contravar.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
   rewrite <- INR_IPR. apply lt_0_INR. apply Pos2Nat.is_pos.
 Qed.
 
@@ -2970,7 +2414,8 @@ Proof.
     unfold IZR in h.
     apply Rlt_trans with (- IPR p).
     exact h.
-    apply Ropp_lt_gt_0_contravar.
+    rewrite <- Ropp_0.
+    apply Ropp_lt_contravar.
     rewrite <- INR_IPR.
     apply pos_INR_nat_of_P.
   }
@@ -3004,10 +2449,10 @@ Proof.
   exact h.
 Qed.
 
-Lemma IZR_ge : forall n m:Z, (n >= m)%Z -> IZR n >= IZR m.
+Lemma IZR_ge : forall n m:Z, (n >= m)%Z -> IZR m <= IZR n.
 Proof.
   intros n m ge.
-  apply Rnot_lt_ge.
+  apply Rnot_lt_le.
   intro lt.
   apply lt_IZR in lt.
   apply Z.ge_le in ge.
@@ -3022,7 +2467,6 @@ Qed.
 Lemma IZR_le : forall n m:Z, (n <= m)%Z -> IZR n <= IZR m.
 Proof.
   intros n m h.
-  apply Rge_le.
   apply IZR_ge.
   apply Z.le_ge.
   exact h.
@@ -3031,7 +2475,7 @@ Qed.
 Lemma IZR_lt : forall n m:Z, (n < m)%Z -> IZR n < IZR m.
 Proof.
   intros n m h.
-  apply Rnot_ge_lt.
+  apply Rnot_le_lt.
   intro h'.
   destruct h' as [ gt | eq ].
   apply Z.lt_irrefl with n.
@@ -3055,7 +2499,7 @@ Proof.
 Qed.
 
 Hint Extern 0 (IZR _ <= IZR _) => apply IZR_le, Zle_bool_imp_le, eq_refl : real.
-Hint Extern 0 (IZR _ >= IZR _) => apply Rle_ge, IZR_le, Zle_bool_imp_le, eq_refl : real.
+Hint Extern 0 (IZR _ >= IZR _) => apply IZR_le, Zle_bool_imp_le, eq_refl : real.
 Hint Extern 0 (IZR _ <  IZR _) => apply IZR_lt, eq_refl : real.
 Hint Extern 0 (IZR _ >  IZR _) => apply IZR_lt, eq_refl : real.
 Hint Extern 0 (IZR _ <> IZR _) => apply IZR_neq, Zeq_bool_neq, eq_refl : real.
@@ -3197,7 +2641,7 @@ Add Field RField : Rfield
 
 Lemma Rmult_ge_0_gt_0_lt_compat :
   forall r1 r2 r3 r4,
-    r3 >= R0 -> r2 > R0 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
+    R0 <= R0 -> R0 < r2 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
 Proof.
 
 Admitted.
@@ -3249,8 +2693,6 @@ Record nonzeroreal : Type := mknonzeroreal
   {nonzero :> R; cond_nonzero : nonzero <> R0}.
 
 Notation prod_neq_R0 := Rmult_integral_contrapositive_currified (only parsing).
-Notation minus_Rgt := Rminus_gt (only parsing).
-Notation minus_Rge := Rminus_ge (only parsing).
 Notation plus_le_is_le := Rplus_le_reg_pos_r (only parsing).
 Notation plus_lt_is_lt := Rplus_lt_reg_pos_r (only parsing).
 Notation INR_lt_1 := lt_1_INR (only parsing).
@@ -3373,4 +2815,3 @@ rewrite Rinv_r.
 rewrite Rmult_1_r.
 reflexivity.
 Qed.
-

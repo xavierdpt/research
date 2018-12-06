@@ -1,6 +1,5 @@
 Require Import XRbase.
 Require Import XR_Ifp.
-(*Require Import Fourier.*)
 Local Open Scope XR_scope.
 
 Implicit Type r : R.
@@ -33,7 +32,7 @@ Proof.
   exact nle.
 Qed.
 
-Lemma Rmin_Rgt_l : forall r1 r2 r, Rmin r1 r2 > r -> r1 > r /\ r2 > r.
+Lemma Rmin_Rgt_l : forall r1 r2 r, r < Rmin r1 r2 -> r < r1 /\ r < r2.
 Proof.
   intros x y z h.
   unfold Rmin in h.
@@ -42,17 +41,17 @@ Proof.
     split.
     { exact h. }
     { destruct r as [ lt | eq ].
-      { apply Rgt_trans with x. exact lt. exact h. }
+      { apply Rlt_trans with x. exact h. exact lt. }
       { subst x. exact h. }
     }
   }
   { apply Rnot_le_lt in n. split.
-    { apply Rgt_trans with y. exact n. exact h. }
+    { apply Rlt_trans with y. exact h. exact n. }
     { exact h. }
   }
 Qed.
 
-Lemma Rmin_Rgt_r : forall r1 r2 r, r1 > r /\ r2 > r -> Rmin r1 r2 > r.
+Lemma Rmin_Rgt_r : forall r1 r2 r, r < r1 /\ r < r2 -> r < Rmin r1 r2.
 Proof.
   intros x y z [hx hy].
   unfold Rmin.
@@ -60,7 +59,7 @@ Proof.
   exact hx. exact hy.
 Qed.
 
-Lemma Rmin_Rgt : forall r1 r2 r, Rmin r1 r2 > r <-> r1 > r /\ r2 > r.
+Lemma Rmin_Rgt : forall r1 r2 r, r < Rmin r1 r2 <-> r < r1 /\ r < r2.
 Proof.
   intros x y z.
   split.
@@ -394,7 +393,7 @@ Proof.
   apply Rmax_case;assumption.
 Qed.
 
-Lemma Rcase_abs : forall r, {r < R0} + {r >= R0}.
+Lemma Rcase_abs : forall r, {r < R0} + {R0 <= r}.
 Proof.
   intro x.
   destruct (total_order_T x R0) as [ [ hlt | heq ] | hgt ].
@@ -449,7 +448,7 @@ Proof.
   subst x. rewrite Ropp_0. reflexivity.
 Qed.
 
-Lemma Rabs_right : forall r, r >= R0 -> Rabs r = r.
+Lemma Rabs_right : forall r, R0 <= r -> Rabs r = r.
 Proof.
   intros x h.
   destruct h as [ h | h ].
@@ -480,7 +479,7 @@ Proof.
   unfold Rabs. destruct (Rcase_abs x).
   left. apply Rplus_lt_reg_l with x. rewrite Rplus_0_r.
   rewrite Rplus_opp_r. exact r.
-  apply Rge_le. exact r.
+  exact r.
 Qed.
 
 Lemma Rle_abs : forall x:R, x <= Rabs x.
@@ -673,8 +672,8 @@ Proof.
     assumption.
     assumption.
     subst y. do 2 rewrite Rmult_0_r. reflexivity.
-    rewrite H. rewrite <- Ropp_mult_distr_l.
-    rewrite H. rewrite Ropp_0. reflexivity.
+    rewrite <- H. rewrite <- Ropp_mult_distr_l.
+    rewrite <- H. rewrite Ropp_0. reflexivity.
   }
   {
     rewrite Ropp_mult_distr_r.
@@ -697,8 +696,8 @@ Proof.
     assumption.
     assumption.
     subst x. do 2 rewrite Rmult_0_l. reflexivity.
-    rewrite H. rewrite <- Ropp_mult_distr_r.
-    rewrite H. rewrite Ropp_0. reflexivity.
+    rewrite <- H. rewrite <- Ropp_mult_distr_r.
+    rewrite <- H. rewrite Ropp_0. reflexivity.
   }
   {
     destruct r. destruct r0.
@@ -730,9 +729,9 @@ Proof.
     apply Rinv_lt_0_compat in r.
     apply Rlt_irrefl with R0.
     apply Rlt_trans with (/ x);assumption.
-    rewrite H.
+    rewrite <- H.
     rewrite <- Ropp_inv_permute.
-    rewrite H.
+    rewrite <- H.
     rewrite Ropp_0. reflexivity. assumption.
   }
   {
@@ -778,7 +777,7 @@ Proof.
     apply Rplus_lt_reg_l with (-x). rewrite Rplus_0_r.
     rewrite Rplus_opp_l. assumption.
     subst x. rewrite Ropp_0. reflexivity.
-    rewrite H. rewrite <- Ropp_involutive with x. rewrite H.
+    rewrite <- H. rewrite <- Ropp_involutive with x. rewrite <- H.
     rewrite Ropp_0. reflexivity.
   }
 Qed.
@@ -801,13 +800,12 @@ Proof.
     assumption.
     rewrite <- Rplus_0_l with R0.
     apply Rplus_lt_compat. assumption. assumption.
-    rewrite H. rewrite <- Ropp_plus_distr. rewrite H.
+    rewrite <- H. rewrite <- Ropp_plus_distr. rewrite <- H.
     rewrite Ropp_0. right. reflexivity.
   }
   {
     rewrite Ropp_plus_distr.
     apply Rplus_le_compat_l.
-    apply Rge_le in r0.
     apply Rplus_le_reg_r with y.
     rewrite Rplus_opp_l.
     apply Rle_trans with y.
@@ -825,7 +823,6 @@ Proof.
   {
     rewrite Ropp_plus_distr.
     apply Rplus_le_compat_r.
-    apply Rge_le in r.
     apply Rle_trans with R0.
     apply Rplus_le_reg_l with x.
     rewrite Rplus_opp_r.
@@ -841,8 +838,6 @@ Proof.
     rewrite Rplus_0_l. rewrite Rplus_opp_l. assumption.
   }
   {
-    apply Rge_le in r.
-    apply Rge_le in r0.
     rewrite Ropp_plus_distr.
     apply Rplus_le_compat.
     apply Rle_trans with R0.
@@ -886,7 +881,7 @@ Proof.
     rewrite Rplus_0_l.
     apply Rplus_lt_reg_r with (-b).
     rewrite Rplus_opp_r. assumption. assumption.
-    rewrite H. right.
+    rewrite <- H. right.
     apply Rplus_eq_reg_l with a.
     apply Rplus_eq_reg_r with (-b).
     repeat (rewrite Rplus_assoc).
@@ -895,11 +890,10 @@ Proof.
     rewrite Rplus_opp_r.
     rewrite Rplus_0_r.
     rewrite Rplus_0_r.
-    rewrite H. reflexivity.
+    rewrite <- H. reflexivity.
   }
   {
     apply Rplus_le_compat_l.
-    apply Rge_le in r0.
     apply Rle_trans with R0.
     apply Rplus_le_reg_r with b.
     rewrite Rplus_opp_l. rewrite Rplus_0_l. assumption. assumption.
@@ -935,7 +929,6 @@ Proof.
   }
   {
     apply Rplus_le_compat_r.
-    apply Rge_le in r.
     apply (Rplus_lt_compat_r b) in r1.
     rewrite Rplus_assoc in r1.
     rewrite Rplus_opp_l in r1.
@@ -960,8 +953,6 @@ Proof.
     rewrite Rplus_opp_l in r1.
     rewrite Rplus_0_r in r1.
     rewrite Rplus_0_l in r1.
-    apply Rgt_lt in H.
-    apply Rgt_lt in H0.
     left.
     apply Rplus_lt_reg_l with a.
     repeat (rewrite <- Rplus_assoc).
@@ -985,7 +976,7 @@ Lemma Rabs_case : forall x:R, Rabs x = x /\ R0 <= x \/ Rabs x = -x /\ x < R0.
   intro x.
   unfold Rabs. destruct (Rcase_abs x).
   right. split. reflexivity. assumption.
-  left. split. reflexivity. apply Rge_le. assumption.
+  left. split. reflexivity. assumption.
 Qed.
 
 Lemma Rabs_triang_inv2 : forall a b:R, Rabs (Rabs a - Rabs b) <= Rabs (a - b).
@@ -1182,109 +1173,354 @@ Qed.
 Lemma RmaxAbs :
   forall (p q:R) r, p <= q -> q <= r -> Rabs q <= Rmax (Rabs p) (Rabs r).
 Proof.
-  intros x y z hxy hyz.
-  destruct hxy as [ hxy  | hxy ].
+  intros x y z.
+  intros hxy hyz.
+  unfold Rabs, Rmax.
+  destruct (Rcase_abs y) as [ hy | hy ];
+  destruct (Rcase_abs x) as [ hx | hx ];
+  destruct (Rcase_abs z) as [ hz | hz ].
   {
-    destruct hyz as [ hyz | hyz ].
+    destruct (Rle_dec (-x) (-z)) as [ hxz | hxz ].
     {
-      apply Rmax_case_strong.
+      apply Ropp_le_cancel in hxz.
+      assert (eq:z=x).
       {
-        intros [ hzx | hzx ].
-        {
-          admit.
-        }
-        {
-          destruct (Rabs_case x) as [ [ eqx hx ] | [ eqx hx ] ];
-          destruct (Rabs_case y) as [ [ eqy hy ] | [ eqy hy ] ];
-          destruct (Rabs_case z) as [ [ eqz hz ] | [ eqz hz ] ];
-          rewrite eqx in *;rewrite eqy in *;rewrite eqz in *;
-          clear eqx eqy eqz.
-          {
-            subst z. exfalso. apply Rlt_irrefl with x.
-            apply Rlt_trans with y;assumption.
-          }
-          {
-            subst x.
-            apply Rle_trans with z.
-            left;assumption.
-            apply Rle_trans with R0.
-            left;assumption.
-            assumption.
-          }
-          {
-            subst z. exfalso. apply Rlt_irrefl with x.
-            apply Rlt_trans with y;assumption.
-          }
-          {
-            subst x. exfalso.
-            apply Rlt_irrefl with (-z).
-            apply Rlt_trans with y. assumption.
-            apply Rlt_trans with R0. assumption.
-            apply Ropp_lt_cancel. rewrite Ropp_involutive. rewrite Ropp_0.
-            assumption.
-          }
-          {
-            subst z. left. assumption.
-          }
-          {
-            apply Ropp_eq_compat in hzx.
-            repeat (rewrite Ropp_involutive in hzx).
-            subst z.
-            exfalso. apply Rlt_irrefl with x. apply Rlt_trans with y;assumption.
-          }
-          {
-            subst z.
-            apply Ropp_le_contravar.
-            left. assumption.
-          }
-          {
-            apply Ropp_eq_compat in hzx.
-            repeat (rewrite Ropp_involutive in hzx).
-            subst z.
-            exfalso. apply Rlt_irrefl with x. apply Rlt_trans with y;assumption.
-          }
-        }
+        apply Rle_antisym.
+        { assumption. }
+        { apply Rle_trans with y;assumption. }
       }
-      { intros [ hxz | hxz ].
-        admit. admit.
+      subst z.
+      assert (eq:x=y).
+      {
+        apply Rle_antisym;assumption.
+      }
+      subst y.
+      right. reflexivity.
+    }
+    {
+      apply Rnot_le_lt in hxz.
+      apply Ropp_le_contravar.
+      assumption.
+    }
+  }
+  {
+    destruct (Rle_dec (-x) z) as [ hxz | hxz ].
+    {
+      apply Rle_trans with (-x).
+      { apply Ropp_le_contravar. assumption. }
+      { assumption. }
+    }
+    {
+      apply Rnot_le_lt in hxz.
+      apply Ropp_le_contravar.
+      assumption.
+    }
+  }
+  {
+    destruct (Rle_dec x (-z)) as [ hxz | hxz ].
+    {
+      apply Ropp_le_contravar.
+      apply Rle_trans with x.
+      2:assumption.
+      apply Rle_trans with (-x).
+      { apply Ropp_le_cancel. rewrite Ropp_involutive. assumption. }
+      {
+        apply Rle_trans with R0.
+        2:assumption.
+        rewrite <- Ropp_0.
+        apply Ropp_le_contravar.
+        assumption.
       }
     }
-    { subst y. apply Rmax_r. }
+    {
+      apply Rnot_le_lt in hxz.
+      exfalso.
+      apply Rlt_irrefl with R0.
+      apply Rlt_trans with z.
+      2:exact hz. clear hz.
+      apply Rlt_trans with (-x).
+      2:{
+        apply Ropp_lt_cancel.
+        rewrite Ropp_involutive.
+        exact hxz.
+      }
+      clear hxz.
+      apply Ropp_lt_cancel.
+      rewrite Ropp_involutive.
+      rewrite Ropp_0.
+      apply Rle_lt_trans with y.
+      { exact hxy. }
+      { exact hy. }
+    }
   }
-  { subst y. apply Rmax_l. }
-Admitted.
-
-Lemma Rabs_Zabs : forall z:Z, Rabs (IZR z) = IZR (Z.abs z).
-Proof.
-
-Admitted.
+  {
+    exfalso.
+    apply Rlt_irrefl with x.
+    apply Rle_lt_trans with y.
+    exact hxy.
+    clear hxy.
+    apply Rlt_le_trans with R0.
+    exact hy.
+    exact hx.
+  }
+  {
+    destruct (Rle_dec (-x) (-z)) as [ hxz | hxz ].
+    {
+      apply Ropp_le_cancel in hxz.
+      assert (eq : z = x).
+      {
+        apply Rle_antisym;try assumption.
+        apply Rle_trans with y;assumption.
+      }
+      subst z.
+      assert (eq : x = y).
+      { apply Rle_antisym; assumption. }
+      subst y.
+      exfalso.
+      apply Rlt_irrefl with R0.
+      apply Rle_lt_trans with x;assumption.
+    }
+    {
+      apply Rnot_le_lt in hxz.
+      apply Ropp_lt_cancel in hxz.
+      clear hxy.
+      clear hx.
+      clear hxz.
+      exfalso.
+      apply Rlt_irrefl with R0.
+      apply Rle_lt_trans with z;try assumption.
+      apply Rle_trans with y;assumption.
+    }
+  }
+  {
+    destruct (Rle_dec (-x) z) as [ hxz | hxz ].
+    { assumption. }
+    {
+      apply Rnot_le_lt in hxz.
+      apply Rle_trans with z.
+      exact hyz.
+      clear hyz.
+      left. exact hxz.
+    }
+  }
+  {
+    exfalso.
+    apply Rlt_irrefl with R0.
+    apply Rle_lt_trans with z.
+    2:exact hz.
+    clear hz.
+    apply Rle_trans with y; assumption.
+  }
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ].
+    { assumption. }
+    {
+      apply Rnot_le_lt in hxz.
+      exfalso.
+      apply Rlt_irrefl with z.
+      apply Rlt_le_trans with x; try assumption.
+      apply Rle_trans with y;assumption.
+    }
+  }
+Qed.
 
 Lemma abs_IZR : forall z, IZR (Z.abs z) = Rabs (IZR z).
 Proof.
+  intro z.
+  unfold Rabs.
+  destruct (Rcase_abs (IZR z)) as [ h | h ].
+  {
+    unfold Z.abs.
+    destruct z.
+    { change (IZR 0) with R0. rewrite Ropp_0. reflexivity. }
+    {
+      exfalso.
+      apply Rlt_irrefl with R0.
+      apply Rlt_trans with (IZR (Z.pos p)).
+      {
+        change R0 with (IZR 0).
+        apply IZR_lt.
+        apply Pos2Z.pos_is_pos.
+      }
+      { assumption. }
+    }
+    {
+      rewrite <- opp_IZR.
+      rewrite Pos2Z.opp_neg.
+      reflexivity.
+    }
+  }
+  {
+    unfold Z.abs.
+    destruct z.
+    { reflexivity. }
+    { reflexivity. }
+    {
+      exfalso.
+      apply Rlt_irrefl with R0.
+      apply Rle_lt_trans with (IZR (Z.neg p)).
+      { assumption. }
+      {
+        change R0 with (IZR 0).
+        apply IZR_lt.
+        apply Pos2Z.neg_is_neg.
+      }
+    }
+  }
+Qed.
 
-Admitted.
+Lemma Rabs_Zabs : forall z:Z, Rabs (IZR z) = IZR (Z.abs z).
+Proof.
+  intro z.
+  symmetry.
+  apply abs_IZR.
+Qed.
 
 Lemma Ropp_Rmax : forall x y, - Rmax x y = Rmin (-x) (-y).
 Proof.
-Admitted.
+  intros x y.
+  unfold Rmax, Rmin.
+  destruct (Rle_dec x y) as [ hxy | hxy ];
+  destruct (Rle_dec (-x) (-y)) as [ hxy' | hxy' ].
+  {
+    apply Rle_antisym.
+    apply Ropp_le_contravar. assumption.
+    assumption.
+  }
+  { reflexivity. }
+  { reflexivity. }
+  {
+    apply Rnot_le_lt in hxy.
+    apply Rnot_le_lt in hxy'.
+    apply Rle_antisym.
+    left. apply Ropp_lt_contravar. assumption.
+    left. assumption.
+  }
+Qed.
 
 Lemma Ropp_Rmin : forall x y, - Rmin x y = Rmax (-x) (-y).
 Proof.
-Admitted.
+intros x y.
+unfold Rmax.
+unfold Rmin.
+destruct (Rle_dec x y) as [ hmin | hmin ];
+destruct (Rle_dec (-x) (-y)) as [ hmax | hmax ].
+{
+  apply Rle_antisym.
+  assumption.
+  apply Ropp_le_contravar.
+  assumption.
+}
+{ reflexivity. }
+{ reflexivity. }
+{
+  apply Rnot_le_lt in hmin.
+  apply Rnot_le_lt in hmax.
+  apply Rle_antisym.
+  left. assumption.
+  left. apply Ropp_lt_contravar. assumption.
+}
+Qed.
 
-Lemma Rmax_assoc : forall a b c, Rmax a (Rmax b c) = Rmax (Rmax a b) c.
+Lemma Rmax_assoc : forall x y z, Rmax x (Rmax y z) = Rmax (Rmax x y) z.
 Proof.
-
-Admitted.
+intros x y z.
+unfold Rmax.
+destruct (Rle_dec y z) as [ hyz | hyz ] eqn:eqyz.
+{
+  destruct (Rle_dec x y) as [ hxy | hxy ] eqn:eqxy.
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ] eqn:eqxz.
+    {
+      rewrite eqyz. reflexivity.
+    }
+    {
+      rewrite eqyz. apply Rle_antisym.
+      apply Rle_trans with y;assumption.
+      clear eqxz.
+      apply Rnot_le_lt in hxz.
+      left. assumption.
+    }
+  }
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ] eqn:eqxz.
+    { reflexivity. }
+    { reflexivity. }
+  }
+}
+{
+  destruct (Rle_dec x y) as [ hxy | hxy ] eqn:eqxy.
+  {
+    rewrite eqyz. reflexivity.
+  }
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ] eqn:eqxz.
+    {
+      apply Rle_antisym.
+      assumption.
+      left.
+      clear eqyz. apply Rnot_le_lt in hyz.
+      clear eqxy. apply Rnot_le_lt in hxy.
+      apply Rlt_trans with y;assumption.
+    }
+    { reflexivity. }
+  }
+}
+Qed.
 
 Lemma Rminmax : forall a b, Rmin a b <= Rmax a b.
 Proof.
-
-Admitted.
+  intros x y.
+  unfold Rmin, Rmax.
+  destruct (Rle_dec x y) as [ hxy | hxy ].
+  { assumption. }
+  {
+    apply Rnot_le_lt in hxy.
+    left. assumption.
+  }
+Qed.
 
 Lemma Rmin_assoc : forall x y z, Rmin x (Rmin y z) =
   Rmin (Rmin x y) z.
 Proof.
-
-Admitted.
+intros x y z.
+unfold Rmin.
+destruct (Rle_dec y z) as [ hyz | hyz ] eqn:eqyz.
+{
+  destruct (Rle_dec x y) as [ hxy | hxy ] eqn:eqxy.
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ] eqn:eqxz.
+    { reflexivity. }
+    {
+      apply Rle_antisym.
+      apply Rle_trans with y;assumption.
+      clear eqxz; apply Rnot_le_lt in hxz.
+      left.
+      assumption.
+    }
+  }
+  { rewrite eqyz. reflexivity. }
+}
+{
+  destruct (Rle_dec x y) as [ hxy | hxy ] eqn:eqxy.
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ] eqn:eqxz.
+    { reflexivity. }
+    { reflexivity. }
+  }
+  {
+    destruct (Rle_dec x z) as [ hxz | hxz ] eqn:eqxz.
+    {
+      rewrite eqyz.
+      apply Rle_antisym.
+      assumption.
+      left.
+      clear eqxy. apply Rnot_le_lt in hxy.
+      clear eqyz. apply Rnot_le_lt in hyz.
+      apply Rlt_trans with y;assumption.
+    }
+    { rewrite eqyz. reflexivity. }
+  }
+}
+Qed.
 

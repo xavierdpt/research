@@ -38,9 +38,9 @@ Definition R16 := R8 + R8.
 Definition R18 := R9 + R9.
 Definition R20 := R10 + R10.
 
-Definition Rgt (r1 r2:R) : Prop := r2 < r1.
+(* Definition Rgt (r1 r2:R) : Prop := r2 < r1. *)
 Definition Rle (r1 r2:R) : Prop := r1 < r2 \/ r1 = r2.
-Definition Rge (r1 r2:R) : Prop := Rgt r1 r2 \/ r1 = r2.
+(* Definition Rge (r1 r2:R) : Prop := Rgt r1 r2 \/ r1 = r2. *)
 Definition Rminus (r1 r2:R) : R := r1 + - r2.
 Definition Rdiv (r1 r2:R) : R := r1 * / r2.
 
@@ -48,8 +48,8 @@ Infix "-" := Rminus : XR_scope.
 Infix "/" := Rdiv   : XR_scope.
 
 Infix "<=" := Rle : XR_scope.
-Infix ">=" := Rge : XR_scope.
-Infix ">"  := Rgt : XR_scope.
+(* Infix ">=" := Rge : XR_scope.
+Infix ">"  := Rgt : XR_scope. *)
 
 Notation "x <= y <= z" := (x <= y /\ y <= z) : XR_scope.
 Notation "x <= y < z"  := (x <= y /\ y <  z) : XR_scope.

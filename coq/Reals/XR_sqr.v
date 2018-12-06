@@ -120,7 +120,7 @@ Proof.
   apply Rlt_not_eq. assumption.
   subst x. rewrite Rmult_0_r in h.
   apply Rlt_not_eq. assumption.
-  apply Rgt_not_eq. assumption.
+  apply Rlt_not_eq'. assumption.
 Qed.
 
 Lemma Rsqr_pos_lt : forall x:R, x <> R0 -> R0 < Rsqr x.
@@ -164,7 +164,7 @@ Proof.
   apply Rlt_not_eq. assumption.
   assumption.
   apply Rmult_eq_reg_r with x. rewrite h. rewrite Rmult_0_l. reflexivity.
-  apply Rgt_not_eq. assumption.
+  apply Rlt_not_eq'. assumption.
 Qed.
 
 Lemma Rsqr_minus_plus : forall a b:R, (a - b) * (a + b) = Rsqr a - Rsqr b.
@@ -290,7 +290,7 @@ Proof.
     pattern (x*x) at 1;rewrite H0.
     apply Rmult_gt_0_lt_compat.
     assumption.
-    apply Rgt_trans with y. assumption. assumption.
+    apply Rlt_trans with y. assumption. assumption.
     assumption. assumption.
   }
   destruct (Rtotal_order x y).
@@ -431,7 +431,6 @@ Proof.
   }
   {
     left.
-    apply Rgt_lt in xneg.
     rewrite <- Ropp_involutive with x.
     apply Ropp_lt_contravar.
     apply Rsqr_incrst_0.
@@ -475,7 +474,6 @@ Proof.
   right;reflexivity.
   assumption.
   assumption.
-  apply Rgt_lt in H2.
   rewrite <- Ropp_involutive with (x*x).
   rewrite Ropp_mult_distr_l.
   rewrite Ropp_mult_distr_r.
@@ -493,7 +491,6 @@ Proof.
   { apply Rsqr_neg_pos_le_1. assumption. assumption. left. assumption. }
   { apply Rsqr_neg_pos_le_1. assumption. assumption. right. assumption. }
   {
-    apply Rgt_lt in hgt.
     destruct hbot.
     2:{
       subst x. rewrite <- Rsqr_neg. right. reflexivity.
@@ -518,7 +515,7 @@ Proof.
     }
     destruct H1.
     { subst x. exfalso. apply Rlt_irrefl with R0. apply Rlt_trans with y;assumption. }
-    { apply Rgt_lt in H1.
+    {
       exfalso.
       apply Rlt_irrefl with (-y).
       apply Rlt_trans with x. assumption.
@@ -606,15 +603,15 @@ Proof.
   rewrite <- Rsqr_neg. rewrite <- Rsqr_neg. assumption.
   apply Rsqr_inj.
   left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
-  apply Rge_le in r0. assumption.
+  assumption.
   rewrite <- Rsqr_neg. assumption.
   apply Rsqr_inj.
-  apply Rge_le in r. assumption.
+  assumption.
   left. rewrite <- Ropp_0. apply Ropp_lt_contravar. assumption.
   rewrite <- Rsqr_neg. assumption.
   apply Rsqr_inj.
-  apply Rge_le in r. assumption.
-  apply Rge_le in r0. assumption.
+  assumption.
+  assumption.
   assumption.
 Qed.
 

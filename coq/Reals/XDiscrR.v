@@ -43,17 +43,6 @@ Ltac omega_sup :=
       rewrite <- mult_IZR || rewrite <- Ropp_Ropp_IZR || rewrite Z_R_minus;
   apply IZR_lt; omega.
 
-Ltac prove_sup :=
-  match goal with
-  |  |- (?X1 > ?X2) => change (X2 < X1); prove_sup
-  |  |- (0 < ?X1) => prove_sup0
-  |  |- (- ?X1 < 0) => rewrite <- Ropp_0; prove_sup
-  |  |- (- ?X1 < - ?X2) => apply Ropp_lt_gt_contravar; prove_sup
-  |  |- (- ?X1 < ?X2) => apply Rlt_trans with 0; prove_sup
-  |  |- (?X1 < ?X2) => omega_sup
-  | _ => idtac
-  end.
-
 Ltac Rcompute :=
   repeat
     rewrite <- plus_IZR ||

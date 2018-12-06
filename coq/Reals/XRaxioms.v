@@ -33,7 +33,7 @@ Axiom
   Rmult_plus_distr_l : forall r1 r2 r3:R, r1 * (r2 + r3) = r1 * r2 + r1 * r3.
 Hint Resolve Rmult_plus_distr_l: real.
 
-Axiom total_order_T : forall r1 r2:R, {r1 < r2} + {r1 = r2} + {r1 > r2}.
+Axiom total_order_T : forall r1 r2:R, {r1 < r2} + {r1 = r2} + {r2 < r1}.
 
 Axiom Rlt_asym : forall r1 r2:R, r1 < r2 -> ~ r2 < r1.
 
@@ -55,7 +55,7 @@ Fixpoint INR (n:nat) : R :=
 Arguments INR n%nat.
 
 
-Axiom archimed : forall r:R, IZR (up r) > r /\ IZR (up r) - r <= R1.
+Axiom archimed : forall r:R, r < IZR (up r) /\ IZR (up r) - r <= R1.
 
 Definition is_upper_bound (E:R -> Prop) (m:R) := forall x:R, E x -> x <= m.
 

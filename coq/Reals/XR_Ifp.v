@@ -11,28 +11,13 @@ Lemma tech_up : forall (r:R) (z:Z),
   r <  IZR z -> IZR z <= r + R1 ->
   z = up r.
 Proof.
-
   intros r z hrzl hrzr.
-
-  (* IZR (up r) > r /\ IZR (up r) - r <= 1 *)
-  (* equivalent to : r < IZR (up r) <= 1 + r *)
-  (* archimed is the only axiom about up so far *)
   destruct (archimed r) as [ hrul hrur ].
-
- (* it's visually better when every comparison is in the same direction *)
-  apply Rgt_lt in hrul.
-
-  (* single_z_r_R1 : transfer equality on integers to equality over IZR
-      r < IZR n <= r + 1 ->
-      r < IZR m <= r + 1 ->
-      n = m
-  *)
   apply single_z_r_R1 with r.
-  { exact hrzl. (* hypothesis *) }
-  { exact hrzr. (* hypothesis *) }
-  { exact hrul. (* from archimed on r *) }
-  { (* some rewriting to adapt to the other part of archimed on r *)
-    (* links the remaining prerequisite of single_z_r_R1 to the upper part of archimed on r *)
+  { exact hrzl. }
+  { exact hrzr. }
+  { exact hrul. }
+  {
     apply Rplus_le_reg_r with (-r).
     rewrite (Rplus_comm r).
     rewrite Rplus_assoc.
@@ -76,26 +61,26 @@ Proof.
 Qed.
 
 (* Reformulation of archimed for base_fp *)
-Lemma for_base_fp : forall r:R, IZR (up r) - r > R0 /\ IZR (up r) - r <= R1.
+Lemma for_base_fp : forall r:R, R0 < IZR (up r) - r /\ IZR (up r) - r <= R1.
 Proof.
   intro r.
   destruct (archimed r) as [ hl hr].
   split.
-  { apply Rgt_minus. exact hl. }
+  { apply Rlt_0_minus. exact hl. }
   { exact hr. }
 Qed.
 
 Lemma base_fp : forall r:R,
-  frac_part r >= R0 /\ frac_part r < R1.
+  R0 <= frac_part r /\ frac_part r < R1.
 Proof.
   intro r.
 
   destruct (for_base_fp r) as [ hl hr ].
   
-  assert (a1 : r - IZR (up r) >= -R1).
+  assert (a1 : -R1 <= r - IZR (up r) ).
   {
     rewrite <- Ropp_minus_distr.
-    apply Ropp_le_ge_contravar.
+    apply Ropp_le_contravar.
     exact hr.
   }
 
@@ -103,12 +88,11 @@ Proof.
   {
     rewrite <- Ropp_0.
     rewrite <- Ropp_minus_distr.
-    apply Ropp_gt_lt_contravar.
+    apply Ropp_lt_contravar.
     exact hl.
   }
 
   unfold frac_part. unfold Int_part. split.
-  (* these two parts could be improved further *)
   {
     rewrite <- Z_R_minus.
     simpl.
@@ -117,8 +101,19 @@ Proof.
     rewrite <- Rplus_assoc.
     fold (r - IZR (up r)).
     unfold IZR at 2.
-    apply Rge_minus.
-    exact a1.
+    rewrite <- Ropp_0.
+    unfold Rminus.
+    pattern r at 1;rewrite <- Ropp_involutive.
+    rewrite <- Ropp_plus_distr.
+    rewrite <- Ropp_plus_distr.
+    apply Ropp_le_contravar.
+    change (IPR 1) with R1.
+    apply Rplus_le_reg_r with R1.
+    rewrite Rplus_0_l.
+    repeat rewrite Rplus_assoc.
+    rewrite Rplus_opp_l, Rplus_0_r.
+    rewrite Rplus_comm.
+    exact hr.
   }
   {
     rewrite <- Z_R_minus.
@@ -141,9 +136,8 @@ Proof.
   }
 Qed.
 
-(* TODO *)
 Lemma base_Int_part :  forall r:R,
-  IZR (Int_part r) <= r /\ IZR (Int_part r) - r > -R1.
+  IZR (Int_part r) <= r /\ -R1 < IZR (Int_part r) - r  .
 Proof.
   intro; unfold Int_part; elim (archimed r); intros.
   split; rewrite <- (Z_R_minus (up r) 1); simpl.
@@ -167,38 +161,18 @@ Proof.
   unfold IZR at 2.
   unfold IPR.
   assumption.
-  apply Rminus_gt.
-  replace (IZR (up r) - R1 - r - -R1) with (IZR (up r) - r).
-  2:{
-    unfold Rminus.
-    rewrite Ropp_involutive.
-    repeat rewrite Rplus_assoc.
-    apply Rplus_eq_compat_l.
-    rewrite (Rplus_comm (-r)).
-    rewrite <- Rplus_assoc.
-    rewrite Rplus_opp_l.
-    rewrite Rplus_0_l.
-    reflexivity.
-  }
-  apply Rgt_minus.
-  unfold IZR at 2.
-  unfold IPR.
+  change (IZR 1) with R1.
   unfold Rminus.
-  apply Rplus_lt_reg_r with r.
-  repeat rewrite Rplus_assoc.
-  rewrite Rplus_opp_l.
   rewrite Rplus_comm.
-  apply Rplus_lt_reg_r with R1.
-  repeat rewrite Rplus_assoc.
-  rewrite Rplus_opp_l.
-  rewrite Rplus_0_r.
-  rewrite Rplus_0_l.
-  rewrite Rplus_opp_l.
-  rewrite Rplus_0_r.
+  pattern (-R1) at 1;rewrite <- Rplus_0_l.
+  repeat rewrite <- Rplus_assoc.
+  apply Rplus_lt_compat_r.
+  rewrite Rplus_comm.
+  apply Rplus_lt_reg_r with r.
+  rewrite Rplus_0_l, Rplus_assoc, Rplus_opp_l, Rplus_0_r.
   assumption.
 Qed.
 
-(* TODO *)
 Lemma Int_part_INR : forall n:nat,
   Int_part (INR n) = Z.of_nat n.
 Proof.
@@ -214,7 +188,6 @@ Proof.
   repeat rewrite <- INR_IZR_INZ; auto with real.
 Qed.
 
-(* TODO *)
 Lemma fp_nat : forall r:R,
   frac_part r = R0 ->
   exists c : Z, r = IZR c.
@@ -223,7 +196,6 @@ Proof.
     apply Rminus_diag_uniq; auto with zarith real.
 Qed.
 
-(* TODO *)
 Lemma R0_fp_O : forall r:R,
   R0 <> frac_part r ->
   R0 <> r.
@@ -242,7 +214,7 @@ Proof.
 Qed.
 
 Lemma Rminus_Int_part1 : forall r1 r2:R,
-  frac_part r1 >= frac_part r2 ->
+  frac_part r2 <= frac_part r1 ->
   Int_part (r1 - r2) = (Int_part r1 - Int_part r2)%Z.
 Proof.
 
@@ -257,15 +229,16 @@ Proof.
     unfold frac_part in H.
     unfold Z.sub.
     rewrite plus_IZR.
-    apply Rge_le.
     unfold Rminus in *.
-    apply Rplus_ge_reg_l with r2.
+    apply Rplus_le_reg_l with r2.
+    rewrite (Rplus_comm r2).
+    rewrite Rplus_assoc.
     rewrite (Rplus_comm r2).
     rewrite Rplus_assoc.
     rewrite Rplus_opp_l.
     rewrite Rplus_0_r.
     rewrite opp_IZR.
-    apply Rplus_ge_reg_l with (- IZR (Int_part r1)).
+    apply Rplus_le_reg_l with (- IZR (Int_part r1)).
     rewrite (Rplus_comm _ r1).
     rewrite <- Rplus_assoc.
     rewrite (Rplus_comm _ r2).
@@ -305,10 +278,6 @@ Proof.
     rewrite Rplus_assoc.
     rewrite Rplus_opp_r.
     rewrite Rplus_0_r.
-
-    apply Rge_le in H.
-    apply Rge_le in r1l.
-    apply Rge_le in r2l.
 
     destruct r1l as [lt1 | eq1 ] ; destruct r2l as [lt2 | eq2].
     {
@@ -387,9 +356,6 @@ Proof.
 
   fold i1 in H, H2, H3, H0, H1.
   fold i2 in H, H2, H3, H0, H1.
-
-  apply Rge_le in H2.
-  apply Rge_le in H0.
 
   unfold Rminus in *.
   rewrite Ropp_plus_distr in *.
@@ -586,7 +552,7 @@ Qed.
 
 Lemma Rminus_fp1 :
   forall r1 r2:R,
-    frac_part r1 >= frac_part r2 ->
+    frac_part r2 <= frac_part r1  ->
     frac_part (r1 - r2) = frac_part r1 - frac_part r2.
 Proof.
   intros r1 r2 H.
@@ -634,7 +600,7 @@ Qed.
 
 Lemma plus_Int_part1 :
   forall r1 r2:R,
-    frac_part r1 + frac_part r2 >= R1 ->
+    R1 <= frac_part r1 + frac_part r2 ->
     Int_part (r1 + r2) = (Int_part r1 + Int_part r2 + 1)%Z.
 Proof.
 
@@ -670,9 +636,6 @@ Proof.
   destruct (base_fp y) as [hly huy].
 
   (* Mre rewriting *)
-  apply Rge_le in hlx.
-  apply Rge_le in hly.
-  apply Rge_le in h.
 
   unfold frac_part in *.
   unfold Int_part in *.
@@ -815,8 +778,6 @@ Proof.
   destruct (base_fp y) as [hly huy].
 
   (* Mre rewriting *)
-  apply Rge_le in hlx.
-  apply Rge_le in hly.
 
   unfold frac_part in *.
   unfold Int_part in *.
@@ -928,7 +889,7 @@ Qed.
 
 Lemma plus_frac_part1 :
   forall r1 r2:R,
-    frac_part r1 + frac_part r2 >= R1 ->
+    R1 <= frac_part r1 + frac_part r2 ->
     frac_part (r1 + r2) = frac_part r1 + frac_part r2 - R1.
 Proof.
 
