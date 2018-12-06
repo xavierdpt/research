@@ -21,11 +21,9 @@ Local Open Scope XR_scope.
 (** *   Calculus               *)
 (*******************************)
 (*********)
-Lemma eps2_Rgt_R0 : forall eps:R, eps > R0 -> eps * / R2 > R0.
+Lemma eps2_Rgt_R0 : forall eps:R, R0 < eps -> R0 < eps * / R2.
 Proof.
 intros e h.
-unfold Rgt.
-unfold Rgt in h.
 apply Rmult_lt_0_compat.
 exact h.
 apply Rinv_0_lt_compat.
@@ -67,10 +65,9 @@ Proof.
 Qed.
 
 (*********)
-Lemma Rlt_eps2_eps : forall eps:R, eps > R0 -> eps * / R2 < eps.
+Lemma Rlt_eps2_eps : forall eps:R, R0 < eps -> eps * / R2 < eps.
 Proof.
   intros e h.
-  unfold Rgt in h.
   pattern e at 2 ; rewrite <- Rmult_1_r.
   apply Rmult_lt_compat_l.
   exact h.
@@ -84,10 +81,9 @@ Proof.
 Qed.
 
 (*********)
-Lemma Rlt_eps4_eps : forall eps:R, eps > R0 -> eps * / (R2 + R2) < eps.
+Lemma Rlt_eps4_eps : forall eps:R, R0 < eps -> eps * / (R2 + R2) < eps.
 Proof.
   intros e h.
-  unfold Rgt in h.
   pattern e at 2 ; rewrite <- Rmult_1_r.
   apply Rmult_lt_compat_l.
   exact h.
@@ -103,7 +99,7 @@ Proof.
   exact Rlt_0_3.
 Qed.
 
-Lemma prop_eps : forall r:R, (forall eps:R, eps > R0 -> r < eps) -> r <= R0.
+Lemma prop_eps : forall r:R, (forall eps:R, R0 < eps -> r < eps) -> r <= R0.
 Proof.
   intros; elim (Rtotal_order r R0); intro.
   apply Rlt_le; assumption.
@@ -128,9 +124,9 @@ Proof.
 Qed.
 
 (*********)
-Lemma mul_factor_gt : forall eps l l':R, eps > R0 -> eps * mul_factor l l' > R0.
+Lemma mul_factor_gt : forall eps l l':R, R0 < eps -> R0 < eps * mul_factor l l'.
 Proof.
-  intros; unfold Rgt; rewrite <- (Rmult_0_r eps);
+  intros; rewrite <- (Rmult_0_r eps);
     apply Rmult_lt_compat_l.
   assumption.
   unfold mul_factor; apply Rinv_0_lt_compat;
@@ -150,7 +146,7 @@ Qed.
 
 (*********)
 Lemma mul_factor_gt_f :
-  forall eps l l':R, eps > R0 -> Rmin R1 (eps * mul_factor l l') > R0.
+  forall eps l l':R, R0 < eps -> R0 < Rmin R1 (eps * mul_factor l l').
   intros; apply Rmin_Rgt_r; split.
   exact Rlt_0_1.
   exact (mul_factor_gt eps l l' H).
@@ -165,7 +161,7 @@ Qed.
 Record Metric_Space : Type :=
   {Base : Type;
     dist : Base -> Base -> R;
-    dist_pos : forall x y:Base, dist x y >= R0;
+    dist_pos : forall x y:Base, R0 <= dist x y;
     dist_sym : forall x y:Base, dist x y = dist y x;
     dist_refl : forall x y:Base, dist x y = R0 <-> x = y;
     dist_tri : forall x y z:Base, dist x y <= dist x z + dist z y}.
@@ -178,9 +174,9 @@ Record Metric_Space : Type :=
 Definition limit_in (X X':Metric_Space) (f:Base X -> Base X')
   (D:Base X -> Prop) (x0:Base X) (l:Base X') :=
   forall eps:R,
-    eps > R0 ->
+    R0 < eps ->
     exists alp : R,
-      alp > R0 /\
+      R0 < alp /\
       (forall x:Base X, D x /\ X.(dist) x x0 < alp -> X'.(dist) (f x) l < eps).
 
 (*******************************)
@@ -289,7 +285,7 @@ Lemma limit_free :
 Proof.
   unfold limit1_in; unfold limit_in; simpl; intros;
     split with eps; split; auto; intros; elim (R_dist_refl (f x) (f x));
-      intros a b; rewrite (b (eq_refl (f x))); unfold Rgt in H;
+      intros a b; rewrite (b (eq_refl (f x))); 
         assumption.
 Qed.
 
@@ -299,75 +295,41 @@ Lemma limit_mul :
     limit1_in f D l x0 ->
     limit1_in g D l' x0 -> limit1_in (fun x:R => f x * g x) D (l * l') x0.
 Proof.
-  intros; unfold limit1_in; unfold limit_in; simpl;
-    intros;
-      elim (H (Rmin R1 (eps * mul_factor l l')) (mul_factor_gt_f eps l l' H1));
-        elim (H0 (eps * mul_factor l l') (mul_factor_gt eps l l' H1));
-          clear H H0; simpl; intros; elim H; elim H0;
-            clear H H0; intros; split with (Rmin x1 x); split.
-  exact (Rmin_Rgt_r x1 x R0 (conj H H2)).
-  intros; elim H4; clear H4; intros; unfold R_dist;
-    replace (f x2 * g x2 - l * l') with (f x2 * (g x2 - l') + l' * (f x2 - l)).
-  cut (Rabs (f x2 * (g x2 - l')) + Rabs (l' * (f x2 - l)) < eps).
-  cut
-    (Rabs (f x2 * (g x2 - l') + l' * (f x2 - l)) <=
-      Rabs (f x2 * (g x2 - l')) + Rabs (l' * (f x2 - l))).
-  exact (Rle_lt_trans _ _ _).
-  exact (Rabs_triang _ _).
-  rewrite (Rabs_mult (f x2) (g x2 - l')); rewrite (Rabs_mult l' (f x2 - l));
-    cut
-      ((R1 + Rabs l) * (eps * mul_factor l l') + Rabs l' * (eps * mul_factor l l') <=
-        eps).
-  cut
-    (Rabs (f x2) * Rabs (g x2 - l') + Rabs l' * Rabs (f x2 - l) <
-      (R1 + Rabs l) * (eps * mul_factor l l') + Rabs l' * (eps * mul_factor l l')).
-  exact (Rlt_le_trans _ _ _).
-  elim (Rmin_Rgt_l x1 x (R_dist x2 x0) H5); clear H5; intros;
-    generalize (H0 x2 (conj H4 H5)); intro; generalize (Rmin_Rgt_l _ _ _ H7);
-      intro; elim H8; intros; clear H0 H8; apply Rplus_lt_le_compat.
-  apply Rmult_ge_0_gt_0_lt_compat.
-  apply Rle_ge.
-  exact (Rabs_pos (g x2 - l')).
-  rewrite (Rplus_comm R1 (Rabs l)); unfold Rgt; apply Rle_lt_0_plus_1;
-    exact (Rabs_pos l).
-  unfold R_dist in H9;
-    apply (Rplus_lt_reg_l (- Rabs l) (Rabs (f x2)) (R1 + Rabs l)).
-  rewrite <- (Rplus_assoc (- Rabs l) R1 (Rabs l));
-    rewrite (Rplus_comm (- Rabs l) R1);
-      rewrite (Rplus_assoc R1 (- Rabs l) (Rabs l)); rewrite (Rplus_opp_l (Rabs l));
-        rewrite (proj1 (Rplus_ne R1)); rewrite (Rplus_comm (- Rabs l) (Rabs (f x2)));
-          generalize H9; cut (Rabs (f x2) - Rabs l <= Rabs (f x2 - l)).
-  exact (Rle_lt_trans _ _ _).
-  exact (Rabs_triang_inv _ _).
-  generalize (H3 x2 (conj H4 H6)); trivial.
-  apply Rmult_le_compat_l.
-  exact (Rabs_pos l').
-  unfold Rle; left; assumption.
-  rewrite (Rmult_comm (R1 + Rabs l) (eps * mul_factor l l'));
-    rewrite (Rmult_comm (Rabs l') (eps * mul_factor l l'));
-      rewrite <-
-        (Rmult_plus_distr_l (eps * mul_factor l l') (R1 + Rabs l) (Rabs l'))
-        ; rewrite (Rmult_assoc eps (mul_factor l l') (R1 + Rabs l + Rabs l'));
-          rewrite (Rplus_assoc R1 (Rabs l) (Rabs l')); unfold mul_factor;
-            rewrite (Rinv_l (R1 + (Rabs l + Rabs l')) (mul_factor_wd l l'));
-              rewrite (proj1 (Rmult_ne eps)); apply Req_le; trivial.
-  unfold Rminus.
-  repeat rewrite Rmult_plus_distr_l.
-  repeat rewrite Rplus_assoc.
-  apply Rplus_eq_compat_l.
-  repeat rewrite <- Rplus_assoc.
-  rewrite Rmult_comm.
-  rewrite <- Ropp_mult_distr_l.
-  rewrite Rplus_opp_l.
-  rewrite Rplus_0_l.
-  rewrite <- Ropp_mult_distr_r.
-  rewrite Rmult_comm.
-  reflexivity.
-Qed.
+  intros f g D l l' x hf hg.
+  unfold limit1_in.
+  unfold limit_in.
+  simpl.
+  unfold limit1_in in hf, hg.
+  unfold limit_in in hf, hg.
+  simpl in hf, hg.
+  intros e he.
+  specialize (hf _ he).
+  specialize (hg _ he).
+  destruct hf as [ af hf ].
+  destruct hg as [ ag hg ].
+  destruct hf as [ haf hf ].
+  destruct hg as [ hag hg ].
+
+  assert (hr : exists r:R, True). exists R0. constructor.
+  destruct hr as [ r _ ].
+  exists r.
+  split.
+  { admit. }
+  {
+    intro v.
+    specialize (hf v).
+    specialize (hg v).
+    intro h.
+    destruct h as [ hv h ].
+    unfold R_dist.
+    unfold R_dist in h.
+    admit.
+  }
+Admitted.
 
 (*********)
 Definition adhDa (D:R -> Prop) (a:R) : Prop :=
-  forall alp:R, alp > R0 ->  exists x : R, D x /\ R_dist x a < alp.
+  forall alp:R, R0 < alp ->  exists x : R, D x /\ R_dist x a < alp.
 
 (*********)
 Lemma single_limit :
@@ -376,10 +338,10 @@ Lemma single_limit :
 Proof.
   unfold limit1_in; unfold limit_in; intros.
   simpl in *.
-  cut (forall eps:R, eps > R0 -> dist R_met l l' < R2 * eps).
+  cut (forall eps:R, R0 < eps -> dist R_met l l' < R2 * eps).
   clear H0 H1; unfold dist in |- *; unfold R_met; unfold R_dist in |- *;
     unfold Rabs; case (Rcase_abs (l - l')) as [Hlt|Hge]; intros.
-  cut (forall eps:R, eps > R0 -> - (l - l') < eps).
+  cut (forall eps:R, R0 < eps -> - (l - l') < eps).
   intro; generalize (prop_eps (- (l - l')) H1); intro;
     generalize (Ropp_gt_lt_0_contravar (l - l') Hlt); intro;
       unfold Rgt in H3; generalize (Rgt_not_le (- (l - l')) R0 H3);

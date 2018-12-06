@@ -60,7 +60,7 @@ unfold Rminus. rewrite Ropp_0.
 reflexivity.
 }
   unfold Rdiv in H4; apply H4; assumption.
-  apply Rle_ge; left; apply Rinv_0_lt_compat; assumption.
+  left; apply Rinv_0_lt_compat; assumption.
   red; intro; rewrite H6 in H0; elim (Rlt_irrefl _ H0).
   unfold Majxy.
   unfold C0.
@@ -225,8 +225,8 @@ Proof.
   apply le_pred_n.
   apply INR_fact_neq_0.
   apply INR_fact_neq_0.
-  apply Rle_ge; left; apply Rinv_0_lt_compat; apply INR_fact_lt_0.
-  apply Rle_ge; left; apply Rinv_0_lt_compat; apply INR_fact_lt_0.
+  left; apply Rinv_0_lt_compat; apply INR_fact_lt_0.
+  left; apply Rinv_0_lt_compat; apply INR_fact_lt_0.
   apply Rle_trans with
     (sum_f_R0
       (fun k:nat =>
@@ -505,9 +505,9 @@ reflexivity.
   omega.
   apply INR_fact_neq_0.
   apply INR_fact_neq_0.
-  apply Rle_ge; left; apply Rinv_0_lt_compat.
+  left; apply Rinv_0_lt_compat.
   apply INR_fact_lt_0.
-  apply Rle_ge; left; apply Rinv_0_lt_compat.
+  left; apply Rinv_0_lt_compat.
   apply INR_fact_lt_0.
   apply Rle_trans with
     (sum_f_R0
@@ -707,7 +707,6 @@ Proof.
   apply lt_le_trans with (S N0).
   apply lt_O_Sn.
   assumption.
-  apply Rle_ge.
   unfold Majxy.
   unfold Rdiv; apply Rmult_le_pos.
   apply pow_le.
@@ -742,7 +741,6 @@ Proof.
   apply lt_le_trans with (S N0).
   apply lt_O_Sn.
   assumption.
-  apply Rle_ge.
   unfold Majxy.
   unfold Rdiv; apply Rmult_le_pos.
   apply pow_le.

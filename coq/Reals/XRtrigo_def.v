@@ -246,7 +246,7 @@ Proof.
   apply not_O_INR; discriminate.
   replace (2 * n + 1)%nat with (S (2 * n));
   [ apply not_O_INR; discriminate | ring ].
-  apply Rle_ge; left; apply Rinv_0_lt_compat.
+  left; apply Rinv_0_lt_compat.
   apply lt_INR_0.
   replace (2 * S n * (2 * n + 1))%nat with (2 + (4 * (n * n) + 6 * n))%nat by ring.
   apply lt_O_Sn.
