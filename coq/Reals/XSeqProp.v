@@ -554,7 +554,6 @@ Proof.
   }
   {
     left.
-    apply Rlt_gt.
     exact hxy'.
   }
 Qed.
@@ -590,15 +589,11 @@ Proof.
   }
 Qed.
 
-Lemma not_Rlt : forall r1 r2:R, ~ r1 < r2 -> r1 >= r2.
+Lemma not_Rlt : forall r1 r2:R, ~ r1 < r2 -> r2 <= r1.
 Proof.
   intros x y h.
-  apply Rle_ge.
-  apply Rnot_gt_le.
-  intro h'.
-  apply h.
-  apply Rgt_lt.
-  exact h'.
+  apply Rnot_lt_le.
+  exact h.
 Qed.
 
 (* stopped here *)
@@ -962,7 +957,7 @@ Proof.
   unfold Un_cv.
 
   intros e he.
-  assert ( he' : e / (IZR 2) > R0).
+  assert ( he' : R0 < e / (IZR 2) ).
   {
     unfold Rdiv.
     apply Rmult_lt_0_compat.
@@ -1081,7 +1076,7 @@ Proof.
   destruct h as [ l h ].
   unfold Cauchy_crit.
   intros e he.
-  assert ( he' : e / (IZR 2) > R0).
+  assert ( he' : R0 < e / (IZR 2) ).
   {
     unfold Rdiv.
     apply Rmult_lt_0_compat.
@@ -1246,7 +1241,7 @@ Proof.
 
   assert (hmneq : M <> R0).
   {
-    apply Rgt_not_eq.
+    apply Rlt_not_eq'.
     exact hm.
   }
 
@@ -1429,7 +1424,6 @@ Lemma tech9 : forall Un:nat -> R,
     Un_growing Un -> forall m n:nat, (m <= n)%nat -> Un m <= Un n.
 Proof.
   intros u hg n m h.
-  apply Rge_le.
   apply growing_prop.
   { exact hg. }
   { unfold ge. exact h. }
@@ -1530,7 +1524,7 @@ Proof.
       eapply Rle_lt_trans.
       1:apply Rabs_triang.
       rewrite (Rabs_right k).
-      2:apply Rle_ge;apply hk.
+      2:apply hk.
       apply Rplus_lt_reg_l with (- k).
       rewrite <- (Rplus_comm k).
       repeat rewrite <- Rplus_assoc.
@@ -1573,7 +1567,6 @@ Proof.
     {
       unfold Rminus.
       apply Rplus_le_compat_r.
-      apply Rge_le.
       apply growing_prop.
       { exact hg. }
       {
@@ -1696,7 +1689,7 @@ Proof.
   }
   rewrite Rinv_l.
   2:{
-    apply Rgt_not_eq.
+    apply Rlt_not_eq'.
     apply Rabs_pos_lt.
     apply hneq.
   }
@@ -1709,7 +1702,7 @@ Proof.
   rewrite <- Rmult_assoc.
   rewrite Rinv_l.
   2:{
-    apply Rgt_not_eq.
+    apply Rlt_not_eq'.
     exact he.
   }
   rewrite Rmult_1_l.
@@ -2195,7 +2188,6 @@ Proof.
                         rewrite (Rabs_right (Rabs x * Un 0%nat)).
                         { apply Rmult_comm. }
                         {
-                          apply Rle_ge.
                           apply Rmult_le_pos.
                           { apply Rabs_pos. }
                           {
@@ -2266,7 +2258,6 @@ Proof.
                     }
                   }
                   {
-                    apply Rle_ge.
                     unfold Rminus.
                     rewrite Ropp_0.
                     rewrite Rplus_0_r.
@@ -2275,7 +2266,6 @@ Proof.
                   }
                 }
                 {
-                  apply Rle_ge.
                   unfold Rminus.
                   rewrite Ropp_0.
                   rewrite Rplus_0_r.

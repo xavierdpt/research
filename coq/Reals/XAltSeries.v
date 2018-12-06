@@ -441,7 +441,7 @@ rewrite Rmult_assoc.
 rewrite Rinv_l.
 rewrite Rmult_1_r.
 reflexivity.
-apply Rgt_not_eq.
+apply Rlt_not_eq'.
 assumption.
   simpl (INR 2).
 change R1 with (IZR 1).
@@ -457,19 +457,19 @@ rewrite Rinv_l.
 rewrite Rmult_1_r.
 rewrite Rmult_comm.
 reflexivity.
-apply Rgt_not_eq.
+apply Rlt_not_eq'.
 change R0 with (INR 0).
 apply lt_INR.
 assumption.
 exact Neq_2_0.
-apply Rgt_not_eq.
+apply Rlt_not_eq'.
 change R0 with (INR 0).
 apply lt_INR.
 assumption.
 exact Neq_2_0.
-apply Rgt_not_eq.
+apply Rlt_not_eq'.
 assumption.
-  apply Rle_ge; apply PI_tg_pos.
+  apply PI_tg_pos.
   apply lt_le_trans with N; assumption.
   elim H1; intros H5 _.
   destruct (lt_eq_lt_dec 0 N) as [[| <- ]|H6].

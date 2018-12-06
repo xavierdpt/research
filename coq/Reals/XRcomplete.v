@@ -124,7 +124,7 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma technic6 : forall x, x > R0 -> R0 < x / (IZR 3).
+Lemma technic6 : forall x, R0 < x -> R0 < x / (IZR 3).
 Proof.
   intros x h.
   unfold Rdiv.
@@ -208,13 +208,11 @@ Proof.
       intro H4.
 
       unfold Un_cv in hinf.
-      unfold Rgt in hinf at 1.
       specialize (hinf (eps / (IZR 3))).
       specialize (hinf H4).
       destruct hinf as [x0 H2].
 
       unfold Un_cv in hsup.
-      unfold Rgt in hsup at 1.
       specialize (hsup (eps / (IZR 3))).
       specialize (hsup H4).
       destruct hsup as [x H1].
@@ -252,7 +250,6 @@ Proof.
           apply H8.
         }
         {
-          apply Rle_ge.
           apply Rplus_le_reg_l with (Uinf n).
           rewrite Rplus_0_r.
           rewrite Rplus_minus.
@@ -267,7 +264,6 @@ Proof.
           apply H6.
         }
         {
-          apply Rle_ge.
           apply Rplus_le_reg_l with (Uinf n).
           rewrite Rplus_0_r.
           rewrite Rplus_minus.

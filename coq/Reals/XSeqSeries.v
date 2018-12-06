@@ -316,10 +316,10 @@ Proof.
     apply sum_Rle; intros.
     elim (H (S n + n0)%nat); intros H7 H8.
     apply H8.
-    apply Rle_ge; apply cond_pos_sum; intro.
+    apply cond_pos_sum; intro.
     elim (H (S n + n0)%nat); intros.
     apply Rle_trans with (An (S n + n0)%nat); assumption.
-    apply Rle_ge; apply cond_pos_sum; intro.
+    apply cond_pos_sum; intro.
     elim (H (S n + n0)%nat); intros; assumption.
   - unfold R_dist; unfold Rminus;
     do 2 rewrite Rplus_opp_r; rewrite Rabs_R0; right;
@@ -332,10 +332,9 @@ Proof.
           do 2 rewrite Rplus_0_r; repeat rewrite Rabs_right.
     apply sum_Rle; intros.
     elim (H (S m + n0)%nat); intros H7 H8; apply H8.
-    apply Rle_ge; apply cond_pos_sum; intro.
+    apply cond_pos_sum; intro.
     elim (H (S m + n0)%nat); intros.
     apply Rle_trans with (An (S m + n0)%nat); assumption.
-    apply Rle_ge.
     apply cond_pos_sum; intro.
     elim (H (S m + n0)%nat); intros; assumption.
 Qed.
@@ -410,7 +409,7 @@ exact Neq_2_0.
   unfold Rdiv; rewrite Rabs_mult; fold C; rewrite Rabs_right...
   apply (H7 n); apply le_trans with (S N)...
   apply le_trans with N; [ unfold N; apply le_max_r | apply le_n_Sn ]...
-  apply Rle_ge; left; apply Rinv_0_lt_compat...
+  left; apply Rinv_0_lt_compat...
 
   unfold R_dist in H; unfold Rdiv; rewrite Rabs_mult;
     rewrite (Rabs_right (/ sum_f_R0 An n))...
@@ -434,7 +433,7 @@ exact Neq_2_0.
   apply Rabs_pos...
   left; apply H; unfold ge; apply le_trans with (S N1);
     [ apply le_n_Sn | apply le_plus_l ]...
-  apply Rle_ge; left...
+  left...
   rewrite <- (scal_sum (fun i:nat => An (S N1 + i)%nat) (n - S N1) (eps / R2));
     unfold Rdiv; repeat rewrite Rmult_assoc; apply Rmult_lt_compat_l.
 assumption.
@@ -447,7 +446,7 @@ change (IZR 2) with R2.
   rewrite Rplus_comm;
     pattern (sum_f_R0 (fun i:nat => An (S N1 + i)%nat) (n - S N1)) at 1;
       rewrite <- Rplus_0_r; apply Rplus_lt_compat_l...
-  apply Rle_ge; left; apply Rinv_0_lt_compat...
+  left; apply Rinv_0_lt_compat...
   replace (sum_f_R0 (fun k:nat => An k * (Bn k - l)) n) with
   (sum_f_R0 (fun k:nat => An k * Bn k) n +
     sum_f_R0 (fun k:nat => An k * - l) n)...

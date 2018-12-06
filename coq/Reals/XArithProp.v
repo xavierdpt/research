@@ -139,7 +139,9 @@ Proof.
   }
   split.
   apply Rmult_le_reg_l with (/ - y).
-  apply Rinv_0_lt_compat; apply Ropp_0_gt_lt_contravar; exact Hlt.
+  apply Rinv_0_lt_compat.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar. exact Hlt.
   rewrite Rmult_0_r; rewrite (Rmult_comm (/ - y)); rewrite Rmult_plus_distr_r;
     rewrite <- Ropp_inv_permute; [ idtac | assumption ].
   rewrite Ropp_mult_distr_r.
@@ -189,7 +191,8 @@ Proof.
   rewrite (Rabs_left _ Hlt).
   apply Rmult_lt_reg_l with (/ - y).
   apply Rinv_0_lt_compat.
-  apply Ropp_0_gt_lt_contravar.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar.
   exact Hlt.
   rewrite <- Rinv_l_sym.
   rewrite (Rmult_comm (/ - y)).
@@ -231,7 +234,6 @@ Proof.
 	rewrite Rplus_0_r.
     reflexivity.
   }
-  apply Rgt_lt.
   unfold Rminus.
   rewrite Ropp_involutive.
   unfold IZR at 3.
@@ -347,7 +349,7 @@ elim H0; unfold Rdiv;
   destruct (total_order_T R0 y) as [[Hlt|Heq]|Hgt].
   assumption.
   elim H; symmetry ; exact Heq.
-  apply Rge_le in Hge; elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ Hge Hgt)).
+  elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ Hge Hgt)).
 Qed.
 
 Lemma tech8 : forall n i:nat, (n <= S n + i)%nat.

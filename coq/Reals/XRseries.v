@@ -187,7 +187,7 @@ Proof.
 Qed.
 
 (* Duplicate from extension of Rfunctions *)
-Lemma Rgen : forall r:R, exists n:nat, INR n >= r.
+Lemma Rgen : forall r:R, exists n:nat, r <= INR n.
 Proof.
   intro r.
   destruct (archimed r) as [ agt ale ].
@@ -229,13 +229,12 @@ Proof.
       rewrite INR_IZR_INZ.
       rewrite <- poseq.
       rewrite positive_nat_Z.
-      apply Rgt_trans with (IZR (Z.neg p)).
+      apply Rlt_trans with (IZR (Z.neg p)).
+      { exact agt. }
       {
-        apply Rlt_gt.
         apply IZR_lt.
         apply Pos2Z.neg_lt_pos.
       }
-      { exact agt. }
     }
   }
 Qed.
@@ -248,7 +247,6 @@ Proof.
   clear H1.
   {
     destruct (Rgen b) as [N H1].
-    apply Rge_le in H1.
     exists N.
     unfold IZR. unfold IPR. unfold IPR_2.
     apply Rle_trans with (R1 + INR N * R1).
@@ -302,12 +300,12 @@ Section sequence.
 
   Definition Un_cv (U:nat->R) (l:R) : Prop :=
     forall eps:R,
-      eps > R0 ->
+      R0 < eps ->
       exists N : nat, (forall n:nat, (n >= N)%nat -> R_dist (U n) l < eps).
 
   Definition Cauchy_crit (U : nat -> R) : Prop :=
     forall eps:R,
-      eps > R0 ->
+      R0 < eps ->
       exists N : nat,
         (forall n m:nat,
           (n >= N)%nat -> (m >= N)%nat -> R_dist (U n) (U m) < eps).
@@ -342,10 +340,10 @@ Section sequence.
   Qed.
 
   Lemma growing_prop :
-    forall (U : nat -> R) (n m:nat), Un_growing U -> (n >= m)%nat -> U n >= U m.
+    forall (U : nat -> R) (n m:nat), Un_growing U -> (n >= m)%nat -> U m <= U n.
   Proof.
     intros U n m hu hnm.
-    unfold ge in hnm. apply Rle_ge.
+    unfold ge in hnm.
     induction hnm as [ | n hmn i ].
     { right. reflexivity. }
     {
@@ -929,7 +927,6 @@ Section sequence.
         apply crit_rewrite_l.
         apply Rle_trans with (u N).
         {
-          apply Rge_le.
           apply growing_prop.
           { exact hg. }
           {
@@ -1114,7 +1111,7 @@ Section sequence.
     Un_growing u ->
     R0 < m ->
     is_lub (crit_exist u l e) m ->
-    exists N : nat, u N > l - e.
+    exists N : nat, l - e < u N .
   Proof.
     intros u l e m hu hm hlub.
 
@@ -1176,9 +1173,9 @@ Section sequence.
 
   Lemma crit_lub_pos : forall u l e m,
     is_lub (EUn u) l ->
-    e > R0 ->
+    R0 < e ->
     is_lub (crit_exist u l e) m ->
-    m > R0.
+    R0 < m.
   Proof.
     intros u l e m hlub he h.
     destruct h as [hl hr].
@@ -1207,7 +1204,6 @@ Section sequence.
         apply Rplus_lt_compat_l.
         rewrite <- Ropp_0.
         apply Ropp_lt_contravar.
-        apply Rgt_lt in he.
         exact he.
       }
       {
@@ -1261,7 +1257,6 @@ Section sequence.
       apply Un_in_EUn.
     }
     {
-      apply Rgt_lt in hun.
       rewrite Ropp_minus_distr.
       apply Rplus_lt_reg_l with (-e).
       unfold Rminus.
@@ -1277,7 +1272,6 @@ Section sequence.
       apply Rlt_le_trans with (u N).
       { assumption. }
       {
-        apply Rge_le.
         apply growing_prop.
         { assumption. }
         { assumption. }
@@ -1322,7 +1316,7 @@ Section sequence.
     }
   Qed.
 
-  Definition Cauchy_crit_simpl u := forall eps : R, eps > R0 ->
+  Definition Cauchy_crit_simpl u := forall eps : R, R0 < eps ->
     exists N : nat, forall m : nat, (m >= N)%nat -> R_dist (u N) (u m) < eps.
 
   Lemma Cauchy_simpler : forall u, Cauchy_crit u -> Cauchy_crit_simpl u.
@@ -1355,7 +1349,6 @@ Section sequence.
     destruct exists_positive as [e he].
 
     specialize (hc e).
-    unfold Rgt in hc.
     specialize (hc he);clear he.
     destruct hc as [ N hc ].
 
@@ -1384,17 +1377,16 @@ Section sequence.
       apply Rabs_def2 in hc.
       destruct hc as [hl hc];clear hl.
 
-      apply Rlt_minus in hc.
 
       apply (Rminus_lt (u n) (u N + e)).
       unfold Rminus.
       unfold Rminus in hc.
+      apply Rplus_lt_reg_l with (- u n).
+      repeat rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
       rewrite Ropp_plus_distr.
-      rewrite Ropp_plus_distr in hc.
-      rewrite Ropp_involutive in hc.
-      rewrite <- Rplus_assoc.
-      rewrite Rplus_comm.
-      rewrite (Rplus_comm (u n)).
+      apply Rplus_lt_reg_l with (u N).
+      repeat rewrite <- Rplus_assoc, Rplus_opp_r, Rplus_0_l.
+      rewrite Rplus_0_r.
       exact hc.
     }
     {
@@ -1452,7 +1444,6 @@ Proof.
       apply Rminus_eq_contra.
       apply Rlt_dichotomy_converse.
       right.
-      unfold Rgt.
       apply (Rle_lt_trans x (Rabs x) R1).
       { apply RRle_abs. }
       { exact hx. }

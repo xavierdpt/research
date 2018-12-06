@@ -518,7 +518,6 @@ Proof.
   (fun i:nat => Rabs (Bn i)).
   apply Rabs_triang_gen.
   unfold Bn; reflexivity.
-  apply Rle_ge.
   apply cond_pos_sum.
   intro; apply Rabs_pos.
   unfold R_dist.
@@ -542,7 +541,6 @@ Proof.
   (fun i:nat => Rabs (Bn i)).
   apply Rabs_triang_gen.
   unfold Bn; reflexivity.
-  apply Rle_ge.
   apply cond_pos_sum.
   intro; apply Rabs_pos.
 Qed.
@@ -639,7 +637,7 @@ Proof.
   apply Rplus_lt_reg_l with (- l).
   do 2 rewrite (Rplus_comm (- l)).
   apply H5.
-  apply Rle_ge; apply Rplus_le_reg_l with l.
+  apply Rplus_le_reg_l with l.
   rewrite Rplus_0_r; replace (l + (sum_f_R0 An N0 - l)) with (sum_f_R0 An N0).
 2:{
 rewrite Rplus_comm.
@@ -652,7 +650,7 @@ reflexivity.
     apply Rle_trans with l1.
   left; apply Hgt.
   apply H6.
-  unfold l1; apply Rge_le;
+  unfold l1; 
     apply (growing_prop (fun k:nat => sum_f_R0 An k)).
   apply H1.
   unfold ge, N0; apply le_max_r.
