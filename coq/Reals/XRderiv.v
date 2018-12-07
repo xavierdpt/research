@@ -43,7 +43,7 @@ Proof.
   elim (Rmin_Rgt R1 x R0); intros a b; apply (b (conj Rlt_0_1 H)).
   intros; elim H3; clear H3; intros;
     generalize (let (H1, H2) := Rmin_Rgt R1 x (R_dist x1 x0) in H1);
-      unfold Rgt; intro; elim (H5 H4); clear H5;
+      intro; elim (H5 H4); clear H5;
         intros; generalize (H1 x1 (conj H3 H6)); clear H1;
           intro; unfold D_x in H3; elim H3; intros.
   rewrite H2 in H1; unfold R_dist; unfold R_dist in H1;
@@ -64,26 +64,30 @@ Proof.
   apply Rminus_eq_contra; auto.
 (**)
   split with (Rmin (Rmin (/ R2) x) (eps * / Rabs (R2 * d x0))); split.
-  cut (Rmin (/ R2) x > R0).
-  cut (eps * / Rabs (R2 * d x0) > R0).
+  cut (R0 < Rmin (/ R2) x ).
+  cut (R0 < eps * / Rabs (R2 * d x0) ).
   intros; elim (Rmin_Rgt (Rmin (/ R2) x) (eps * / Rabs (R2 * d x0)) R0);
     intros a b; apply (b (conj H4 H3)).
-  apply Rmult_gt_0_compat; auto.
-  unfold Rgt; apply Rinv_0_lt_compat; apply Rabs_pos_lt;
-    apply Rmult_integral_contrapositive; split.
-  exact Neq_2_0.
-  assumption.
+{
+  apply Rmult_lt_0_compat.
+  exact H0.
+  rewrite Rabs_mult.
+  apply Rinv_0_lt_compat.
+  apply Rmult_lt_0_compat.
+  { rewrite Rabs_right. exact Rlt_0_2. left. exact Rlt_0_2. }
+  { apply Rabs_pos_lt. exact H2. }
+}
   elim (Rmin_Rgt (/ R2) x R0); intros a b; cut (R0 < R2).
-  intro; generalize (Rinv_0_lt_compat R2 H3); intro; fold (/ R2 > R0) in H4;
+  intro; generalize (Rinv_0_lt_compat R2 H3); intro; 
     apply (b (conj H4 H)).
   exact Rlt_0_2.
   intros; elim H3; clear H3; intros;
     generalize
       (let (H1, H2) :=
         Rmin_Rgt (Rmin (/ R2) x) (eps * / Rabs (R2 * d x0)) (R_dist x1 x0) in
-        H1); unfold Rgt; intro; elim (H5 H4); clear H5;
+        H1); intro; elim (H5 H4); clear H5;
       intros; generalize (let (H1, H2) := Rmin_Rgt (/ R2) x (R_dist x1 x0) in H1);
-        unfold Rgt; intro; elim (H7 H5); clear H7;
+        intro; elim (H7 H5); clear H7;
           intros; clear H4 H5; generalize (H1 x1 (conj H3 H8));
             clear H1; intro; unfold D_x in H3; elim H3; intros;
               generalize (not_eq_sym H5); clear H5; intro H5;
@@ -136,7 +140,6 @@ Proof.
       (Rlt_trans (Rabs (f x1 - f x0))
         (Rabs (d x0 * (x1 - x0)) + Rabs (x1 - x0) * eps) eps H1 H11).
   clear H1 H5 H3 H10; generalize (Rabs_pos_lt (d x0) H2); intro;
-    unfold Rgt in H0;
       generalize (Rmult_lt_compat_l eps (R_dist x1 x0) (/ R2) H0 H7);
         clear H7; intro;
           generalize
@@ -145,7 +148,7 @@ Proof.
             rewrite (Rmult_comm eps (R_dist x1 x0)) in H3; unfold R_dist in H3, H5;
               rewrite <- (Rabs_mult (d x0) (x1 - x0)) in H5;
                 rewrite (Rabs_mult R2 (d x0)) in H5; cut (Rabs R2 <> R0).
-  intro; fold (Rabs (d x0) > R0) in H1;
+  intro; 
     rewrite
       (Rinv_mult_distr (Rabs R2) (Rabs (d x0)) H6
         (Rlt_dichotomy_converse (Rabs (d x0)) R0 (or_intror (Rabs (d x0) < R0) H1)))
@@ -183,7 +186,7 @@ Proof.
       unfold Rabs; case (Rcase_abs R0); intro.
   absurd (R0 < R0); auto.
   red; intro; apply (Rlt_irrefl R0 H1).
-  unfold Rgt in H0; assumption.
+  assumption.
 Qed.
 
 (*********)
@@ -199,7 +202,7 @@ Proof.
         unfold Rabs; case (Rcase_abs R0) as [Hlt|Hge].
   absurd (R0 < R0); auto.
   red in |- *; intro; apply (Rlt_irrefl R0 Hlt).
-  unfold Rgt in H; assumption.
+  assumption.
 Qed.
 
 (*********)
@@ -293,7 +296,7 @@ reflexivity.
 
   unfold limit1_in; unfold limit_in; simpl; intros;
     split with eps; split; auto; intros; elim (R_dist_refl (g x0) (g x0));
-      intros a b; rewrite (b (eq_refl (g x0))); unfold Rgt in H;
+      intros a b; rewrite (b (eq_refl (g x0))); 
         assumption.
 Qed.
 
@@ -421,7 +424,7 @@ Proof.
               intros; split with (Rmin x x1); split.
   elim (Rmin_Rgt x x1 R0); intros a b; apply (b (conj H9 H5)); clear a b.
   intros; elim H11; clear H11; intros; elim (Rmin_Rgt x x1 (R_dist x2 x0));
-    intros a b; clear b; unfold Rgt in a; elim (a H12);
+    intros a b; clear b; elim (a H12);
       clear H5 a; intros; unfold D_x, Dgf in H11, H7, H10;
         clear H12; elim (Req_dec (f x2) (f x0)); intro.
   elim H11; clear H11; intros; elim H11; clear H11; intros;

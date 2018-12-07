@@ -295,37 +295,147 @@ Lemma limit_mul :
     limit1_in f D l x0 ->
     limit1_in g D l' x0 -> limit1_in (fun x:R => f x * g x) D (l * l') x0.
 Proof.
-  intros f g D l l' x hf hg.
+  intros f g D l l' x0 H H0.
   unfold limit1_in.
   unfold limit_in.
   simpl.
-  unfold limit1_in in hf, hg.
-  unfold limit_in in hf, hg.
-  simpl in hf, hg.
-  intros e he.
-  specialize (hf _ he).
-  specialize (hg _ he).
-  destruct hf as [ af hf ].
-  destruct hg as [ ag hg ].
-  destruct hf as [ haf hf ].
-  destruct hg as [ hag hg ].
-
-  assert (hr : exists r:R, True). exists R0. constructor.
-  destruct hr as [ r _ ].
-  exists r.
+  intros eps H1.
+  elim (H (Rmin R1 (eps * mul_factor l l')) (mul_factor_gt_f eps l l' H1)).
+  elim (H0 (eps * mul_factor l l') (mul_factor_gt eps l l' H1)).
+  clear H H0.
+  simpl.
+  intros x H x1 H0.
+  elim H.
+  elim H0.
+  clear H H0.
+  intros H H0 H2 H3.
+  split with (Rmin x1 x).
   split.
-  { admit. }
   {
-    intro v.
-    specialize (hf v).
-    specialize (hg v).
-    intro h.
-    destruct h as [ hv h ].
-    unfold R_dist.
-    unfold R_dist in h.
-    admit.
+    apply Rmin_Rgt_r.
+    split.
+    { exact H. }
+    { exact H2. }
   }
-Admitted.
+  {
+    intros x2 H4.
+    elim H4.
+    clear H4.
+    intros H4 H5.
+    unfold R_dist.
+    replace (f x2 * g x2 - l * l') with (f x2 * (g x2 - l') + l' * (f x2 - l)).
+    {
+      cut (Rabs (f x2 * (g x2 - l')) + Rabs (l' * (f x2 - l)) < eps).
+      {
+        cut (Rabs (f x2 * (g x2 - l') + l' * (f x2 - l)) <= Rabs (f x2 * (g x2 - l')) + Rabs (l' * (f x2 - l))).
+        {
+          intros H6 H7.
+          eapply Rle_lt_trans.
+          { exact H6. }
+          { exact H7. }
+        }
+        { apply Rabs_triang. }
+      }
+      {
+        repeat rewrite Rabs_mult.
+        cut ((R1 + Rabs l) * (eps * mul_factor l l') + Rabs l' * (eps * mul_factor l l') <= eps).
+        {
+          cut (Rabs (f x2) * Rabs (g x2 - l') + Rabs l' * Rabs (f x2 - l) < (R1 + Rabs l) * (eps * mul_factor l l') + Rabs l' * (eps * mul_factor l l')).
+          {
+            intros H6 H7.
+            eapply Rlt_le_trans.
+            { exact H6. }
+            { exact H7. }
+          }
+          {
+            elim (Rmin_Rgt_l x1 x (R_dist x2 x0) H5).
+            clear H5.
+            intros H5 H6.
+            generalize (H0 x2 (conj H4 H5)).
+            intro H7. 
+            generalize (Rmin_Rgt_l _ _ _ H7).
+            intro H8.
+            elim H8.
+            intros H9 H10.
+            clear H0 H8.
+            apply Rplus_lt_le_compat.
+            {
+              apply Rmult_ge_0_gt_0_lt_compat.
+              {
+                apply Rabs_pos.
+              }
+              {
+                rewrite (Rplus_comm R1 (Rabs l)).
+                apply Rle_lt_0_plus_1.
+                apply Rabs_pos.
+              }
+              {
+                unfold R_dist in H9.
+                apply (Rplus_lt_reg_l (- Rabs l) (Rabs (f x2)) (R1 + Rabs l)).
+                rewrite <- (Rplus_assoc (- Rabs l) R1 (Rabs l)).
+                rewrite (Rplus_comm (- Rabs l) R1).
+                rewrite (Rplus_assoc R1 (- Rabs l) (Rabs l)).
+                rewrite (Rplus_opp_l (Rabs l)).
+                rewrite (proj1 (Rplus_ne R1)).
+                rewrite (Rplus_comm (- Rabs l) (Rabs (f x2))).
+                generalize H9.
+                cut (Rabs (f x2) - Rabs l <= Rabs (f x2 - l)).
+                {
+                  intros H0 H8.
+                  eapply Rle_lt_trans.
+                  { exact H0. }
+                  { exact H9. }
+                }
+                {
+                  apply Rabs_triang_inv.
+                }
+              }
+              {
+                apply H3.
+                split.
+                { exact H4. }
+                { exact H6. }
+              }
+            }
+            {
+              apply Rmult_le_compat_l.
+              { apply Rabs_pos. }
+              {
+                left.
+                exact H10.
+              }
+            }
+          }
+        }
+        {
+          rewrite (Rmult_comm (R1 + Rabs l) (eps * mul_factor l l')).
+          rewrite (Rmult_comm (Rabs l') (eps * mul_factor l l')).
+          rewrite <- (Rmult_plus_distr_l (eps * mul_factor l l') (R1 + Rabs l) (Rabs l')).
+          rewrite (Rmult_assoc eps (mul_factor l l') (R1 + Rabs l + Rabs l')).
+          rewrite (Rplus_assoc R1 (Rabs l) (Rabs l')).
+          unfold mul_factor.
+          rewrite (Rinv_l (R1 + (Rabs l + Rabs l')) (mul_factor_wd l l')).
+          rewrite (proj1 (Rmult_ne eps)).
+          right.
+          reflexivity.
+        }
+      }
+    }
+    {
+      unfold Rminus.
+      rewrite Rmult_plus_distr_l.
+      rewrite Rmult_plus_distr_l.
+      repeat rewrite <- Ropp_mult_distr_r.
+      repeat rewrite Rplus_assoc.
+      apply Rplus_eq_compat_l.
+      rewrite <- Rplus_assoc.
+      rewrite Rmult_comm.
+      rewrite Rplus_opp_l, Rplus_0_l.
+      rewrite Rmult_comm.
+      reflexivity.
+    }
+  }
+Qed.
 
 (*********)
 Definition adhDa (D:R -> Prop) (a:R) : Prop :=
@@ -342,19 +452,24 @@ Proof.
   clear H0 H1; unfold dist in |- *; unfold R_met; unfold R_dist in |- *;
     unfold Rabs; case (Rcase_abs (l - l')) as [Hlt|Hge]; intros.
   cut (forall eps:R, R0 < eps -> - (l - l') < eps).
-  intro; generalize (prop_eps (- (l - l')) H1); intro;
-    generalize (Ropp_gt_lt_0_contravar (l - l') Hlt); intro;
-      unfold Rgt in H3; generalize (Rgt_not_le (- (l - l')) R0 H3);
-        intro; exfalso; auto.
-  intros; cut (eps * / R2 > R0).
+{
+  intros.
+  exfalso.
+  apply Ropp_lt_contravar in Hlt.
+  rewrite Ropp_0 in Hlt.
+  specialize (H1 _ Hlt).
+  eapply Rlt_irrefl.
+  exact H1.
+}
+  intros. cut (R0 < eps * / R2 ).
   intro; generalize (H0 (eps * / R2) H2); rewrite (Rmult_comm eps (/ R2));
     rewrite <- (Rmult_assoc R2 (/ R2) eps); rewrite (Rinv_r R2).
   elim (Rmult_ne eps); intros a b; rewrite b; clear a b; trivial. 
   apply (Rlt_dichotomy_converse R2 R0); right; generalize Rlt_0_1; intro;
-    unfold Rgt; generalize (Rplus_lt_compat_l R1 R0 R1 H3);
+    generalize (Rplus_lt_compat_l R1 R0 R1 H3);
       intro; elim (Rplus_ne R1); intros a b; rewrite a in H4;
         clear a b; apply (Rlt_trans R0 R1 R2 H3 H4).
-  unfold Rgt; unfold Rgt in H1; rewrite (Rmult_comm eps (/ R2));
+  rewrite (Rmult_comm eps (/ R2));
     rewrite <- (Rmult_0_r (/ R2)); apply (Rmult_lt_compat_l (/ R2) R0 eps);
       auto.
   apply (Rinv_0_lt_compat R2); cut (R1 < R2).
@@ -362,21 +477,21 @@ Proof.
   generalize (Rplus_lt_compat_l R1 R0 R1 Rlt_0_1); elim (Rplus_ne R1); intros a b;
     rewrite a; clear a b; trivial.
 (**)
-  cut (forall eps:R, eps > R0 -> l - l' < eps).
+  cut (forall eps:R, R0 < eps -> l - l' < eps).
   intro; generalize (prop_eps (l - l') H1); intro; elim (Rle_le_eq (l - l') R0);
     intros a b; clear b; apply (Rminus_diag_uniq l l');
       apply a; split.
   assumption.
-  apply (Rge_le (l - l') R0 Hge).
-  intros; cut (eps * / R2 > R0).
+  exact Hge.
+  intros; cut (R0 < eps * / R2 ).
   intro; generalize (H0 (eps * / R2) H2); rewrite (Rmult_comm eps (/ R2));
     rewrite <- (Rmult_assoc R2 (/ R2) eps); rewrite (Rinv_r R2).
   elim (Rmult_ne eps); intros a b; rewrite b; clear a b; trivial.
   apply (Rlt_dichotomy_converse R2 R0); right; generalize Rlt_0_1; intro;
-    unfold Rgt; generalize (Rplus_lt_compat_l R1 R0 R1 H3);
+    generalize (Rplus_lt_compat_l R1 R0 R1 H3);
       intro; elim (Rplus_ne R1); intros a b; rewrite a in H4;
         clear a b; apply (Rlt_trans R0 R1 R2 H3 H4).
-  unfold Rgt; unfold Rgt in H1; rewrite (Rmult_comm eps (/ R2));
+  rewrite (Rmult_comm eps (/ R2));
     rewrite <- (Rmult_0_r (/ R2)); apply (Rmult_lt_compat_l (/ R2) R0 eps);
       auto.
   apply (Rinv_0_lt_compat R2); cut (R1 < R2).
@@ -390,7 +505,7 @@ Proof.
         intro; elim H5; intros; clear H5; elim (H (Rmin x x1) (H7 (conj H3 H0)));
           intros; elim H5; intros; clear H5 H H6 H7;
             generalize (Rmin_Rgt x x1 (R_dist x2 x0)); intro;
-              elim H; intros; clear H H6; unfold Rgt in H5; elim (H5 H9);
+              elim H; intros; clear H H6; elim (H5 H9);
                 intros; clear H5 H9; generalize (H1 x2 (conj H8 H6));
                   generalize (H4 x2 (conj H8 H)); clear H8 H H6 H1 H4 H0 H3;
                     intros;

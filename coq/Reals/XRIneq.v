@@ -2639,12 +2639,34 @@ Add Field RField : Rfield
   (completeness Zeq_bool_IZR, morphism R_rm, constants [IZR_tac], power_tac R_power_theory [Rpow_tac]).
 *)
 
-Lemma Rmult_ge_0_gt_0_lt_compat :
-  forall r1 r2 r3 r4,
-    R0 <= R0 -> R0 < r2 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
+Lemma Rmult_ge_0_gt_0_lt_compat : forall r1 r2 r3 r4 : R,
+  R0 <= r3 -> R0 < r2 -> r1 < r2 -> r3 < r4 -> r1 * r3 < r2 * r4.
 Proof.
-
-Admitted.
+  intros a b c d.
+  intros hc hb hab hcd.
+  destruct hc as [ hc | hc ].
+  {
+    apply Rlt_trans with (b*c).
+    {
+      apply Rmult_lt_compat_r.
+      { exact hc. }
+      { exact hab. }
+    }
+    {
+      repeat rewrite (Rmult_comm b).
+      apply Rmult_lt_compat_r.
+      { exact hb. }
+      { exact hcd. }
+    }
+  }
+  {
+    subst c.
+    rewrite Rmult_0_r.
+    apply Rmult_lt_0_compat.
+    { exact hb. }
+    { exact hcd. }
+  }
+Qed.
 
 Lemma le_epsilon :
   forall r1 r2, (forall eps:R, R0 < eps -> r1 <= r2 + eps) -> r1 <= r2.
