@@ -1167,641 +1167,606 @@ Theorem deriv_maximum :
     c < b ->
     (forall x:R, a < x -> x < b -> f x <= f c) -> derive_pt f c pr = 0.
 Proof.
-  intros; case (Rtotal_order 0 (derive_pt f c pr)); intro.
-{
-  assert (H3 := derivable_derive f c pr).
-  elim H3; intros l H4; rewrite H4 in H2.
-  assert (H5 := derive_pt_eq_1 f c l pr H4).
-  cut (0 < l / 2);
-    [ intro
-      | unfold Rdiv; apply Rmult_lt_0_compat;
-        [ assumption | apply Rinv_0_lt_compat; prove_sup0 ] ].
-  elim (H5 (l / 2) H6); intros delta H7.
-  cut (0 < (b - c) / 2).
-{
-  intro; cut (Rmin (delta / 2) ((b - c) / 2) <> 0).
-{
-  intro; cut (Rabs (Rmin (delta / 2) ((b - c) / 2)) < delta).
-{
-  intro.
-  assert (H11 := H7 (Rmin (delta / 2) ((b - c) / 2)) H9 H10).
-  cut (0 < Rmin (delta / 2) ((b - c) / 2)).
-{
-  intro; cut (a < c + Rmin (delta / 2) ((b - c) / 2)).
-{
-  intro; cut (c + Rmin (delta / 2) ((b - c) / 2) < b).
-{
-  intro; assert (H15 := H1 (c + Rmin (delta / 2) ((b - c) / 2)) H13 H14).
-  cut
-    ((f (c + Rmin (delta / 2) ((b - c) / 2)) - f c) /
-      Rmin (delta / 2) ((b - c) / 2) <= 0).
-{
-  intro; cut (- l < 0).
-{
-  intro; unfold Rminus in H11.
-  cut
-    ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-      Rmin (delta / 2) ((b + - c) / 2) + - l < 0).
-{
-  intro;
-    cut
-      (Rabs
-        ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-          Rmin (delta / 2) ((b + - c) / 2) + - l) < l / 2).
-{
-  unfold Rabs;
-    case
-    (Rcase_abs
-      ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-        Rmin (delta / 2) ((b + - c) / 2) + - l)) as [Hlt|Hge].
-{
-  replace
-  (-
-    ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-      Rmin (delta / 2) ((b + - c) / 2) + - l)) with
-  (l +
-    -
-    ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-      Rmin (delta / 2) ((b + - c) / 2))).
-{
-  intro;
-    generalize
-      (Rplus_lt_compat_l (- l)
-        (l +
-          -
-          ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-            Rmin (delta / 2) ((b + - c) / 2))) (l / 2) H19);
-      repeat rewrite <- Rplus_assoc; rewrite Rplus_opp_l;
-        rewrite Rplus_0_l; replace (- l + l / 2) with (- (l / 2)).
-{
-  intro;
-    generalize
-      (Ropp_lt_gt_contravar
-        (-
-          ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-            Rmin (delta / 2) ((b + - c) / 2))) (- (l / 2)) H20);
-      repeat rewrite Ropp_involutive; intro;
-        generalize
-          (Rlt_trans 0 (l / 2)
-            ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-              Rmin (delta / 2) ((b + - c) / 2)) H6 H21); intro;
-          elim
-            (Rlt_irrefl 0
-              (Rlt_le_trans 0
-                ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-                  Rmin (delta / 2) ((b + - c) / 2)) 0 H22 H16)).
-}
-{
-  pattern l at 2; rewrite double_var.
-  ring.
-}
-}
-{
-  ring.
-}
-}
-{
-  intro.
-  assert
-    (H20 :=
-      Rge_le
-      ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-        Rmin (delta / 2) ((b + - c) / 2) + - l) 0 Hge).
-  elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H20 H18)).
-}
-}
-{
-  assumption.
-}
-}
-{
-  rewrite <- Ropp_0;
-    replace
-    ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) /
-      Rmin (delta / 2) ((b + - c) / 2) + - l) with
-    (-
-      (l +
-        -
-        ((f (c + Rmin (delta / 2) ((b + - c) / 2)) - f c) /
-          Rmin (delta / 2) ((b + - c) / 2)))).
-{
-  apply Ropp_gt_lt_contravar;
-    change
-      (0 <
-        l +
-        -
-        ((f (c + Rmin (delta / 2) ((b + - c) / 2)) - f c) /
-          Rmin (delta / 2) ((b + - c) / 2))); apply Rplus_lt_le_0_compat;
-      [ assumption
-        | rewrite <- Ropp_0; apply Ropp_ge_le_contravar; apply Rle_ge; assumption ].
-}
-{
-  unfold Rminus; ring.
-}
-}
-}
-{
-  rewrite <- Ropp_0; apply Ropp_lt_gt_contravar; assumption.
-}
-}
-{
-  replace
-  ((f (c + Rmin (delta / 2) ((b - c) / 2)) - f c) /
-    Rmin (delta / 2) ((b - c) / 2)) with
-  (-
-    ((f c - f (c + Rmin (delta / 2) ((b - c) / 2))) /
-      Rmin (delta / 2) ((b - c) / 2))).
-{
-  rewrite <- Ropp_0; apply Ropp_ge_le_contravar; apply Rle_ge;
-    unfold Rdiv; apply Rmult_le_pos;
-      [ generalize
-        (Rplus_le_compat_r (- f (c + Rmin (delta * / 2) ((b - c) * / 2)))
-          (f (c + Rmin (delta * / 2) ((b - c) * / 2))) (
-            f c) H15); rewrite Rplus_opp_r; intro; assumption
-        | left; apply Rinv_0_lt_compat; assumption ].
-}
-{
-  unfold Rdiv.
-  rewrite <- Ropp_mult_distr_l_reverse.
-  repeat rewrite <- (Rmult_comm (/ Rmin (delta * / 2) ((b - c) * / 2))).
-  apply Rmult_eq_reg_l with (Rmin (delta * / 2) ((b - c) * / 2)).
-{
-  repeat rewrite <- Rmult_assoc.
-  rewrite <- Rinv_r_sym.
-{
-  repeat rewrite Rmult_1_l.
-  ring.
-}
-{
-  red; intro.
-  unfold Rdiv in H12; rewrite H16 in H12; elim (Rlt_irrefl 0 H12).
-}
-}
-{
-  red; intro.
-  unfold Rdiv in H12; rewrite H16 in H12; elim (Rlt_irrefl 0 H12).
-}
-}
-}
-}
-{
-  assert (H14 := Rmin_r (delta / 2) ((b - c) / 2)).
-  assert
-    (H15 :=
-      Rplus_le_compat_l c (Rmin (delta / 2) ((b - c) / 2)) ((b - c) / 2) H14).
-  apply Rle_lt_trans with (c + (b - c) / 2).
-{
-  assumption.
-}
-{
-  apply Rmult_lt_reg_l with 2.
-{
-  prove_sup0.
-}
-{
-  replace (2 * (c + (b - c) / 2)) with (c + b).
-{
-  replace (2 * b) with (b + b).
-{
-  apply Rplus_lt_compat_r; assumption.
-}
-{
-  ring.
-}
-}
-{
-  unfold Rdiv; rewrite Rmult_plus_distr_l.
-  repeat rewrite (Rmult_comm 2).
-  rewrite Rmult_assoc; rewrite <- Rinv_l_sym.
-{
-  rewrite Rmult_1_r.
-  ring.
-}
-{
-  discrR.
-}
-}
-}
-}
-}
-}
-{
-  apply Rlt_trans with c.
-{
-  assumption.
-}
-{
-  pattern c at 1; rewrite <- (Rplus_0_r c); apply Rplus_lt_compat_l;
-    assumption.
-}
-}
-}
-{
-  cut (0 < delta / 2).
-{
-  intro;
-    apply
-      (Rmin_stable_in_posreal (mkposreal (delta / 2) H12)
-        (mkposreal ((b - c) / 2) H8)).
-}
-{
-  unfold Rdiv; apply Rmult_lt_0_compat;
-    [ apply (cond_pos delta) | apply Rinv_0_lt_compat; prove_sup0 ].
-}
-}
-}
-{
-  unfold Rabs; case (Rcase_abs (Rmin (delta / 2) ((b - c) / 2))) as [Hlt|Hge].
-{
-  cut (0 < delta / 2).
-{
-  intro.
-  generalize
-    (Rmin_stable_in_posreal (mkposreal (delta / 2) H10)
-      (mkposreal ((b - c) / 2) H8)); simpl; intro;
-    elim (Rlt_irrefl 0 (Rlt_trans 0 (Rmin (delta / 2) ((b - c) / 2)) 0 H11 Hlt)).
-}
-{
-  unfold Rdiv; apply Rmult_lt_0_compat;
-    [ apply (cond_pos delta) | apply Rinv_0_lt_compat; prove_sup0 ].
-}
-}
-{
-  apply Rle_lt_trans with (delta / 2).
-{
-  apply Rmin_l.
-}
-{
-  unfold Rdiv; apply Rmult_lt_reg_l with 2.
-{
-  prove_sup0.
-}
-{
-  rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym.
-{
-  rewrite Rmult_1_l.
-  replace (2 * delta) with (delta + delta).
-{
-  pattern delta at 2; rewrite <- (Rplus_0_r delta);
-    apply Rplus_lt_compat_l.
-  rewrite Rplus_0_r; apply (cond_pos delta).
-}
-{
-  symmetry ; apply double.
-}
-}
-{
-  discrR.
-}
-}
-}
-}
-}
-}
-{
-  cut (0 < delta / 2).
-{
-  intro;
-    generalize
-      (Rmin_stable_in_posreal (mkposreal (delta / 2) H9)
-        (mkposreal ((b - c) / 2) H8)); simpl;
-      intro; red; intro; rewrite H11 in H10; elim (Rlt_irrefl 0 H10).
-}
-{
-  unfold Rdiv; apply Rmult_lt_0_compat;
-    [ apply (cond_pos delta) | apply Rinv_0_lt_compat; prove_sup0 ].
-}
-}
-}
-{
-  unfold Rdiv; apply Rmult_lt_0_compat.
-{
-  generalize (Rplus_lt_compat_r (- c) c b H0); rewrite Rplus_opp_r; intro;
-    assumption.
-}
-{
-  apply Rinv_0_lt_compat; prove_sup0.
-}
-}
-}
-{
-  elim H2; intro.
-{
-  symmetry ; assumption.
-}
-{
-  generalize (derivable_derive f c pr); intro; elim H4; intros l H5.
-  rewrite H5 in H3; generalize (derive_pt_eq_1 f c l pr H5); intro;
-    cut (0 < - (l / 2)).
-{
-  intro; elim (H6 (- (l / 2)) H7); intros delta H9.
-  cut (0 < (c - a) / 2).
-{
-  intro; cut (Rmax (- (delta / 2)) ((a - c) / 2) < 0).
-{
-  intro; cut (Rmax (- (delta / 2)) ((a - c) / 2) <> 0).
-{
-  intro; cut (Rabs (Rmax (- (delta / 2)) ((a - c) / 2)) < delta).
-{
-  intro; generalize (H9 (Rmax (- (delta / 2)) ((a - c) / 2)) H11 H12); intro;
-    cut (a < c + Rmax (- (delta / 2)) ((a - c) / 2)).
-{
-  cut (c + Rmax (- (delta / 2)) ((a - c) / 2) < b).
-{
-  intros; generalize (H1 (c + Rmax (- (delta / 2)) ((a - c) / 2)) H15 H14);
-    intro;
-      cut
-        (0 <=
-          (f (c + Rmax (- (delta / 2)) ((a - c) / 2)) - f c) /
-          Rmax (- (delta / 2)) ((a - c) / 2)).
-{
-  intro; cut (0 < - l).
-{
-  intro; unfold Rminus in H13;
-    cut
-      (0 <
-        (f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) /
-        Rmax (- (delta / 2)) ((a + - c) / 2) + - l).
-{
-  intro;
-    cut
-      (Rabs
-        ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) /
-          Rmax (- (delta / 2)) ((a + - c) / 2) + - l) <
-        - (l / 2)).
-{
-  unfold Rabs;
-    case
-    (Rcase_abs
-      ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) /
-        Rmax (- (delta / 2)) ((a + - c) / 2) + - l)) as [Hlt|Hge].
-{
-  elim
-      (Rlt_irrefl 0
-        (Rlt_trans 0
-          ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) /
-            Rmax (- (delta / 2)) ((a + - c) / 2) + - l) 0 H19 Hlt)).
-}
-{
-  intros;
-    generalize
-      (Rplus_lt_compat_r l
-        ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) /
-          Rmax (- (delta / 2)) ((a + - c) / 2) + - l) (
-            - (l / 2)) H20); repeat rewrite Rplus_assoc; rewrite Rplus_opp_l;
-      rewrite Rplus_0_r; replace (- (l / 2) + l) with (l / 2).
-{
-  cut (l / 2 < 0).
-{
-  intros;
-    generalize
-      (Rlt_trans
-        ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) /
-          Rmax (- (delta / 2)) ((a + - c) / 2)) (l / 2) 0 H22 H21);
-      intro;
-        elim
-          (Rlt_irrefl 0
-            (Rle_lt_trans 0
-              ((f (c + Rmax (- (delta / 2)) ((a - c) / 2)) - f c) /
-                Rmax (- (delta / 2)) ((a - c) / 2)) 0 H17 H23)).
-}
-{
-  rewrite <- (Ropp_involutive (l / 2)); rewrite <- Ropp_0;
-    apply Ropp_lt_gt_contravar; assumption.
-}
-}
-{
-  pattern l at 3; rewrite double_var.
-  ring.
-}
-}
-}
-{
-  assumption.
-}
-}
-{
-  apply Rplus_le_lt_0_compat; assumption.
-}
-}
-{
-  rewrite <- Ropp_0; apply Ropp_lt_gt_contravar; assumption.
-}
-}
-{
-  unfold Rdiv;
-    replace
-    ((f (c + Rmax (- (delta * / 2)) ((a - c) * / 2)) - f c) *
-      / Rmax (- (delta * / 2)) ((a - c) * / 2)) with
-    (- (f (c + Rmax (- (delta * / 2)) ((a - c) * / 2)) - f c) *
-      / - Rmax (- (delta * / 2)) ((a - c) * / 2)).
-{
-  apply Rmult_le_pos.
-{
-  generalize
-    (Rplus_le_compat_l (- f (c + Rmax (- (delta * / 2)) ((a - c) * / 2)))
-      (f (c + Rmax (- (delta * / 2)) ((a - c) * / 2))) (
-        f c) H16); rewrite Rplus_opp_l;
-    replace (- (f (c + Rmax (- (delta * / 2)) ((a - c) * / 2)) - f c)) with
-    (- f (c + Rmax (- (delta * / 2)) ((a - c) * / 2)) + f c).
-{
-  intro; assumption.
-}
-{
-  ring.
-}
-}
-{
-  left; apply Rinv_0_lt_compat; rewrite <- Ropp_0; apply Ropp_lt_gt_contravar;
-    assumption.
-}
-}
-{
-  unfold Rdiv.
-  rewrite <- Ropp_inv_permute.
-{
-  rewrite Rmult_opp_opp.
-  reflexivity.
-}
-{
-  unfold Rdiv in H11; assumption.
-}
-}
-}
-}
-{
-  generalize (Rplus_lt_compat_l c (Rmax (- (delta / 2)) ((a - c) / 2)) 0 H10);
-    rewrite Rplus_0_r; intro; apply Rlt_trans with c;
-      assumption.
-}
-}
-{
-  generalize (RmaxLess2 (- (delta / 2)) ((a - c) / 2)); intro;
-    generalize
-      (Rplus_le_compat_l c ((a - c) / 2) (Rmax (- (delta / 2)) ((a - c) / 2)) H14);
-      intro; apply Rlt_le_trans with (c + (a - c) / 2).
-{
-  apply Rmult_lt_reg_l with 2.
-{
-  prove_sup0.
-}
-{
-  replace (2 * (c + (a - c) / 2)) with (a + c).
-{
-  rewrite double.
-  apply Rplus_lt_compat_l; assumption.
-}
-{
-  field; discrR.
-}
-}
-}
-{
-  assumption.
-}
-}
-}
-{
-  unfold Rabs. case (Rcase_abs (Rmax (- (delta / 2)) ((a - c) / 2))) as [Hlt|Hge].
+  intros f a b c pr hac hcb h.
+  destruct (Rtotal_order 0 (derive_pt f c pr)) as [ ho | [ ho | ho ] ].
   {
-    apply Rle_lt_trans with (delta / 2).
+
+    generalize derivable_derive; intro hex.
+    specialize (hex f c pr).
+    destruct hex as [ l hleq ].
+    rewrite hleq in ho.
+
+    assert (ho' : 0 < l / 2).
     {
-      apply Ropp_le_cancel.
-      rewrite Ropp_involutive.
-      apply RmaxLess1.
-    }
-    {
-      apply Rmult_lt_reg_l with 2.
-      { prove_sup0. }
+      unfold Rdiv.
+      apply Rmult_lt_0_compat.
+      { exact ho. }
       {
-        unfold Rdiv.
-        rewrite <- (Rmult_comm (/ 2)).
-        rewrite <- Rmult_assoc.
-        rewrite <- Rinv_r_sym.
-        {
-          rewrite Rmult_1_l.
-          rewrite double.
-          set (d:=delta) in |-.
-          fold d. unfold d at 1.
-          rewrite <- (Rplus_0_r delta).
-          unfold d. clear d.
-          apply Rplus_lt_compat_l.
-          apply (cond_pos delta).
-        }
-        { discrR. }
+        apply Rinv_0_lt_compat.
+        prove_sup0.
       }
     }
-  }
-  {
-    apply Rle_lt_trans with 0.
+
+    generalize derive_pt_eq_1 ; intro hlim.
+    specialize (hlim f c l pr).
+    specialize (hlim hleq).
+    unfold derivable_pt_lim in hlim.
+    specialize (hlim _ ho').
+    destruct hlim as [ delta hlim ].
+
+    assert ( H8 : 0 < (b - c) / 2).
     {
-      left.
-      apply Rmax_neg.
+      unfold Rdiv.
+      apply Rmult_lt_0_compat.
       {
-        (* - (delta / 2) < 0 *)
-        apply Ropp_lt_cancel.
-        rewrite Ropp_0, Ropp_involutive.
-        apply Rmult_lt_reg_r with 2.
+        apply Rplus_lt_reg_l with c.
+        rewrite Rplus_0_r.
+        rewrite Rplus_minus.
+        exact hcb.
+      }
+      {
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
+
+    assert ( half_pos : forall x, 0 < x -> 0 < x / 2 ).
+    {
+      intros x hx.
+      unfold Rdiv.
+      apply Rmult_lt_0_compat.
+      { exact hx. }
+      {
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
+
+    assert ( half_lt : forall x, 0 < x -> x / 2 < x ).
+    {
+      intros x hx.
+      pattern x at 2;rewrite <- Rmult_1_r.
+      unfold Rdiv.
+      apply Rmult_lt_compat_l.
+      { exact hx. }
+      {
+        apply Rmult_lt_reg_l with 2.
         { prove_sup0. }
-        unfold Rdiv.
-        rewrite Rmult_0_l.
-        rewrite Rmult_assoc.
-        rewrite Rinv_l.
-        2:{ apply Rgt_not_eq. prove_sup0. }
-        rewrite Rmult_1_r.
+        {
+          rewrite Rinv_r.
+          2:discrR.
+          rewrite double.
+          pattern 1 at 1;rewrite <- Rplus_0_r.
+          apply Rplus_lt_compat_l.
+          prove_sup0.
+        }
+      }
+    }
+
+    assert ( H9 : Rmin (delta / 2) ((b - c) / 2) <> 0).
+    {
+      apply Rgt_not_eq. unfold Rgt.
+      apply Rmin_pos.
+      {
+        apply half_pos.
         apply cond_pos.
       }
+      { exact H8. }
+    }
+
+    assert ( H10 : Rabs (Rmin (delta / 2) ((b - c) / 2)) < delta).
+    {
+      unfold Rabs.
+      case (Rcase_abs (Rmin (delta / 2) ((b - c) / 2))) as [Hlt|Hge].
       {
-        (* (a - c) / 2 < 0 *)
-        apply Rmult_lt_reg_r with 2.
-        { prove_sup0. }
-        unfold Rdiv.
-        rewrite Rmult_0_l.
-        rewrite Rmult_assoc.
-        rewrite Rinv_l.
-        2:{ apply Rgt_not_eq. prove_sup0. }
-        rewrite Rmult_1_r.
-        apply Rplus_lt_reg_r with c.
-        unfold Rminus.
-        rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
-        assumption.
+        exfalso.
+        eapply Rlt_irrefl.
+        eapply Rlt_trans.
+        { apply Hlt. }
+        {
+          apply Rmin_pos.
+          {
+            apply half_pos.
+            apply cond_pos.
+          }
+          { exact H8. }
+        }
+      }
+      {
+        apply Rle_lt_trans with (delta / 2).
+        { apply Rmin_l. }
+        {
+          unfold Rdiv.
+          apply half_lt.
+          apply cond_pos.
+        }
       }
     }
-    { apply cond_pos. }
+
+    specialize (hlim _ H9 H10).
+
+    assert ( H12 : 0 < Rmin (delta / 2) ((b - c) / 2)).
+    {
+      cut (0 < delta / 2).
+      {
+        intro H12.
+        apply (Rmin_stable_in_posreal (mkposreal (delta / 2) H12) (mkposreal ((b - c) / 2) H8)).
+      }
+      {
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        apply (cond_pos delta).
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
+
+    assert ( H16 : (f (c + Rmin (delta / 2) ((b - c) / 2)) - f c) / Rmin (delta / 2) ((b - c) / 2) <= 0).
+    {
+      unfold Rdiv.
+      apply Ropp_le_cancel.
+      rewrite Ropp_0.
+      rewrite Ropp_mult_distr_l.
+      apply Rmult_le_pos.
+      {
+        apply Ropp_le_cancel.
+        rewrite Ropp_involutive, Ropp_0.
+        eapply Rplus_le_reg_r.
+        unfold Rminus.
+        rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+        apply h.
+        {
+          apply Rlt_trans with c.
+          { exact hac. }
+          {
+            pattern c at 1; rewrite <- (Rplus_0_r c).
+            apply Rplus_lt_compat_l.
+            exact H12.
+          }
+        }
+        {
+          apply Rle_lt_trans with (c + (b - c) / 2).
+          {
+            apply Rplus_le_compat_l.
+            apply Rmin_r.
+          }
+          {
+            apply Rmult_lt_reg_l with 2.
+            { prove_sup0. }
+            {
+              replace (2 * (c + (b - c) / 2)) with (c + b).
+              {
+                replace (2 * b) with (b + b).
+                {
+                  apply Rplus_lt_compat_r.
+                  exact hcb.
+                }
+                {
+                  rewrite double.
+                  reflexivity.
+                }
+              }
+              {
+                unfold Rdiv.
+                rewrite Rmult_plus_distr_l.
+                repeat rewrite (Rmult_comm 2).
+                rewrite Rmult_assoc.
+                rewrite <- Rinv_l_sym.
+                {
+                  rewrite Rmult_1_r.
+                  rewrite (Rmult_comm _ 2).
+                  rewrite double.
+                  rewrite Rplus_assoc.
+                  rewrite Rplus_minus.
+                  reflexivity.
+                }
+                { discrR. }
+              }
+            }
+          }
+        }
+      }
+      {
+        left.
+        apply Rinv_0_lt_compat.
+        exact H12.
+      }
+    }
+
+    unfold Rminus in hlim.
+
+    unfold Rabs in hlim.
+    case (Rcase_abs ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) / Rmin (delta / 2) ((b + - c) / 2) + - l)) as [Hlt|Hge].
+    {
+        exfalso.
+        eapply Rlt_irrefl.
+        eapply Rlt_le_trans.
+        {
+          eapply Rlt_trans.
+          { apply ho'. }
+          {
+            apply Ropp_lt_cancel.
+            apply Rplus_lt_reg_r with l.
+            rewrite Ropp_plus_distr in hlim.
+            rewrite Ropp_involutive in hlim.
+            eapply Rlt_le_trans.
+            { apply hlim. }
+            {
+              right.
+              unfold Rdiv.
+              pattern l at 3;rewrite <- Rmult_1_r.
+              rewrite Ropp_mult_distr_r.
+              rewrite <- Rmult_plus_distr_l.
+              apply Rmult_eq_compat_l.
+              apply Rmult_eq_reg_r with 2.
+              2:discrR.
+              rewrite Rinv_l.
+              2:discrR.
+              rewrite Rmult_plus_distr_r.
+              rewrite <- Ropp_mult_distr_l.
+              rewrite Rinv_l.
+              2:discrR.
+              rewrite Rmult_comm.
+              rewrite double.
+              rewrite <- Rplus_assoc.
+              rewrite Rplus_opp_l.
+              rewrite Rplus_0_l.
+              reflexivity.
+          }
+        }
+      }
+      { apply H16. }
+    }
+    {
+      exfalso.
+      eapply Rlt_irrefl.
+      eapply Rle_lt_trans.
+      {
+        apply Rge_le.
+        exact Hge.
+      }
+      {
+        apply Rplus_lt_reg_r with l.
+        rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+        eapply Rle_lt_trans.
+        { apply H16. }
+        { exact ho. }
+      }
+    }
   }
-}
-}
-{
-  intro eq.
-  rewrite eq in H10.
-  eapply Rlt_irrefl.
-  exact H10.
-}
-}
-{
-  apply Rmax_neg.
-  { (* - (delta / 2) < 0 *)
-    apply Ropp_lt_cancel.
-    rewrite Ropp_0, Ropp_involutive.
-    apply Rmult_lt_reg_r with 2.
-    { prove_sup0. }
-    unfold Rdiv.
-    rewrite Rmult_0_l.
-    rewrite Rmult_assoc.
-    rewrite Rinv_l.
-    2:{ apply Rgt_not_eq. prove_sup0. }
-    rewrite Rmult_1_r.
-    apply cond_pos.
-  }
-  { (* (a - c) / 2 < 0 *)
-    apply Rmult_lt_reg_r with 2.
-    { prove_sup0. }
-    unfold Rdiv.
-    rewrite Rmult_0_l.
-    rewrite Rmult_assoc.
-    rewrite Rinv_l.
-    2:{ apply Rgt_not_eq. prove_sup0. }
-    rewrite Rmult_1_r.
-    apply Rplus_lt_reg_r with c.
-    unfold Rminus.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
-    assumption.
-  }
-}
-}
-{ (* 0 < (c - a) / 2 *)
-  unfold Rdiv.
-  apply Rmult_lt_0_compat.
   {
-    apply Rplus_lt_reg_l with a.
-    unfold Rminus.
-    rewrite Rplus_0_r, Rplus_comm, Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-    assumption.
+    symmetry.
+    exact ho.
   }
   {
-    apply Rinv_0_lt_compat.
-    prove_sup0.
+    generalize (derivable_derive f c pr).
+    intro H4.
+    elim H4.
+    intros l H5.
+    rewrite H5 in ho.
+    generalize (derive_pt_eq_1 f c l pr H5).
+    intro H6.
+    cut (0 < - (l / 2)).
+    {
+      intro H7.
+      elim (H6 (- (l / 2)) H7).
+      intros delta H9.
+      cut (0 < (c - a) / 2).
+      {
+        intro H8.
+        cut (Rmax (- (delta / 2)) ((a - c) / 2) < 0).
+        {
+          intro H10.
+          cut (Rmax (- (delta / 2)) ((a - c) / 2) <> 0).
+          {
+            intro H11.
+            cut (Rabs (Rmax (- (delta / 2)) ((a - c) / 2)) < delta).
+            {
+              intro H12.
+              generalize (H9 (Rmax (- (delta / 2)) ((a - c) / 2)) H11 H12).
+              intro H13.
+              cut (a < c + Rmax (- (delta / 2)) ((a - c) / 2)).
+              {
+                cut (c + Rmax (- (delta / 2)) ((a - c) / 2) < b).
+                {
+                  intros H14 H15.
+                  generalize (h (c + Rmax (- (delta / 2)) ((a - c) / 2)) H15 H14).
+                  intro H16.
+                  cut (0 <=
+                    (f (c + Rmax (- (delta / 2)) ((a - c) / 2)) - f c) / Rmax (- (delta / 2)) ((a - c) / 2)
+                  ).
+                  {
+                    intro H17.
+                    cut (0 < - l).
+                    {
+                      intro H18.
+                      unfold Rminus in H13.
+                      cut (0 <
+                        (f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) / Rmax (- (delta / 2)) ((a + - c) / 2) + - l
+                      ).
+                      {
+                        intro H19.
+                        cut (
+                          Rabs ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) / Rmax (- (delta / 2)) ((a + - c) / 2) + - l)
+                        <
+                          - (l / 2)
+                        ).
+                        {
+                          unfold Rabs.
+                          case (
+                            Rcase_abs ((f (c + Rmax (- (delta / 2)) ((a + - c) / 2)) + - f c) / Rmax (- (delta / 2)) ((a + - c) / 2) + - l)
+                          ) as [Hlt|Hge].
+                          {
+                            exfalso.
+                            apply Rlt_irrefl with 0.
+                            eapply Rlt_trans.
+                            apply H19.
+                            apply Hlt.
+                          }
+                          {
+                            intros H20.
+                            apply (Rplus_lt_compat_r l) in H20.
+                            repeat rewrite Rplus_assoc in H20.
+                            rewrite Rplus_opp_l in H20.
+                            rewrite Rplus_0_r in H20.
+                            replace (- (l / 2) + l) with (l / 2) in H20.
+                            {
+                              cut (l / 2 < 0).
+                              {
+                                intros H22.
+                                exfalso.
+                                eapply Rlt_irrefl.
+                                eapply Rle_lt_trans.
+                                apply H17.
+                                eapply Rlt_trans.
+                                2:apply H22.
+                                apply H20.
+                              }
+                              {
+                                rewrite <- (Ropp_involutive (l / 2)).
+                                rewrite <- Ropp_0.
+                                apply Ropp_lt_gt_contravar.
+                                exact H7.
+                              }
+                            }
+                            {
+                              pattern l at 3; rewrite double_var.
+                              rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+                              reflexivity.
+                            }
+                          }
+                        }
+                        {
+                          exact H13.
+                        }
+                      }
+                      {
+                        apply Rplus_le_lt_0_compat.
+                        exact H17.
+                        exact H18.
+                      }
+                    }
+                    {
+                      rewrite <- Ropp_0.
+                      apply Ropp_lt_gt_contravar.
+                      exact ho.
+                    }
+                  }
+                  {
+                    unfold Rdiv.
+                    rewrite <- Ropp_involutive.
+                    rewrite Ropp_mult_distr_r.
+                    rewrite Ropp_inv_permute.
+                    rewrite Ropp_mult_distr_l.
+                    2:exact H11.
+                    apply Rmult_le_pos.
+                    {
+                      apply Rplus_le_reg_r with (- f c).
+                      rewrite Rplus_0_l.
+                      unfold Rminus.
+                      rewrite Ropp_plus_distr.
+                      rewrite Ropp_involutive.
+                      rewrite Rplus_assoc.
+                      rewrite Rplus_opp_r, Rplus_0_r.
+                      apply Ropp_le_contravar.
+                      exact H16.
+                    }
+                    {
+                      left.
+                      apply Rinv_0_lt_compat.
+                      rewrite <- Ropp_0.
+                      apply Ropp_lt_gt_contravar.
+                      exact H10.
+                    }
+                  }
+                }
+                {
+                  apply Rlt_trans with c.
+                  {
+                    pattern c at 3;rewrite <- Rplus_0_r.
+                    apply Rplus_lt_compat_l.
+                    exact H10.
+                  }
+                  { assumption. }
+                }
+              }
+              {
+                apply Rlt_le_trans with (c + (a - c) / 2).
+                {
+                  apply Rmult_lt_reg_l with 2.
+                  { prove_sup0. }
+                  {
+                    replace (2 * (c + (a - c) / 2)) with (a + c).
+                    {
+                      rewrite double.
+                      apply Rplus_lt_compat_l.
+                      assumption.
+                    }
+                    {
+                      unfold Rminus, Rdiv.
+                      rewrite (Rmult_comm 2).
+                      rewrite Rmult_plus_distr_r.
+                      rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
+                      rewrite (Rmult_comm _ 2).
+                      rewrite double.
+                      repeat rewrite Rplus_assoc.
+                      symmetry.
+                      rewrite Rplus_comm.
+                      apply Rplus_eq_compat_r.
+                      rewrite Rplus_comm.
+                      rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+                      reflexivity.
+                      discrR.
+                    }
+                  }
+                }
+                {
+                  apply Rplus_le_compat_l.
+                  apply RmaxLess2.
+                }
+              }
+            }
+            {
+              unfold Rabs.
+              case (Rcase_abs (Rmax (- (delta / 2)) ((a - c) / 2))) as [Hlt|Hge].
+              {
+                apply Rle_lt_trans with (delta / 2).
+                {
+                  apply Ropp_le_cancel.
+                  rewrite Ropp_involutive.
+                  apply RmaxLess1.
+                }
+                {
+                  apply Rmult_lt_reg_l with 2.
+                  { prove_sup0. }
+                  {
+                    unfold Rdiv.
+                    rewrite <- (Rmult_comm (/ 2)).
+                    rewrite <- Rmult_assoc.
+                    rewrite <- Rinv_r_sym.
+                    {
+                      rewrite Rmult_1_l.
+                      rewrite double.
+                      set (d:=delta) in |-.
+                      fold d. unfold d at 1.
+                      rewrite <- (Rplus_0_r delta).
+                      unfold d. clear d.
+                      apply Rplus_lt_compat_l.
+                      apply (cond_pos delta).
+                    }
+                    { discrR. }
+                  }
+                }
+              }
+              {
+                apply Rle_lt_trans with 0.
+                {
+                  left.
+                  apply Rmax_neg.
+                  {
+                    (* - (delta / 2) < 0 *)
+                    apply Ropp_lt_cancel.
+                    rewrite Ropp_0, Ropp_involutive.
+                    apply Rmult_lt_reg_r with 2.
+                    { prove_sup0. }
+                    unfold Rdiv.
+                    rewrite Rmult_0_l.
+                    rewrite Rmult_assoc.
+                    rewrite Rinv_l.
+                    2:{ apply Rgt_not_eq. prove_sup0. }
+                    rewrite Rmult_1_r.
+                    apply cond_pos.
+                  }
+                  {
+                    (* (a - c) / 2 < 0 *)
+                    apply Rmult_lt_reg_r with 2.
+                    { prove_sup0. }
+                    unfold Rdiv.
+                    rewrite Rmult_0_l.
+                    rewrite Rmult_assoc.
+                    rewrite Rinv_l.
+                    2:{ apply Rgt_not_eq. prove_sup0. }
+                    rewrite Rmult_1_r.
+                    apply Rplus_lt_reg_r with c.
+                    unfold Rminus.
+                    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+                    assumption.
+                  }
+                }
+                { apply cond_pos. }
+              }
+            }
+          }
+          {
+            intro eq.
+            rewrite eq in H10.
+            eapply Rlt_irrefl.
+            exact H10.
+          }
+        }
+        {
+          apply Rmax_neg.
+          { (* - (delta / 2) < 0 *)
+            apply Ropp_lt_cancel.
+            rewrite Ropp_0, Ropp_involutive.
+            apply Rmult_lt_reg_r with 2.
+            { prove_sup0. }
+            unfold Rdiv.
+            rewrite Rmult_0_l.
+            rewrite Rmult_assoc.
+            rewrite Rinv_l.
+            2:{ apply Rgt_not_eq. prove_sup0. }
+            rewrite Rmult_1_r.
+            apply cond_pos.
+          }
+          { (* (a - c) / 2 < 0 *)
+            apply Rmult_lt_reg_r with 2.
+            { prove_sup0. }
+            unfold Rdiv.
+            rewrite Rmult_0_l.
+            rewrite Rmult_assoc.
+            rewrite Rinv_l.
+            2:{ apply Rgt_not_eq. prove_sup0. }
+            rewrite Rmult_1_r.
+            apply Rplus_lt_reg_r with c.
+            unfold Rminus.
+            rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+            assumption.
+          }
+        }
+      }
+      { (* 0 < (c - a) / 2 *)
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        {
+          apply Rplus_lt_reg_l with a.
+          unfold Rminus.
+          rewrite Rplus_0_r, Rplus_comm, Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+          assumption.
+        }
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+      }
+    }
+    {
+      unfold Rdiv.
+      rewrite Ropp_mult_distr_l.
+      unfold Rdiv.
+      apply Rmult_lt_0_compat.
+      {
+        apply Ropp_lt_cancel.
+        rewrite Ropp_involutive.
+        rewrite Ropp_0.
+        assumption.
+      }
+      {
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
   }
-}
-}
-{
-  unfold Rdiv.
-  rewrite Ropp_mult_distr_l.
-  unfold Rdiv.
-  apply Rmult_lt_0_compat.
-{
-  apply Ropp_lt_cancel.
-  rewrite Ropp_involutive.
-  rewrite Ropp_0.
-  assumption.
-}
-{
-  apply Rinv_0_lt_compat.
-  prove_sup0.
-}
-}
-}
-}
 Qed.
 
 Theorem deriv_minimum :
