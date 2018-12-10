@@ -1176,34 +1176,16 @@ Proof.
     destruct hex as [ l hleq ].
     rewrite hleq in ho.
 
+    generalize derive_pt_eq_1 ; intro hlim.
+    specialize (hlim f c l pr).
+    specialize (hlim hleq).
+    unfold derivable_pt_lim in hlim.
+
     assert (ho' : 0 < l / 2).
     {
       unfold Rdiv.
       apply Rmult_lt_0_compat.
       { exact ho. }
-      {
-        apply Rinv_0_lt_compat.
-        prove_sup0.
-      }
-    }
-
-    generalize derive_pt_eq_1 ; intro hlim.
-    specialize (hlim f c l pr).
-    specialize (hlim hleq).
-    unfold derivable_pt_lim in hlim.
-    specialize (hlim _ ho').
-    destruct hlim as [ delta hlim ].
-
-    assert ( H8 : 0 < (b - c) / 2).
-    {
-      unfold Rdiv.
-      apply Rmult_lt_0_compat.
-      {
-        apply Rplus_lt_reg_l with c.
-        rewrite Rplus_0_r.
-        rewrite Rplus_minus.
-        exact hcb.
-      }
       {
         apply Rinv_0_lt_compat.
         prove_sup0.
@@ -1243,65 +1225,95 @@ Proof.
       }
     }
 
-    assert ( H9 : Rmin (delta / 2) ((b - c) / 2) <> 0).
-    {
-      apply Rgt_not_eq. unfold Rgt.
-      apply Rmin_pos.
-      {
-        apply half_pos.
-        apply cond_pos.
-      }
-      { exact H8. }
-    }
+    assert (he : exists e, 0 < e).
+    { exists 1. exact Rlt_0_1. }
+    destruct he as [ e he ].
 
-    assert ( H10 : Rabs (Rmin (delta / 2) ((b - c) / 2)) < delta).
+    specialize (hlim _ ho').
+    destruct hlim as [ delta hlim ].
+
+    assert (hk : exists k, k <> 0 /\ Rabs k < delta /\ a < c + k /\ c + k < b /\ 0 < k).
     {
-      unfold Rabs.
-      case (Rcase_abs (Rmin (delta / 2) ((b - c) / 2))) as [Hlt|Hge].
+
+      set (exp := Rmin (delta / 2) ((b - c) / 2)).
+      exists exp.
+
+      assert (hminpos : 0 < exp).
       {
-        exfalso.
-        eapply Rlt_irrefl.
-        eapply Rlt_trans.
-        { apply Hlt. }
+        unfold exp.
+        apply Rmin_pos.
         {
-          apply Rmin_pos.
-          {
-            apply half_pos.
-            apply cond_pos.
-          }
-          { exact H8. }
-        }
-      }
-      {
-        apply Rle_lt_trans with (delta / 2).
-        { apply Rmin_l. }
-        {
-          unfold Rdiv.
-          apply half_lt.
+          (* 0 < delta / 2 *)
+          apply half_pos.
           apply cond_pos.
         }
+        {
+          (* 0 < (b - c) / 2 *)
+          apply half_pos.
+          unfold Rminus.
+          rewrite <- Rplus_opp_r with c.
+          apply Rplus_lt_compat_r.
+          exact hcb.
+        }
       }
-    }
 
-    specialize (hlim _ H9 H10).
-
-    assert ( H12 : 0 < Rmin (delta / 2) ((b - c) / 2)).
-    {
-      cut (0 < delta / 2).
+      repeat (try split).
       {
-        intro H12.
-        apply (Rmin_stable_in_posreal (mkposreal (delta / 2) H12) (mkposreal ((b - c) / 2) H8)).
+        apply Rgt_not_eq.
+        unfold Rgt.
+        exact hminpos.
       }
       {
-        unfold Rdiv.
-        apply Rmult_lt_0_compat.
-        apply (cond_pos delta).
-        apply Rinv_0_lt_compat.
-        prove_sup0.
+        rewrite Rabs_right.
+        2:{
+          left.
+          unfold Rgt.
+          exact hminpos.
+        }
+        {
+          apply Rle_lt_trans with (delta/2).
+          {
+            unfold exp.
+            apply Rmin_l.
+          }
+          {
+            apply half_lt.
+            apply cond_pos.
+          }
+        }
       }
+      {
+        pattern a;rewrite <- Rplus_0_r.
+        apply Rplus_lt_compat.
+        { exact hac. }
+        { exact hminpos. }
+      }
+      {
+        rewrite Rplus_comm.
+        apply Rplus_lt_reg_r with (-c).
+        rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+        apply Rmult_lt_reg_r with (/2).
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+        {
+          unfold Rdiv, Rminus.
+          eapply Rlt_le_trans.
+          2:{ apply Rmin_r. }
+          {
+            apply half_lt.
+            apply hminpos.
+          }
+        }
+      }
+      { exact hminpos. }
     }
+    destruct hk as [ k [ hkneq [ hkd [ hka [ hkb hkpos ] ] ] ] ].
 
-    assert ( H16 : (f (c + Rmin (delta / 2) ((b - c) / 2)) - f c) / Rmin (delta / 2) ((b - c) / 2) <= 0).
+    specialize (hlim _ hkneq hkd).
+
+    assert ( H16 : (f (c + k) - f c) / k <= 0).
     {
       unfold Rdiv.
       apply Ropp_le_cancel.
@@ -1315,68 +1327,20 @@ Proof.
         unfold Rminus.
         rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
         apply h.
-        {
-          apply Rlt_trans with c.
-          { exact hac. }
-          {
-            pattern c at 1; rewrite <- (Rplus_0_r c).
-            apply Rplus_lt_compat_l.
-            exact H12.
-          }
-        }
-        {
-          apply Rle_lt_trans with (c + (b - c) / 2).
-          {
-            apply Rplus_le_compat_l.
-            apply Rmin_r.
-          }
-          {
-            apply Rmult_lt_reg_l with 2.
-            { prove_sup0. }
-            {
-              replace (2 * (c + (b - c) / 2)) with (c + b).
-              {
-                replace (2 * b) with (b + b).
-                {
-                  apply Rplus_lt_compat_r.
-                  exact hcb.
-                }
-                {
-                  rewrite double.
-                  reflexivity.
-                }
-              }
-              {
-                unfold Rdiv.
-                rewrite Rmult_plus_distr_l.
-                repeat rewrite (Rmult_comm 2).
-                rewrite Rmult_assoc.
-                rewrite <- Rinv_l_sym.
-                {
-                  rewrite Rmult_1_r.
-                  rewrite (Rmult_comm _ 2).
-                  rewrite double.
-                  rewrite Rplus_assoc.
-                  rewrite Rplus_minus.
-                  reflexivity.
-                }
-                { discrR. }
-              }
-            }
-          }
-        }
+        { exact hka. }
+        { exact hkb. }
       }
       {
         left.
         apply Rinv_0_lt_compat.
-        exact H12.
+        exact hkpos.
       }
     }
 
     unfold Rminus in hlim.
 
     unfold Rabs in hlim.
-    case (Rcase_abs ((f (c + Rmin (delta / 2) ((b + - c) / 2)) + - f c) / Rmin (delta / 2) ((b + - c) / 2) + - l)) as [Hlt|Hge].
+    case (Rcase_abs ((f (c + k) + - f c) / k + - l)) as [Hlt|Hge]. 
     {
         exfalso.
         eapply Rlt_irrefl.
