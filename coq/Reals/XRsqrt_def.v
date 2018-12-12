@@ -330,7 +330,6 @@ Proof.
   elim H3; intros; assumption.
   apply Rle_trans with (pow_2_n N0).
   unfold pow_2_n; apply H.
-  apply Rge_le.
   apply growing_prop.
   apply pow_2_n_growing.
   assumption.
@@ -414,7 +413,6 @@ rewrite Rplus_0_r.
 reflexivity.
 }
   red; intro; rewrite H8 in Hyp; elim (Rlt_irrefl _ Hyp).
-  apply Rle_ge.
   apply Rplus_le_reg_l with x; rewrite Rplus_0_r.
   replace (x + (y - x)) with y. assumption.
 {
@@ -620,10 +618,11 @@ Proof.
   assert (H12 := Rplus_lt_reg_l _ _ _ H11).
   assert (H13 := H6 x2).
   elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H13 H12)).
-  apply Rle_ge; left; unfold Rminus; apply Rplus_le_lt_0_compat.
+  left; unfold Rminus; apply Rplus_le_lt_0_compat.
   apply H6.
   exact H8.
-  apply Ropp_0_gt_lt_contravar; assumption.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar; assumption.
   unfold Wn; assumption.
   cut (Un_cv Vn x0).
   intros.
@@ -643,12 +642,14 @@ Proof.
   intro.
   elim (Rlt_irrefl _ (Rlt_le_trans _ _ _ H13 H12)).
   rewrite <- (Ropp_involutive (f (Vn x2))).
-  apply Ropp_0_gt_lt_contravar; assumption.
+  rewrite <- Ropp_0.
+  apply Ropp_lt_contravar; assumption.
   apply Rplus_lt_reg_l with (f x0 - f (Vn x2)).
   rewrite Rplus_0_r; replace (f x0 - f (Vn x2) + (f (Vn x2) - f x0)) with R0.
     unfold Rminus; apply Rplus_lt_le_0_compat.
   assumption.
-  apply Ropp_0_ge_le_contravar; apply Rle_ge; apply H6.
+  rewrite <- Ropp_0.
+  apply Ropp_le_contravar; apply H6.
 {
 symmetry.
 unfold Rminus.
@@ -692,7 +693,7 @@ Proof.
   unfold opp_fct in H7.
   rewrite <- (Ropp_involutive (f x0)).
   apply Ropp_eq_0_compat; assumption.
-  unfold opp_fct; apply Ropp_0_gt_lt_contravar; assumption.
+  unfold opp_fct; rewrite <- Ropp_0; apply Ropp_lt_contravar; assumption.
   unfold opp_fct.
   apply Rplus_lt_reg_l with (f x); rewrite Rplus_opp_r; rewrite Rplus_0_r;
     assumption.
@@ -719,8 +720,8 @@ Proof.
   cut (R0 < f x * f y).
   intro.
   elim (Rlt_irrefl _ (Rlt_le_trans _ _ _ H2 H1)).
-  rewrite <- Rmult_opp_opp; apply Rmult_lt_0_compat;
-    apply Ropp_0_gt_lt_contravar; assumption.
+  rewrite <- Rmult_opp_opp; apply Rmult_lt_0_compat; rewrite <- Ropp_0;
+    apply Ropp_lt_contravar; assumption.
 Qed.
 
 (** We can now define the square root function as the reciprocal
@@ -787,9 +788,8 @@ Proof.
   apply derivable_continuous; apply derivable_const.
   reflexivity.
   unfold f; rewrite Rsqr_0.
-  unfold Rminus; rewrite Rplus_0_l.
-  apply Rge_le.
-  apply Ropp_0_le_ge_contravar; assumption.
+  unfold Rminus; rewrite Rplus_0_l. rewrite <- Ropp_0;
+  apply Ropp_le_contravar; assumption.
 Qed.
 
 (* Definition of the square root: R+->R *)
