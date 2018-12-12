@@ -32,142 +32,251 @@ Definition interior (D:R -> Prop) (x:R) : Prop := neighbourhood D x.
 
 Lemma interior_P1 : forall D:R -> Prop, included (interior D) D.
 Proof.
-  intros; unfold included; unfold interior; intros;
-    unfold neighbourhood in H; elim H; intros; unfold included in H0;
-      apply H0; unfold disc; unfold Rminus;
-        rewrite Rplus_opp_r; rewrite Rabs_R0; apply (cond_pos x0).
+  intro D.
+  unfold included.
+  intros x h.
+  unfold interior in h.
+  unfold neighbourhood in h.
+  destruct h as [ delta h ].
+  unfold included in h.
+  apply h.
+  unfold disc.
+  unfold Rminus.
+  rewrite Rplus_opp_r.
+  rewrite Rabs_R0.
+  apply cond_pos.
 Qed.
 
 Lemma interior_P2 : forall D:R -> Prop, open_set D -> included D (interior D).
 Proof.
-  intros; unfold open_set in H; unfold included; intros;
-    assert (H1 := H _ H0); unfold interior; apply H1.
+  intros D h.
+  unfold included.
+  intros x hx.
+  unfold interior.
+  unfold open_set in h.
+  specialize (h x hx).
+  exact h.
 Qed.
 
-Definition point_adherent (D:R -> Prop) (x:R) : Prop :=
-  forall V:R -> Prop,
-    neighbourhood V x ->  exists y : R, intersection_domain V D y.
+Definition point_adherent (D:R -> Prop) (x:R) : Prop := forall V:R -> Prop,
+    neighbourhood V x ->
+    exists y : R, intersection_domain V D y.
+
 Definition adherence (D:R -> Prop) (x:R) : Prop := point_adherent D x.
 
 Lemma adherence_P1 : forall D:R -> Prop, included D (adherence D).
 Proof.
-  intro; unfold included; intros; unfold adherence;
-    unfold point_adherent; intros; exists x;
-      unfold intersection_domain; split.
-  unfold neighbourhood in H0; elim H0; intros; unfold included in H1; apply H1;
-    unfold disc; unfold Rminus; rewrite Rplus_opp_r;
-      rewrite Rabs_R0; apply (cond_pos x0).
-  apply H.
+  intros D.
+  unfold included.
+  intros x hx.
+  unfold adherence.
+  unfold point_adherent.
+  intros V h.
+  unfold neighbourhood in h.
+  destruct h as [ delta h].
+  unfold included in h.
+  unfold intersection_domain.
+  exists x.
+  split.
+  apply h.
+  unfold disc.
+  unfold Rminus.
+  rewrite Rplus_opp_r.
+  rewrite Rabs_R0.
+  apply cond_pos.
+  exact hx.
 Qed.
 
-Lemma included_trans :
-  forall D1 D2 D3:R -> Prop,
+Lemma included_trans : forall D1 D2 D3:R -> Prop,
     included D1 D2 -> included D2 D3 -> included D1 D3.
 Proof.
-  unfold included; intros; apply H0; apply H; apply H1.
+  intros A B C.
+  intros hab hbc.
+  unfold included.
+  intros x ax.
+  unfold included in hbc.
+  apply hbc.
+  unfold included in hab.
+  apply hab.
+  exact ax.
 Qed.
 
 Lemma interior_P3 : forall D:R -> Prop, open_set (interior D).
 Proof.
-  intro; unfold open_set, interior; unfold neighbourhood;
-    intros; elim H; intros.
-  exists x0; unfold included; intros.
-  set (del := x0 - Rabs (x - x1)).
-  cut (R0 < del).
-  intro; exists (mkposreal del H2); intros.
-  cut (included (disc x1 (mkposreal del H2)) (disc x x0)).
-  intro; assert (H5 := included_trans _ _ _ H4 H0).
-  apply H5; apply H3.
-  unfold included; unfold disc; intros.
-  apply Rle_lt_trans with (Rabs (x3 - x1) + Rabs (x1 - x)).
-  replace (x3 - x) with (x3 - x1 + (x1 - x)); [ apply Rabs_triang | idtac ].
-unfold Rminus.
-repeat rewrite <- Rplus_assoc.
-apply Rplus_eq_compat_r.
-now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-  replace (pos x0) with (del + Rabs (x1 - x)).
-  do 2 rewrite <- (Rplus_comm (Rabs (x1 - x))); apply Rplus_lt_compat_l;
-    apply H4.
-  unfold del; rewrite <- (Rabs_Ropp (x - x1)); rewrite Ropp_minus_distr.
-unfold Rminus.
-now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-  unfold del; apply Rplus_lt_reg_l with (Rabs (x - x1));
-    rewrite Rplus_0_r;
-      replace (Rabs (x - x1) + (x0 - Rabs (x - x1))) with (pos x0).
-2:{
-symmetry.
-unfold Rminus.
-rewrite Rplus_comm.
-now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-}
-  unfold disc in H1; rewrite <- Rabs_Ropp; rewrite Ropp_minus_distr; apply H1.
+  intro D.
+  unfold open_set.
+  intros x hdx.
+
+  unfold interior in hdx.
+  unfold neighbourhood in hdx.
+  destruct hdx as [ delta hdx ].
+
+  unfold neighbourhood.
+  exists delta.
+
+  unfold included.
+  intros y hy.
+
+  unfold interior.
+  unfold neighbourhood.
+  unfold disc in hy.
+
+  set (exp := delta - Rabs (y - x)).
+  assert ( hpos : R0 < exp).
+  {
+    unfold exp.
+    unfold Rminus.
+    eapply Rplus_lt_reg_r.
+    rewrite Rplus_assoc.
+    rewrite Rplus_opp_l.
+    rewrite Rplus_0_l, Rplus_0_r.
+    exact hy.
+  }
+
+  set (delta' := mkposreal _ hpos).
+  exists delta'.
+
+  unfold included. simpl.
+  intros z hz.
+  unfold disc in hz.
+  subst delta'. simpl in hz.
+  subst exp.
+
+  unfold included in hdx.
+  unfold disc in hdx.
+  apply hdx. clear hdx.
+
+  unfold Rminus.
+  pattern z;rewrite <- Rplus_0_r.
+  rewrite <- (Rplus_opp_l y).
+  repeat rewrite Rplus_assoc.
+  rewrite <- (Rplus_assoc z).
+  eapply Rle_lt_trans.
+  apply Rabs_triang.
+  eapply Rplus_lt_reg_r.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_r.
+  exact hz.
 Qed.
+
 
 Lemma complementary_P1 :
   forall D:R -> Prop,
     ~ (exists y : R, intersection_domain D (complementary D) y).
 Proof.
-  intro; red; intro; elim H; intros;
-    unfold intersection_domain, complementary in H0; elim H0;
-      intros; elim H2; assumption.
+  intros D h.
+  destruct h as [ y h ].
+  unfold intersection_domain in h.
+  destruct h as [hy h].
+  unfold complementary in h.
+  apply h.
+  exact hy.
 Qed.
 
 Lemma adherence_P2 :
   forall D:R -> Prop, closed_set D -> included (adherence D) D.
 Proof.
-  unfold closed_set; unfold open_set, complementary; intros;
-    unfold included, adherence; intros; assert (H1 := classic (D x));
-      elim H1; intro.
-  assumption.
-  assert (H3 := H _ H2); assert (H4 := H0 _ H3); elim H4; intros;
-    unfold intersection_domain in H5; elim H5; intros;
-      elim H6; assumption.
+  intros D hclosed.
+  unfold included.
+  intros x hadh.
+  destruct (classic (D x)) as [ hdx | hdx ].
+  { exact hdx. }
+  {
+    exfalso.
+    unfold adherence in hadh.
+    unfold point_adherent in hadh.
+    unfold intersection_domain in hadh.
+    specialize (hadh (complementary D)).
+    destruct hadh as [ y [ l r ] ].
+    {
+      unfold closed_set in hclosed.
+      unfold open_set in hclosed.
+      apply hclosed.
+      unfold complementary.
+      exact hdx.
+    }
+    {
+      unfold complementary in l.
+      apply l. exact r.
+    }
+  }
+Qed.
+
+Lemma Rabs_reg : forall x y z, Rabs (x-z) <= Rabs (x-y)+Rabs(y-z).
+Proof.
+  intros x y z.
+  eapply Rle_trans.
+  2:apply Rabs_triang.
+  unfold Rminus.
+  repeat rewrite Rplus_assoc.
+  repeat rewrite (Rplus_comm x).
+  repeat rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l, Rplus_0_l.
+  right.
+  reflexivity.
 Qed.
 
 Lemma adherence_P3 : forall D:R -> Prop, closed_set (adherence D).
 Proof.
-  intro; unfold closed_set, adherence;
-    unfold open_set, complementary, point_adherent;
-      intros;
-        set
-          (P :=
-            fun V:R -> Prop =>
-              neighbourhood V x ->  exists y : R, intersection_domain V D y);
-          assert (H0 := not_all_ex_not _ P H); elim H0; intros V0 H1;
-            unfold P in H1; assert (H2 := imply_to_and _ _ H1);
-              unfold neighbourhood; elim H2; intros; unfold neighbourhood in H3;
-                elim H3; intros; exists x0; unfold included;
-                  intros; red; intro.
-  assert (H8 := H7 V0);
-    cut (exists delta : posreal, (forall x:R, disc x1 delta x -> V0 x)).
-  intro; assert (H10 := H8 H9); elim H4; assumption.
-  cut (R0 < x0 - Rabs (x - x1)).
-  intro; set (del := mkposreal _ H9); exists del; intros;
-    unfold included in H5; apply H5; unfold disc;
-      apply Rle_lt_trans with (Rabs (x2 - x1) + Rabs (x1 - x)).
-  replace (x2 - x) with (x2 - x1 + (x1 - x)); [ apply Rabs_triang | idtac ].
-{
-unfold Rminus.
-repeat rewrite <- Rplus_assoc.
-apply Rplus_eq_compat_r.
-rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-reflexivity.
-}
-  replace (pos x0) with (del + Rabs (x1 - x)).
-  do 2 rewrite <- (Rplus_comm (Rabs (x1 - x))); apply Rplus_lt_compat_l;
-    apply H10.
-  unfold del; simpl; rewrite <- (Rabs_Ropp (x - x1));
-    rewrite Ropp_minus_distr.
-unfold Rminus at 1.
-rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-reflexivity.
-  apply Rplus_lt_reg_l with (Rabs (x - x1)); rewrite Rplus_0_r;
-    replace (Rabs (x - x1) + (x0 - Rabs (x - x1))) with (pos x0);
-    [ rewrite <- Rabs_Ropp; rewrite Ropp_minus_distr; apply H6 | idtac ].
-unfold Rminus at 2.
-rewrite Rplus_comm.
-rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-reflexivity.
+  intro D.
+
+  unfold closed_set.
+  unfold open_set.
+  intros x h.
+
+  unfold complementary in h.
+  unfold adherence in h.
+  unfold point_adherent in h.
+  apply not_all_ex_not in h.
+  destruct h as [ V h].
+  apply imply_to_and in h.
+  destruct h as [ hx h ].
+
+  unfold neighbourhood.
+  unfold neighbourhood in hx.
+  destruct hx as [ delta hx ].
+  exists delta.
+
+  unfold included.
+  intros y hy.
+  unfold disc in hy.
+
+  unfold complementary.
+  intro hadh.
+  unfold adherence in hadh.
+  unfold point_adherent in hadh.
+  specialize (hadh V).
+
+  apply h. clear h.
+  apply hadh. clear hadh.
+  unfold neighbourhood.
+
+  assert ( hpos : R0 < delta - Rabs (y - x)).
+  {
+    eapply Rplus_lt_reg_r.
+    unfold Rminus.
+    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+    apply hy.
+  }
+
+  set (del := mkposreal _ hpos).
+  exists del.
+  unfold included.
+  unfold disc.
+  subst del.
+  simpl.
+
+  intros z hz.
+  unfold included in hx.
+  apply hx. clear hx.
+  unfold disc.
+
+  eapply Rle_lt_trans.
+  eapply Rabs_reg.
+  eapply Rplus_lt_reg_r.
+  rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+  apply hz.
 Qed.
 
 Definition eq_Dom (D1 D2:R -> Prop) : Prop :=
@@ -177,17 +286,90 @@ Infix "=_D" := eq_Dom (at level 70, no associativity).
 
 Lemma open_set_P1 : forall D:R -> Prop, open_set D <-> D =_D interior D.
 Proof.
-  intro; split.
-  intro; unfold eq_Dom; split.
-  apply interior_P2; assumption.
-  apply interior_P1.
-  intro; unfold eq_Dom in H; elim H; clear H; intros; unfold open_set;
-    intros; unfold included, interior in H; unfold included in H0;
-      apply (H _ H1).
+  unfold eq_Dom.
+  intro D.
+  split.
+  {
+    intro h.
+    unfold open_set in h.
+    split.
+    {
+      unfold included.
+      intros x hx.
+      unfold interior.
+      apply h.
+      exact hx.
+    }
+    {
+      unfold included.
+      intros x hx.
+      unfold interior in hx.
+      unfold neighbourhood in hx.
+      destruct hx as [ delta hx ].
+      unfold included in hx.
+      apply hx.
+      unfold disc.
+      unfold Rminus.
+      rewrite Rplus_opp_r, Rabs_R0.
+      apply cond_pos.
+    }
+  }
+  {
+    intros [ hr hl ].
+    unfold open_set.
+    intros x hx.
+    unfold included in hr, hl.
+    unfold interior in hr, hl.
+    apply hr.
+    exact hx.
+  }
 Qed.
 
 Lemma closed_set_P1 : forall D:R -> Prop, closed_set D <-> D =_D adherence D.
 Proof.
+  unfold eq_Dom.
+  intro D.
+  split.
+  {
+    intro h.
+    split.
+    {
+      unfold included.
+      intros x hx.
+      unfold adherence.
+      unfold point_adherent.
+      intros V hV.
+      unfold intersection_domain.
+      unfold neighbourhood in hV.
+      destruct hV as [ delta hV ].
+      unfold included in hV.
+      exists x.
+      split.
+      {
+        apply hV.
+        unfold disc.
+        unfold Rminus.
+        rewrite Rplus_opp_r, Rabs_R0.
+        apply cond_pos.
+      }
+      { exact hx. }
+    }
+    {
+      apply adherence_P2.
+      exact h.
+    }
+  }
+  {
+    intros [ hr hl ].
+    unfold closed_set.
+    unfold open_set.
+    intros x hx.
+    unfold included in hr, hl.
+    unfold adherence in hr, hl.
+    unfold point_adherent in hl, hr.
+    unfold intersection_domain in hl, hr.
+
+
   intro; split.
   intro; unfold eq_Dom; split.
   apply adherence_P1.
