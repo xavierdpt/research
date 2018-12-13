@@ -667,37 +667,98 @@ Lemma continuity_P2 :
   forall (f:R -> R) (D:R -> Prop),
     continuity f -> open_set D -> open_set (image_rec f D).
 Proof.
-  intros; unfold open_set in H0; unfold open_set; intros;
-    assert (H2 := continuity_P1 f x); elim H2; intros H3 _;
-      assert (H4 := H3 (H x)); unfold neighbourhood, image_rec;
-        unfold image_rec in H1; assert (H5 := H4 D (H0 (f x) H1));
-          elim H5; intros V0 H6; elim H6; intros; unfold neighbourhood in H7;
-            elim H7; intros del H9; exists del; unfold included in H9;
-              unfold included; intros; apply (H8 _ (H9 _ H10)).
+  intros f D.
+  intro hc.
+  unfold continuity in hc.
+  intro ho.
+  unfold open_set in ho.
+  unfold open_set.
+  intros x hi.
+  unfold image_rec in hi.
+
+  destruct (continuity_P1 f x) as [ hp _ ].
+
+  specialize (hc x).
+  specialize (hp hc).
+  specialize (hp D).
+  specialize (ho (f x)).
+  specialize (ho hi).
+  specialize (hp ho).
+  destruct hp as [ V [ hn hp ] ].
+  unfold neighbourhood in hn.
+  destruct hn as [ delta hn ].
+  unfold neighbourhood.
+  exists delta.
+  unfold included in hn.
+  unfold included.
+  intros y hy.
+  unfold image_rec.
+  apply hp.
+  apply hn.
+  exact hy.
 Qed.
 
-(**********)
 Lemma continuity_P3 :
   forall f:R -> R,
     continuity f <->
     (forall D:R -> Prop, open_set D -> open_set (image_rec f D)).
 Proof.
-  intros; split.
-  intros; apply continuity_P2; assumption.
-  intros; unfold continuity; unfold continuity_pt;
-    unfold continue_in; unfold limit1_in;
-      unfold limit_in; simpl; unfold R_dist;
-        intros; cut (open_set (disc (f x) (mkposreal _ H0))).
-  intro; assert (H2 := H _ H1).
-  unfold open_set, image_rec in H2; cut (disc (f x) (mkposreal _ H0) (f x)).
-  intro; assert (H4 := H2 _ H3).
-  unfold neighbourhood in H4; elim H4; intros del H5.
-  exists (pos del); split.
-  apply (cond_pos del).
-  intros; unfold included in H5; apply H5; elim H6; intros; apply H8.
-  unfold disc; unfold Rminus; rewrite Rplus_opp_r;
-    rewrite Rabs_R0; apply H0.
-  apply disc_P1.
+  intros f.
+  split.
+  {
+    intros hc D ho.
+    apply continuity_P2.
+    exact hc.
+    exact ho.
+  }
+  {
+    intros h.
+    unfold continuity.
+    unfold continuity_pt.
+    unfold continue_in.
+    unfold limit1_in.
+    unfold limit_in.
+    simpl.
+    unfold R_dist.
+    intros x e he.
+
+    set (pe := (mkposreal _ he)).
+    assert (eq:e=pe). { auto. }
+    clearbody pe.
+
+    assert ( ho : open_set (disc (f x) pe)).
+    { apply disc_P1. }
+    specialize (h _ ho).
+    clear ho.
+
+    unfold open_set in h.
+    unfold image_rec at 1 in h.
+
+    assert (hd : disc (f x) pe (f x)).
+    {
+      unfold disc.
+      unfold Rminus.
+      rewrite Rplus_opp_r.
+      rewrite Rabs_R0.
+      apply cond_pos.
+    }
+
+    specialize (h _ hd).
+    unfold neighbourhood in h.
+    destruct h as [ delta h ].
+    exists delta.
+    split.
+    1:apply cond_pos.
+    intros y hy.
+    destruct hy as [ _ hy ].
+    unfold included in h.
+    unfold image_rec in h.
+    unfold disc at 2 in h.
+    rewrite eq.
+    apply h.
+    unfold disc.
+    exact hy.
+  }
 Qed.
 
 (**********)
@@ -709,37 +770,73 @@ Theorem Rsepare :
         neighbourhood V x /\
         neighbourhood W y /\ ~ (exists y : R, intersection_domain V W y)).
 Proof.
-  intros x y Hsep; set (D := Rabs (x - y)).
-  cut (R0 < D / R2).
-  intro; exists (disc x (mkposreal _ H)).
-  exists (disc y (mkposreal _ H)); split.
-  unfold neighbourhood; exists (mkposreal _ H); unfold included;
-    tauto.
-  split.
-  unfold neighbourhood; exists (mkposreal _ H); unfold included;
-    tauto.
-  red; intro; elim H0; intros; unfold intersection_domain in H1;
-    elim H1; intros.
-  cut (D < D).
-  intro; elim (Rlt_irrefl _ H4).
-  change (Rabs (x - y) < D);
-    apply Rle_lt_trans with (Rabs (x - x0) + Rabs (x0 - y)).
-  replace (x - y) with (x - x0 + (x0 - y)); [ apply Rabs_triang | idtac ].
-unfold Rminus. repeat rewrite <- Rplus_assoc. apply Rplus_eq_compat_r.
-rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-reflexivity.
-  rewrite (double_var D); apply Rplus_lt_compat.
-  rewrite <- Rabs_Ropp; rewrite Ropp_minus_distr; apply H2.
-  apply H3.
-  unfold Rdiv; apply Rmult_lt_0_compat.
-  unfold D; apply Rabs_pos_lt; apply (Rminus_eq_contra _ _ Hsep).
-  apply Rinv_0_lt_compat; exact Rlt_0_2.
+  intros x y hneq.
+
+  set (e := (Rabs (x-y)/R2)).
+  assert (he : R0 < e).
+  {
+    unfold e.
+    apply half_pos.
+    apply Rabs_pos_lt.
+    intro eq.
+    apply hneq.
+    apply Rplus_eq_reg_r with (-y).
+    rewrite Rplus_opp_r.
+    exact eq.
+  }
+  set (ep := mkposreal e he).
+  assert (eq : e = ep). { auto. }
+  clearbody ep.
+
+  exists (disc x ep).
+  exists (disc y ep).
+
+  repeat (try split).
+
+  unfold neighbourhood.
+  exists ep.
+  unfold included.
+  intros z hz.
+  exact hz.
+
+  unfold neighbourhood.
+  exists ep.
+  unfold included.
+  intros z hz.
+  exact hz.
+
+  intro hnot.
+  destruct hnot as [ z hnot ].
+  unfold intersection_domain in hnot.
+  destruct hnot as [hxz hyz].
+  unfold disc in hxz, hyz.
+  rewrite <- eq in hxz, hyz.
+  unfold e in hxz, hyz, he.
+  clear eq ep e.
+
+  generalize Rabs_reg;intro rr.
+  specialize (rr x z y).
+
+  eapply Rlt_irrefl.
+  eapply Rle_lt_trans.
+  apply rr;clear rr.
+
+  rewrite <- (split_2 (Rabs (x - y))).
+  apply Rplus_lt_compat.
+
+  rewrite (Rabs_minus_sym x z).
+  exact hxz.
+
+  exact hyz.
 Qed.
 
-Record family : Type := mkfamily
-  {ind : R -> Prop;
-    f :> R -> R -> Prop;
-    cond_fam : forall x:R, (exists y : R, f x y) -> ind x}.
+Print posreal.
+
+Record family : Type := mkfamily {
+  ind : R -> Prop;
+  f :> R -> R -> Prop;
+  cond_fam : forall x:R, (exists y : R, f x y) -> ind x
+}.
 
 Definition family_open_set (f:family) : Prop := forall x:R, open_set (f x).
 
@@ -757,15 +854,19 @@ Definition covering_open_set (D:R -> Prop) (f:family) : Prop :=
 Definition covering_finite (D:R -> Prop) (f:family) : Prop :=
   covering D f /\ family_finite f.
 
-Lemma restriction_family :
-  forall (f:family) (D:R -> Prop) (x:R),
-    (exists y : R, (fun z1 z2:R => f z1 z2 /\ D z1) x y) ->
-    intersection_domain (ind f) D x.
+Lemma restriction_family : forall (f:family) (D:R -> Prop) (x:R),
+  (exists y : R, (fun z1 z2:R => f z1 z2 /\ D z1) x y) ->
+  intersection_domain (ind f) D x.
 Proof.
-  intros; elim H; intros; unfold intersection_domain; elim H0; intros;
-    split.
-  apply (cond_fam f0); exists x0; assumption.
-  assumption.
+  intros f D x h.
+  destruct h as [ y h ].
+  destruct h as [ hxy hx ].
+  unfold intersection_domain.
+  split.
+  apply f.
+  exists y.
+  exact hxy.
+  exact hx.
 Qed.
 
 Definition subfamily (f:family) (D:R -> Prop) : family :=
@@ -777,25 +878,35 @@ Definition compact (X:R -> Prop) : Prop :=
     covering_open_set X f ->
     exists D : R -> Prop, covering_finite X (subfamily f D).
 
-(**********)
-Lemma family_P1 :
-  forall (f:family) (D:R -> Prop),
-    family_open_set f -> family_open_set (subfamily f D).
+Lemma family_P1 : forall (f:family) (D:R -> Prop),
+  family_open_set f ->
+  family_open_set (subfamily f D).
 Proof.
-  unfold family_open_set; intros; unfold subfamily;
-    simpl; assert (H0 := classic (D x)).
-  elim H0; intro.
-  cut (open_set (f0 x) -> open_set (fun y:R => f0 x y /\ D x)).
-  intro; apply H2; apply H.
-  unfold open_set; unfold neighbourhood; intros; elim H3;
-    intros; assert (H6 := H2 _ H4); elim H6; intros; exists x1;
-      unfold included; intros; split.
-  apply (H7 _ H8).
-  assumption.
-  cut (open_set (fun y:R => False) -> open_set (fun y:R => f0 x y /\ D x)).
-  intro; apply H2; apply open_set_P4.
-  unfold open_set; unfold neighbourhood; intros; elim H3;
-    intros; elim H1; assumption.
+  intros f D h.
+  unfold family_open_set.
+  intros x.
+  unfold open_set.
+  intros y hy.
+  unfold neighbourhood.
+  unfold family_open_set in h.
+  specialize (h x).
+  unfold open_set in h.
+  specialize (h y).
+  unfold subfamily in hy.
+  simpl in hy.
+  destruct hy as [ hxy hx ].
+  specialize (h hxy).
+  unfold neighbourhood in h.
+  destruct h as [ delta h ].
+  exists delta.
+  unfold included.
+  intros z hz.
+  unfold subfamily. simpl.
+  unfold included in h.
+  specialize (h z).
+  split.
+  apply h. exact hz.
+  exact hx.
 Qed.
 
 Definition bounded (D:R -> Prop) : Prop :=
@@ -804,185 +915,533 @@ Definition bounded (D:R -> Prop) : Prop :=
 Lemma open_set_P6 :
   forall D1 D2:R -> Prop, open_set D1 -> D1 =_D D2 -> open_set D2.
 Proof.
-  unfold open_set; unfold neighbourhood; intros.
-  unfold eq_Dom in H0; elim H0; intros.
-  assert (H4 := H _ (H3 _ H1)).
-  elim H4; intros.
-  exists x0; apply included_trans with D1; assumption.
+  unfold eq_Dom.
+  intros A B.
+  intros ha hi.
+  destruct hi as [hab hba].
+  unfold included in hab, hba.
+  unfold open_set.
+  intros x hx.
+  unfold neighbourhood.
+  unfold open_set in ha.
+  specialize (ha x).
+  unfold neighbourhood in ha.
+  destruct ha as [ delta ha ].
+  apply hba. exact hx.
+  exists delta.
+  unfold included.
+  intros y hy.
+  unfold included in ha.
+  specialize (ha y hy).
+  apply hab.
+  exact ha.
 Qed.
 
-(**********)
+Definition empty_set (x:R) := False.
+
 Lemma compact_P1 : forall X:R -> Prop, compact X -> bounded X.
 Proof.
-  intros; unfold compact in H; set (D := fun x:R => True);
-    set (g := fun x y:R => Rabs y < x);
-      cut (forall x:R, (exists y : _, g x y) -> True);
-        [ intro | intro; trivial ].
-  set (f0 := mkfamily D g H0); assert (H1 := H f0);
-    cut (covering_open_set X f0).
-  intro; assert (H3 := H1 H2); elim H3; intros D' H4;
-    unfold covering_finite in H4; elim H4; intros; unfold family_finite in H6;
-      unfold domain_finite in H6; elim H6; intros l H7;
-        unfold bounded; set (r := MaxRlist l).
-  exists (- r); exists r; intros.
-  unfold covering in H5; assert (H9 := H5 _ H8); elim H9; intros;
-    unfold subfamily in H10; simpl in H10; elim H10; intros;
-      assert (H13 := H7 x0); simpl in H13; cut (intersection_domain D D' x0).
-  elim H13; clear H13; intros.
-  assert (H16 := H13 H15); unfold g in H11; split.
-  cut (x0 <= r).
-  intro; cut (Rabs x < r).
-  intro; assert (H19 := Rabs_def2 x r H18); elim H19; intros; left; assumption.
-  apply Rlt_le_trans with x0; assumption.
-  apply (MaxRlist_P1 l x0 H16).
-  cut (x0 <= r).
-  intro; apply Rle_trans with (Rabs x).
-  apply RRle_abs.
-  apply Rle_trans with x0.
-  left; apply H11.
-  assumption.
-  apply (MaxRlist_P1 l x0 H16).
-  unfold intersection_domain, D; tauto.
-  unfold covering_open_set; split.
-  unfold covering; intros; simpl; exists (Rabs x + R1);
-    unfold g; pattern (Rabs x) at 1; rewrite <- Rplus_0_r;
-      apply Rplus_lt_compat_l; apply Rlt_0_1.
-  unfold family_open_set; intro; case (Rtotal_order R0 x); intro.
-  apply open_set_P6 with (disc R0 (mkposreal _ H2)).
-  apply disc_P1.
-  unfold eq_Dom; unfold f0; simpl;
-    unfold g, disc; split.
-  unfold included; intros; unfold Rminus in H3; rewrite Ropp_0 in H3;
-    rewrite Rplus_0_r in H3; apply H3.
-  unfold included; intros; unfold Rminus; rewrite Ropp_0;
-    rewrite Rplus_0_r; apply H3.
-  apply open_set_P6 with (fun x:R => False).
-  apply open_set_P4.
-  unfold eq_Dom; split.
-  unfold included; intros; elim H3.
-  unfold included, f0; simpl; unfold g; intros; elim H2;
-    intro;
-      [ rewrite <- H4 in H3; assert (H5 := Rabs_pos x0);
-        elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H5 H3))
-        | assert (H6 := Rabs_pos x0); assert (H7 := Rlt_trans _ _ _ H3 H4);
-          elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H6 H7)) ].
+  intros X hc.
+  unfold compact in hc.
+  set (g := fun x y:R => Rabs y < x).
+
+  assert (H0 : forall x:R, (exists y, g x y) -> True).
+  {
+    intros _ _.
+    exact I.
+  }
+
+  set (f0 := mkfamily no_cond g H0).
+  specialize (hc f0).
+
+  assert ( H2 : covering_open_set X f0).
+  {
+    clear. 
+    unfold covering_open_set.
+    split.
+    {
+      unfold covering.
+      intros x _.
+      simpl.
+      unfold g.
+      exists (Rabs x + R1).
+      pattern (Rabs x) at 1;rewrite <- Rplus_0_r.
+      apply Rplus_lt_compat_l.
+      apply Rlt_0_1.
+    }
+    {
+      unfold family_open_set.
+      simpl.
+      intro x.
+      destruct (Rtotal_order R0 x) as [ ho | ho ].
+      {
+
+        set (r := mkposreal _ ho).
+        assert (eq : x = r). { auto. }
+        clearbody r.
+
+        apply open_set_P6 with (disc R0 r).
+        { apply disc_P1. }
+        {
+          unfold eq_Dom.
+          split.
+          {
+            unfold included.
+            unfold disc.
+            unfold g.
+            intro y.
+            unfold Rminus.
+            rewrite Ropp_0.
+            rewrite Rplus_0_r.
+            rewrite eq.
+            intro hy.
+            exact hy.
+          }
+          {
+            unfold included.
+            unfold g.
+            unfold disc.
+            intros y hy.
+            unfold Rminus.
+            rewrite Ropp_0.
+            rewrite Rplus_0_r.
+            rewrite eq in hy.
+            exact hy.
+          }
+        }
+      }
+      {
+        apply open_set_P6 with empty_set.
+        { apply open_set_P4. }
+        {
+          unfold eq_Dom.
+          split.
+          {
+            unfold included.
+            intro y.
+            unfold empty_set.
+            intro f.
+            contradiction.
+          }
+          {
+            unfold included.
+            intros y.
+            unfold g.
+            intro hy.
+            unfold empty_set.
+            destruct ho as [ ho | ho ].
+            {
+              subst x.
+              eapply Rlt_irrefl.
+              eapply Rlt_le_trans.
+              { apply hy. }
+              { apply Rabs_pos. }
+            }
+            {
+              eapply Rlt_irrefl.
+              eapply Rlt_le_trans.
+              apply ho.
+              eapply Rle_trans.
+              eapply Rabs_pos.
+              left.
+              apply hy.
+            }
+          }
+        }
+      }
+    }
+  }
+
+  specialize (hc H2).
+  destruct hc as [ D hc ].
+
+  unfold covering_finite in hc.
+  destruct hc as [ hcov hfam ].
+  unfold family_finite in hfam.
+  unfold domain_finite in hfam.
+  destruct hfam as [ l hfam ].
+  unfold bounded.
+  set (r := MaxRlist l).
+  exists (- r).
+  exists r.
+  intros x hx.
+  unfold covering in hcov.
+  specialize (hcov _ hx).
+  destruct hcov as [ y hy ].
+  simpl in hy.
+  destruct hy as [ hyx hy ].
+  unfold g in hyx.
+  specialize (hfam y).
+  simpl in hfam.
+  assert (hid : intersection_domain no_cond D y).
+  {
+    unfold intersection_domain.
+    unfold no_cond.
+    split.
+    { exact I. }
+    { exact hy. }
+  }
+
+  destruct hfam as [ hfaml _ ].
+  specialize (hfaml hid).
+  split.
+  {
+    edestruct Rabs_def2.
+    {
+      eapply Rlt_le_trans.
+      { apply hyx. }
+      {
+        apply MaxRlist_P1.
+        exact hfaml.
+      }
+    }
+    {
+      left.
+      exact H1.
+    }
+  }
+  {
+    eapply Rle_trans.
+    { apply RRle_abs. }
+    {
+      eapply Rle_trans.
+      {
+        left.
+        apply hyx.
+      }
+      {
+        apply MaxRlist_P1.
+        exact hfaml.
+      }
+    }
+  }
 Qed.
 
-(**********)
 Lemma compact_P2 : forall X:R -> Prop, compact X -> closed_set X.
 Proof.
-  intros; assert (H0 := closed_set_P1 X); elim H0; clear H0; intros _ H0;
-    apply H0; clear H0.
-  unfold eq_Dom; split.
-  apply adherence_P1.
-  unfold included; unfold adherence;
-    unfold point_adherent; intros; unfold compact in H;
-      assert (H1 := classic (X x)); elim H1; clear H1; intro.
-  assumption.
-  cut (forall y:R, X y -> R0 < Rabs (y - x) / R2).
-  intro; set (D := X);
-    set (g := fun y z:R => Rabs (y - z) < Rabs (y - x) / R2 /\ D y);
-      cut (forall x:R, (exists y : _, g x y) -> D x).
-  intro; set (f0 := mkfamily D g H3); assert (H4 := H f0);
-    cut (covering_open_set X f0).
-  intro; assert (H6 := H4 H5); elim H6; clear H6; intros D' H6.
-  unfold covering_finite in H6; decompose [and] H6;
-    unfold covering, subfamily in H7; simpl in H7;
-      unfold family_finite, subfamily in H8; simpl in H8;
-        unfold domain_finite in H8; elim H8; clear H8; intros l H8;
-          set (alp := MinRlist (AbsList l x)); cut (R0 < alp).
-  intro; assert (H10 := H0 (disc x (mkposreal _ H9)));
-    cut (neighbourhood (disc x (mkposreal alp H9)) x).
-  intro; assert (H12 := H10 H11); elim H12; clear H12; intros y H12;
-    unfold intersection_domain in H12; elim H12; clear H12;
-      intros; assert (H14 := H7 _ H13); elim H14; clear H14;
-        intros y0 H14; elim H14; clear H14; intros; unfold g in H14;
-          elim H14; clear H14; intros; unfold disc in H12; simpl in H12;
-            cut (alp <= Rabs (y0 - x) / R2).
-  intro; assert (H18 := Rlt_le_trans _ _ _ H12 H17);
-    cut (Rabs (y0 - x) < Rabs (y0 - x)).
-  intro; elim (Rlt_irrefl _ H19).
-  apply Rle_lt_trans with (Rabs (y0 - y) + Rabs (y - x)).
-  replace (y0 - x) with (y0 - y + (y - x)); [ apply Rabs_triang | idtac ].
-unfold Rminus. repeat rewrite <- Rplus_assoc. apply Rplus_eq_compat_r.
-rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-reflexivity.
-  rewrite (double_var (Rabs (y0 - x))); apply Rplus_lt_compat; assumption.
-  apply (MinRlist_P1 (AbsList l x) (Rabs (y0 - x) / R2)); apply AbsList_P1;
-    elim (H8 y0); clear H8; intros; apply H8; unfold intersection_domain;
-      split; assumption.
-  assert (H11 := disc_P1 x (mkposreal alp H9)); unfold open_set in H11;
-    apply H11.
-  unfold disc; unfold Rminus; rewrite Rplus_opp_r;
-    rewrite Rabs_R0; apply H9.
-  unfold alp; apply MinRlist_P2; intros;
-    assert (H10 := AbsList_P2 _ _ _ H9); elim H10; clear H10;
-      intros z H10; elim H10; clear H10; intros; rewrite H11;
-        apply H2; elim (H8 z); clear H8; intros; assert (H13 := H12 H10);
-          unfold intersection_domain, D in H13; elim H13; clear H13;
-            intros; assumption.
-  unfold covering_open_set; split.
-  unfold covering; intros; exists x0; simpl; unfold g;
-    split.
-  unfold Rminus; rewrite Rplus_opp_r; rewrite Rabs_R0;
-    unfold Rminus in H2; apply (H2 _ H5).
-  apply H5.
-  unfold family_open_set; intro; simpl; unfold g;
-    elim (classic (D x0)); intro.
-  apply open_set_P6 with (disc x0 (mkposreal _ (H2 _ H5))).
-  apply disc_P1.
-  unfold eq_Dom; split.
-  unfold included, disc; simpl; intros; split.
-  rewrite <- (Rabs_Ropp (x0 - x1)); rewrite Ropp_minus_distr; apply H6.
-  apply H5.
-  unfold included, disc; simpl; intros; elim H6; intros;
-    rewrite <- (Rabs_Ropp (x1 - x0)); rewrite Ropp_minus_distr;
-      apply H7.
-  apply open_set_P6 with (fun z:R => False).
-  apply open_set_P4.
-  unfold eq_Dom; split.
-  unfold included; intros; elim H6.
-  unfold included; intros; elim H6; intros; elim H5; assumption.
-  intros; elim H3; intros; unfold g in H4; elim H4; clear H4; intros _ H4;
-    apply H4.
-  intros; unfold Rdiv; apply Rmult_lt_0_compat.
-  apply Rabs_pos_lt; apply Rminus_eq_contra; red; intro;
-    rewrite H3 in H2; elim H1; apply H2.
-  apply Rinv_0_lt_compat; exact Rlt_0_2.
+  intros X hc.
+  apply closed_set_P1.
+  unfold eq_Dom.
+  split.
+  { apply adherence_P1. }
+  {
+    unfold included.
+    unfold adherence.
+    unfold point_adherent.
+    intros x h.
+    unfold compact in hc.
+    destruct (classic (X x)) as [ hx | hx ].
+    { exact hx. }
+    {
+      assert ( H2 : forall y:R, X y -> R0 < Rabs (y - x) / R2).
+      {
+        intros y hy.
+        apply half_pos.
+        apply Rabs_pos_lt.
+        apply Rminus_eq_contra.
+        intro eq.
+        subst y.
+        apply hx.
+        exact hy.
+      }
+
+      set (g := fun y z:R => Rabs (y - z) < Rabs (y - x) / R2 /\ X y).
+
+      assert ( H3 : forall x:R, (exists y : _, g x y) -> X x).
+      {
+        intros y hy.
+        destruct hy as [ z hyz ].
+        unfold g in hyz.
+        destruct hyz as [ _ hy ].
+        exact hy.
+      }
+
+      set (f0 := mkfamily X g H3).
+
+      specialize (hc f0).
+
+      assert ( H5 : covering_open_set X f0).
+      {
+        clear - H2.
+        unfold covering_open_set.
+        split.
+        {
+          unfold covering.
+          intros y hy.
+          exists y.
+          simpl.
+          unfold g.
+          split.
+          {
+            unfold Rminus.
+            rewrite Rplus_opp_r.
+            rewrite Rabs_R0.
+            apply H2.
+            exact hy.
+          }
+          { exact hy. }
+        }
+        {
+          unfold family_open_set.
+          simpl.
+          intro y.
+          destruct  (classic (X y)) as [ hy | hy ].
+          {
+            specialize (H2 _ hy).
+
+            set ( ep := mkposreal _ H2 ).
+            set ( e := pos ep).
+            simpl in e.
+            assert (eq : e = ep).
+            reflexivity.
+            clearbody ep.
+
+            apply open_set_P6 with (disc y ep).
+            { apply disc_P1. }
+            {
+              unfold eq_Dom.
+              split.
+              {
+                unfold included.
+                unfold disc.
+                intros z hzy.
+                unfold g.
+                split.
+                {
+                  fold e.
+                  rewrite Rabs_minus_sym.
+                  rewrite eq.
+                  exact hzy.
+                }
+                { exact hy. }
+              }
+              {
+                unfold included.
+                unfold disc.
+                intros z hzy.
+                unfold g in hzy.
+                destruct hzy as [ hzy _ ].
+                rewrite Rabs_minus_sym.
+                fold e in hzy.
+                rewrite eq in hzy.
+                exact hzy.
+              }
+            }
+          }
+          {
+            apply open_set_P6 with empty_set.
+            { exact open_set_P4. }
+            {
+              unfold eq_Dom.
+              split.
+              {
+                unfold included.
+                intros z hz.
+                unfold empty_set in hz.
+                contradiction.
+              }
+              {
+                unfold included.
+                intros z hz.
+                unfold g in hz.
+                destruct hz as [ _ hy' ].
+                unfold empty_set.
+                apply hy.
+                exact hy'.
+              }
+            }
+          }
+        }
+      }
+
+      specialize (hc H5).
+      destruct hc as [ D hc ].
+      unfold covering_finite in hc.
+      destruct hc as [ hcov hfam ].
+
+      unfold covering in hcov.
+      simpl in hcov.
+
+      unfold family_finite in hfam.
+      simpl in hfam.
+
+      unfold domain_finite in hfam.
+      destruct hfam as [ l hfam ].
+
+      set (m := MinRlist (AbsList l x)).
+
+
+      assert ( hm : R0 < m).
+      {
+        clear - H2 hfam.
+        unfold m.
+        apply MinRlist_P2.
+        intros y hy.
+        assert (hy' := AbsList_P2 _ _ _ hy).
+        destruct hy' as [ z hz ].
+        destruct hz as [ hzl heq ].
+        subst y.
+        apply H2.
+        destruct (hfam z) as [ hfaml hfamr ].
+        specialize (hfamr hzl).
+        unfold intersection_domain in hfaml, hfamr.
+        destruct hfamr as [ hxz hdz ].
+        exact hxz.
+      }
+
+      set( mp := mkposreal _ hm).
+      assert ( eqm : m = mp). { reflexivity. }
+      clearbody mp.
+
+      specialize (h (disc x mp)).
+
+      assert ( H11 : neighbourhood (disc x mp) x).
+      {
+        clear.
+        unfold neighbourhood.
+        exists mp.
+        unfold included.
+        intros y h.
+        exact h.
+      }
+
+      specialize (h H11).
+      destruct h as [ y h ].
+      unfold intersection_domain in h.
+      destruct h as [ hxy hy ].
+
+      specialize (hcov _ hy).
+      destruct hcov as [ z hcov ].
+      destruct hcov as [ hzy hdz ].
+      unfold g in hzy.
+      destruct hzy as [ hzy hxz ].
+
+      unfold disc in hxy.
+
+      exfalso.
+      apply Rlt_irrefl with (Rabs (z-x)).
+
+
+      apply Rle_lt_trans with (Rabs (z - y) + Rabs (y - x)).
+      { apply Rabs_reg. }
+      {
+        rewrite (double_var (Rabs (z - x))).
+        apply Rplus_lt_compat.
+        { exact hzy. }
+        {
+          eapply Rlt_le_trans.
+          { apply hxy. }
+          {
+            rewrite <- eqm.
+            apply MinRlist_P1.
+            apply AbsList_P1.
+            specialize (hfam z).
+            destruct hfam as [ hfaml hfamr ].
+            apply hfaml.
+            unfold intersection_domain.
+            split.
+            { exact hxz. }
+            { exact hdz. }
+          }
+        }
+      }
+    }
+  }
 Qed.
 
-(**********)
-Lemma compact_EMP : compact (fun _:R => False).
+Lemma compact_EMP : compact empty_set.
 Proof.
-  unfold compact; intros; exists (fun x:R => False);
-    unfold covering_finite; split.
-  unfold covering; intros; elim H0.
-  unfold family_finite; unfold domain_finite; exists nil; intro.
+  unfold compact.
+  intros f h.
+  unfold covering_open_set in h.
+  destruct h as [hcov hfam].
+  exists empty_set.
+  unfold covering_finite.
   split.
-  simpl; unfold intersection_domain; intros; elim H0.
-  elim H0; clear H0; intros _ H0; elim H0.
-  simpl; intro; elim H0.
+  {
+    unfold covering.
+    unfold empty_set.
+    intros x false.
+    destruct false.
+  }
+  {
+    unfold family_finite.
+    unfold domain_finite.
+    simpl.
+    exists nil.
+    intro x.
+    split.
+    {
+      intro h.
+      unfold intersection_domain in h.
+      destruct h as [ _ false ].
+      unfold empty_set in false.
+      destruct false.
+    }
+    {
+      intro h.
+      inversion h.
+    }
+  }
 Qed.
 
 Lemma compact_eqDom :
   forall X1 X2:R -> Prop, compact X1 -> X1 =_D X2 -> compact X2.
 Proof.
-  unfold compact; intros; unfold eq_Dom in H0; elim H0; clear H0;
-    unfold included; intros; assert (H3 : covering_open_set X1 f0).
-  unfold covering_open_set; unfold covering_open_set in H1; elim H1;
-    clear H1; intros; split.
-  unfold covering in H1; unfold covering; intros;
-    apply (H1 _ (H0 _ H4)).
-  apply H3.
-  elim (H _ H3); intros D H4; exists D; unfold covering_finite;
-    unfold covering_finite in H4; elim H4; intros; split.
-  unfold covering in H5; unfold covering; intros;
-    apply (H5 _ (H2 _ H7)).
-  apply H6.
+  intros A B.
+  intros hA heq.
+  unfold eq_Dom in heq.
+
+  destruct heq as [ hiab hiba ].
+  unfold included in hiab, hiba.
+  unfold compact in hA.
+  unfold compact.
+  intros f hf.
+  specialize (hA f).
+  destruct hA as [ D hcovf ].
+  unfold covering_open_set.
+  unfold covering_open_set in hf.
+  destruct hf as [ hcov hfam ].
+  {
+    split.
+    {
+      unfold covering.
+      intros x ax.
+      unfold covering in hcov.
+      apply hiab in ax.
+      specialize (hcov _ ax).
+      destruct hcov as [ y hy ].
+      exists y.
+      exact hy.
+    }
+    { exact hfam. }
+  }
+  {
+    exists D.
+    unfold covering_finite.
+    unfold covering_finite in hcovf.
+    destruct hcovf as [ hl hr ].
+    split.
+    {
+      unfold covering.
+      simpl.
+      intros x bx.
+      apply hiba in bx.
+      unfold covering in hl.
+      specialize (hl _ bx).
+      destruct hl as [ y hy ].
+      exists y.
+      simpl in hy.
+      exact hy.
+    }
+    { exact hr. }
+  }
 Qed.
 
-(** Borel-Lebesgue's lemma *)
-Lemma compact_P3 : forall a b:R, compact (fun c:R => a <= c <= b).
+Definition closed_interval a b c := a <= c <= b.
+
+(* Borel-Lebesgue lemma *)
+Lemma compact_P3 : forall a b:R, compact (closed_interval a b).
 Proof.
   intros a b; destruct (Rle_dec a b) as [Hle|Hnle].
   unfold compact; intros f0 (H,H5);
