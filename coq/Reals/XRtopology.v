@@ -874,6 +874,13 @@ Record family : Type := mkfamily {
   cond_fam : forall x:R, (exists y : R, f x y) -> ind x
 }.
 
+Goal forall f:family, (exists (x y:R), f x y) -> (exists x, (ind f) x).
+Proof.
+intros f h.
+destruct h as [ x [ y fxy ] ].
+exists x. apply cond_fam. exists y. exact fxy.
+Qed.
+
 Definition family_open_set (f:family) : Prop := forall x:R, open_set (f x).
 
 Definition domain_finite (D:R -> Prop) : Prop :=
@@ -908,6 +915,7 @@ Qed.
 Definition subfamily (f:family) (D:R -> Prop) : family :=
   mkfamily (intersection_domain (ind f) D) (fun x y:R => f x y /\ D x)
   (restriction_family f D).
+
 
 
 Definition compact (X:R -> Prop) : Prop :=
@@ -1504,82 +1512,82 @@ Proof.
   intros a b.
 
   destruct (Rle_dec a b) as [ hab | hab ].
-  {
+  { (* a <= b *)
     unfold compact.
-    intros fa ( hcov, hfam).
+    intros fam h.
+    unfold covering_open_set in h.
+    destruct h as [ hcov hfam ].
 
-    set (A := AP3 a b fa).
+    unfold covering in hcov.
+    unfold closed_interval in hcov.
+
+    set (A := AP3 a b fam).
+    unfold AP3 in A.
 
     assert (haa: A a).
     {
       clear - hab hcov.
-      unfold A.
-      unfold AP3.
+      unfold A. clear A.
       split.
       { apply ab_aab. exact hab. }
       {
-        unfold covering in hcov.
-        unfold closed_interval in hcov.
-
         apply ab_aab in hab.
-        specialize (hcov _ hab).
+        specialize (hcov _ hab). clear hab.
 
-        destruct hcov as [ xa hxa ].
-        set (D := eq xa).
+        destruct hcov as [ x hx ].
+        set (D := eq x).
         exists D.
         unfold covering_finite.
         split.
         {
           unfold covering.
           simpl.
-          intros xb hxb.
-          assert( H4 :  xb = a).
+          unfold D.
+          clear D.
+          unfold closed_interval.
+          intros y hy.
+          assert( H4 :  y = a).
           {
-            clear - hxb.
-            unfold closed_interval in hxb.
-            destruct hxb as [ haxb hxba ].
+            clear - hy.
+            destruct hy as [ hay hya ].
             apply Rle_antisym;assumption.
           }
-          subst xb.
-          exists xa.
+          subst y. clear hy.
+          exists x.
           split.
-          { exact hxa. }
-          { unfold D. reflexivity. }
+          { exact hx. }
+          { reflexivity. }
         }
         {
           unfold family_finite.
           simpl.
           unfold domain_finite.
-          exists (cons xa nil).
+          unfold intersection_domain.
+          unfold D.
+          clear D.
+          exists (cons x nil).
           simpl.
-          intro xc.
+          intro y.
           split.
           {
-            unfold intersection_domain.
-            intros [hxcfam hxcd].
-            unfold D in hxcd.
-            subst xc.
+            intros [_ eq].
+            subst y.
             left.
             reflexivity.
           }
           {
-            simpl.
-            unfold intersection_domain.
-            intros [ heq | false ].
+            intros [ eq | false ].
             {
-              subst xc.
+              subst y.
               split.
               {
                 apply cond_fam.
                 exists a.
-                exact hxa.
+                exact hx.
               }
-              {
-                unfold D.
-                reflexivity.
-              }
+              { reflexivity. }
             }
-            { contradiction. }
+            { destruct false. }
           }
         }
       }
@@ -1595,7 +1603,6 @@ Proof.
         unfold is_upper_bound.
         intros x h.
         unfold A in h.
-        unfold AP3 in h.
         destruct h as [ [ _ h ] _ ].
         exact h.
       }
@@ -1605,11 +1612,11 @@ Proof.
     destruct hcomplete as [ m hlub ].
 
     unfold is_lub in hlub.
+    destruct hlub as [ hub hubl ].
 
     assert ( hm : a <= m <= b).
     {
-      clear - hlub haa.
-      destruct hlub as [ hub hubl ].
+      clear - hub hubl haa.
       unfold is_upper_bound in hub.
       split.
       {
@@ -1621,33 +1628,29 @@ Proof.
         unfold is_upper_bound.
         intros x hax.
         unfold A in hax.
-        unfold AP3 in hax.
         destruct hax as [ [ _ hax ] _ ].
         exact hax.
       }
     }
 
-    unfold covering in hcov.
-    unfold closed_interval in hcov.
     specialize (hcov _ hm).
-    destruct hcov as [ycov hycov].
+    destruct hcov as [xm hxm].
 
     unfold family_open_set in hfam.
     unfold open_set in hfam.
-    specialize (hfam _ _ hycov).
+    specialize (hfam _ _ hxm).
     unfold neighbourhood in hfam.
     destruct hfam as [ delta hfam ].
 
     assert (h : exists x : R, A x /\ m - delta < x <= m).
     {
-      clear - hlub.
+      clear - hub hubl.
       destruct (classic (exists x : R, A x /\ m - delta < x <= m)) as [ H9 | H9 ].
       { exact H9. }
       {
-        destruct hlub as [H10 H11].
         assert (H12 : is_upper_bound A (m - delta)).
         {
-          clear - H9 H10.
+          clear - H9 hub hubl.
           set (P := fun n:R => A n /\ m - delta < n <= m).
           fold P in H9.
 
@@ -1681,21 +1684,21 @@ Proof.
               }
             }
             {
-              unfold is_upper_bound in H10.
-              specialize (H10 _ H13).
+              unfold is_upper_bound in hub.
+              specialize (hub _ H13).
               exfalso.
               apply H15.
-              exact H10.
+              exact hub.
             }
           }
         }
 
-        specialize (H11 _ H12).
+        specialize (hubl _ H12).
 
         exfalso.
         eapply Rlt_irrefl.
         eapply Rle_lt_trans.
-        { exact H11. }
+        { exact hubl. }
         {
           pattern m at 2; rewrite <- Rplus_0_r.
           unfold Rminus.
@@ -1717,7 +1720,7 @@ Proof.
     destruct (Req_dec m b) as [ hmb | hmb ].
     {
       subst m.
-      set (Db := fun x:R => Dx x \/ x = ycov).
+      set (Db := fun x:R => Dx x \/ x = xm).
       exists Db.
       unfold covering_finite.
       split.
@@ -1748,7 +1751,7 @@ Proof.
           }
         }
         {
-          exists ycov.
+          exists xm.
           simpl.
           split.
           {
@@ -1803,7 +1806,7 @@ Proof.
         unfold family_finite in H13.
         unfold domain_finite in H13.
         destruct H13 as (l,H13).
-        exists (cons ycov l).
+        exists (cons xm l).
         intro x0.
         split.
         {
@@ -1812,7 +1815,7 @@ Proof.
           unfold intersection_domain in H14.
           specialize H13 with x0.
           destruct H13 as [ H13 H15].
-          destruct (Req_dec x0 ycov) as [ H16 | H16 ].
+          destruct (Req_dec x0 xm) as [ H16 | H16 ].
           {
             simpl.
             left.
@@ -1851,7 +1854,7 @@ Proof.
               apply cond_fam.
               rewrite H15.
               exists b.
-              apply hycov.
+              apply hxm.
             }
             {
               unfold Db.
@@ -1884,17 +1887,16 @@ Proof.
   cut (A m').
   {
     intro H7.
-    destruct hlub as [H14 H15].
-    unfold is_upper_bound in H14.
+    unfold is_upper_bound in hub.
     {
-      specialize (H14 _ H7).
+      specialize (hub _ H7).
       cut (m < m').
       {
         intro H17.
         exfalso.
         eapply Rlt_irrefl.
         eapply Rle_lt_trans.
-        { exact H14. }
+        { exact hub. }
         { exact H17. }
       }
       {
@@ -1959,7 +1961,7 @@ Proof.
       }
     }
     {
-      set (Db := fun x:R => Dx x \/ x = ycov).
+      set (Db := fun x:R => Dx x \/ x = xm).
       exists Db.
       unfold covering_finite.
       split.
@@ -1990,7 +1992,7 @@ Proof.
           }
         }
         {
-          exists ycov.
+          exists xm.
           simpl.
           split.
           {
@@ -2093,7 +2095,7 @@ Proof.
         unfold family_finite in H13.
         unfold domain_finite in H13.
         destruct H13 as (l,H13).
-        exists (cons ycov l).
+        exists (cons xm l).
         intro x0.
         split.
         {
@@ -2102,7 +2104,7 @@ Proof.
           unfold intersection_domain in H14.
           specialize (H13 x0).
           destruct H13 as [H13 H15].
-          destruct (Req_dec x0 ycov) as [Heq|Hneq].
+          destruct (Req_dec x0 xm) as [Heq|Hneq].
           {
             simpl.
             left.
@@ -2136,7 +2138,7 @@ Proof.
               apply cond_fam.
               rewrite H15.
               exists m.
-              exact hycov.
+              exact hxm.
             }
             {
               unfold Db.
