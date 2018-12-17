@@ -1440,82 +1440,288 @@ Qed.
 
 Definition closed_interval a b c := a <= c <= b.
 
+Definition AP3 a b fa x := a <= x <= b /\
+  (exists D : R -> Prop,
+      covering_finite (closed_interval a x) (subfamily fa D)
+  ).
+
+Lemma ab_aab : forall a b, a <= b -> a <= a <= b.
+Proof.
+  intros a b h.
+  split.
+  { right. reflexivity. }
+  { exact h. }
+Qed.
+
+Lemma aab_ab : forall a b, a <= a <= b -> a <= b .
+Proof.
+  intros a b h.
+  destruct h;assumption.
+Qed.
+
+Definition complete A := {m : R | is_lub A m }.
+
 (* Borel-Lebesgue lemma *)
 Lemma compact_P3 : forall a b:R, compact (closed_interval a b).
 Proof.
   intros a b.
-  destruct (Rle_dec a b) as [Hle|Hnle].
-{
-  unfold compact.
-  intros f0 (H,H5).
-    set
-      (A :=
-        fun x:R =>
-          a <= x <= b /\
-          (exists D : R -> Prop,
-            covering_finite (fun c:R => a <= c <= x) (subfamily f0 D))).
-{
-  cut (A a).
-{
-  intro H0.
-  cut (bound A).
-{
-  intro H1.
-  cut (exists a0 : R, A a0).
-{
-  intro H2.
-  pose proof (completeness A H1 H2) as (m,H3).
-  unfold is_lub in H3.
-  cut (a <= m <= b).
-{
-  intro H4.
-  unfold covering in H.
-  pose proof (H m H4) as (y0,H6).
-{
-  unfold family_open_set in H5.
-  pose proof (H5 y0 m H6) as (eps,H8).
-{
-  cut (exists x : R, A x /\ m - eps < x <= m).
+  destruct (Rle_dec a b) as [ hab | hab ].
   {
-    intros (x,((H9 & Dx & H12 & H13),(Hltx,_))).
-  destruct (Req_dec m b) as [->|H11].
-  {
-    set (Db := fun x:R => Dx x \/ x = y0).
-    exists Db.
-    unfold covering_finite.
-    split.
+    unfold compact.
+    intros fa ( hcov, hfam).
+
+    set (A := AP3 a b fa).
+
+    assert (haa: A a).
     {
-      unfold covering.
-      intros x0 (H14,H18).
-      unfold covering in H12.
-      destruct (Rle_dec x0 x) as [Hle'|Hnle'].
+      clear - hab hcov.
+      unfold A.
+      unfold AP3.
+      split.
+      { apply ab_aab. exact hab. }
       {
-        cut (a <= x0 <= x).
+        unfold covering in hcov.
+        unfold closed_interval in hcov.
+
+        assert (hab' := ab_aab _ _ hab).
+        specialize (hcov _ hab').
+
+        destruct hcov as [ xa hxa ].
+        set (D' := eq xa).
+        exists D'.
+        unfold covering_finite.
+        split.
         {
-          intro H15.
-          pose proof (H12 x0 H15) as (x1 & H16 & H17).
-          exists x1.
+          unfold covering.
           simpl.
-          unfold Db.
-          split.
-          { apply H16. }
+          intros xb hxb.
+          assert( H4 :  xb = a).
           {
+            clear - hxb.
+            unfold closed_interval in hxb.
+            destruct hxb as [ haxb hxba ].
+            apply Rle_antisym;assumption.
+          }
+          subst xb.
+          exists xa.
+          split.
+          { exact hxa. }
+          { unfold D'. reflexivity. }
+        }
+        {
+          unfold family_finite.
+          unfold domain_finite.
+          exists (cons xa nil).
+          intro xc.
+          split.
+          {
+            simpl.
+            unfold intersection_domain.
+            intros [hxcfam hxcd].
+            unfold D' in hxcd.
+            subst xc.
             left.
-            apply H17.
+            reflexivity.
+          }
+          {
+            simpl.
+            unfold intersection_domain.
+            intros [ heq | false ].
+            {
+              subst xc.
+              split.
+              {
+                apply cond_fam.
+                exists a.
+                exact hxa.
+              }
+              {
+                unfold D'.
+                reflexivity.
+              }
+            }
+            { contradiction. }
           }
         }
-        {
-          split.
-          { exact H14. }
-          { exact Hle'. }
-        }
+      }
+    }
+
+    assert ( hbound : bound A).
+    {
+      clear.
+      unfold bound.
+      exists b.
+      unfold is_upper_bound.
+      intros x h.
+      unfold A in h.
+      unfold AP3 in h.
+      destruct h as [ [ _ h ] _ ].
+      exact h.
+    }
+
+    assert (hinhabited : exists a0 : R, A a0).
+    { exists a. exact haa. }
+
+    assert (hcomplete : complete A).
+    {
+      apply completeness.
+      { exact hbound. }
+      { exact hinhabited. }
+    }
+
+    destruct hcomplete as [ m hlub ].
+
+    unfold is_lub in hlub.
+
+    assert ( hm : a <= m <= b).
+    {
+      clear - hlub haa.
+      destruct hlub as [ hub hubl ].
+      unfold is_upper_bound in hub.
+      split.
+      {
+        apply hub.
+        exact haa.
       }
       {
-        exists y0.
+        apply hubl.
+        unfold is_upper_bound.
+        intros x hax.
+        unfold A in hax.
+        unfold AP3 in hax.
+        destruct hax as [ [ _ hax ] _ ].
+        exact hax.
+      }
+    }
+
+    unfold covering in hcov.
+    unfold closed_interval in hcov.
+    specialize (hcov _ hm).
+    destruct hcov as [ycov hycov].
+
+    unfold family_open_set in hfam.
+    unfold open_set in hfam.
+    specialize (hfam _ _ hycov).
+    unfold neighbourhood in hfam.
+    destruct hfam as [ delta hfam ].
+
+    assert (h : exists x : R, A x /\ m - delta < x <= m).
+    {
+      clear - hlub.
+      destruct (classic (exists x : R, A x /\ m - delta < x <= m)) as [ H9 | H9 ].
+      { exact H9. }
+      {
+        destruct hlub as [H10 H11].
+        assert (H12 : is_upper_bound A (m - delta)).
+        {
+          clear - H9 H10.
+          set (P := fun n:R => A n /\ m - delta < n <= m).
+          fold P in H9.
+
+          unfold is_upper_bound.
+          intros x H13.
+
+          (* === apply H12 in H9 === *)
+          assert( H12 := not_ex_all_not).
+          specialize (H12 _ P H9).
+          clear H9. rename H12 into H9.
+
+          specialize (H9 x).
+          apply not_and_or in H9.
+          destruct H9 as [ H15 | H15 ].
+          {
+            exfalso.
+            apply H15.
+            exact H13.
+          }
+          {
+            apply not_and_or in H15.
+            destruct H15 as [H15|H15].
+            {
+              destruct (Rle_dec x (m - delta)) as [H17|H17].
+              { exact H17. }
+              {
+                exfalso.
+                apply H15.
+                apply Rnot_le_lt.
+                exact H17.
+              }
+            }
+            {
+              unfold is_upper_bound in H10.
+              specialize (H10 _ H13).
+              exfalso.
+              apply H15.
+              exact H10.
+            }
+          }
+        }
+
+        specialize (H11 _ H12).
+
+        exfalso.
+        eapply Rlt_irrefl.
+        eapply Rle_lt_trans.
+        { exact H11. }
+        {
+          pattern m at 2; rewrite <- Rplus_0_r.
+          unfold Rminus.
+          apply Rplus_lt_compat_l.
+          apply Ropp_lt_cancel.
+          rewrite Ropp_involutive.
+          rewrite Ropp_0.
+          apply cond_pos.
+        }
+      }
+    }
+ 
+                destruct h as [ x [ hax [ Hltx _ ] ] ].
+                unfold A in hax.
+                destruct hax as [ H9 [ Dx hcovf ] ].
+                unfold covering_finite in hcovf.
+                destruct hcovf as [ H12 H13 ].
+
+                destruct (Req_dec m b) as [ hmb | hmb ].
+                {
+                  subst m.
+                  set (Db := fun x:R => Dx x \/ x = ycov).
+                  exists Db.
+                  unfold covering_finite.
+                  split.
+                  {
+                    unfold covering.
+                    intros x0 (H14,H18).
+                    unfold covering in H12.
+                    destruct (Rle_dec x0 x) as [Hle'|Hnle'].
+                    {
+                      cut (a <= x0 <= x).
+                      {
+                        intro H15.
+                        specialize (H12 _ H15).
+                        simpl in H12.
+                        destruct H12 as [ x1 [ H16 H17 ] ].
+                        exists x1.
+                        simpl.
+                        unfold Db.
+                        split.
+                        { apply H16. }
+                        {
+                          left.
+                          apply H17.
+                        }
+                      }
+                      {
+                        split.
+                        { exact H14. }
+                        { exact Hle'. }
+                      }
+                    }
+      {
+        exists ycov.
         simpl.
         split.
         {
-          apply H8.
+          apply hfam.
           unfold disc.
           rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_right.
           {
@@ -1528,10 +1734,10 @@ Proof.
               exact Hnle'.
             }
             {
-              apply Rplus_lt_reg_l with (x - eps).
-              replace (x - eps + (b - x)) with (b - eps).
+              apply Rplus_lt_reg_l with (x - delta).
+              replace (x - delta + (b - x)) with (b - delta).
               {
-                replace (x - eps + eps) with x.
+                replace (x - delta + delta) with x.
                 { apply Hltx. }
                 {
                   unfold Rminus.
@@ -1570,7 +1776,7 @@ Proof.
       unfold family_finite in H13.
       unfold domain_finite in H13.
       destruct H13 as (l,H13).
-      exists (cons y0 l).
+      exists (cons ycov l).
       intro x0.
       split.
       {
@@ -1579,7 +1785,7 @@ Proof.
         unfold intersection_domain in H14.
         specialize H13 with x0.
         destruct H13 as [ H13 H15].
-        destruct (Req_dec x0 y0) as [ H16 | H16 ].
+        destruct (Req_dec x0 ycov) as [ H16 | H16 ].
         {
           simpl.
           left.
@@ -1615,10 +1821,10 @@ Proof.
           {
             split.
             {
-              apply (cond_fam f0).
+              apply cond_fam.
               rewrite H15.
               exists b.
-              apply H6.
+              apply hycov.
             }
             {
               unfold Db.
@@ -1647,11 +1853,11 @@ Proof.
     }
   }
   {
-  set (m' := Rmin (m + eps / R2) b).
+  set (m' := Rmin (m + delta / R2) b).
   cut (A m').
   {
     intro H7.
-    destruct H3 as [H14 H15].
+    destruct hlub as [H14 H15].
     unfold is_upper_bound in H14.
     {
       specialize (H14 _ H7).
@@ -1667,7 +1873,7 @@ Proof.
       {
         unfold m'.
         unfold Rmin.
-        destruct (Rle_dec (m + eps / R2) b) as [Hle'|Hnle'].
+        destruct (Rle_dec (m + delta / R2) b) as [Hle'|Hnle'].
         {
           pattern m at 1; rewrite <- Rplus_0_r.
           apply Rplus_lt_compat_l.
@@ -1680,11 +1886,11 @@ Proof.
           }
         }
         {
-          destruct H4 as [ _  [ H4 | H4 ] ].
+          destruct hm as [ _  [ H4 | H4 ] ].
           { exact H4. }
           {
             exfalso.
-            apply H11.
+            apply hmb.
             exact H4.
           }
         }
@@ -1698,11 +1904,11 @@ Proof.
       split.
       {
         apply Rle_trans with m.
-        { apply H4. }
+        { apply hm. }
         {
           unfold m'.
           unfold Rmin.
-          destruct (Rle_dec (m + eps / R2) b) as [ r | _ ].
+          destruct (Rle_dec (m + delta / R2) b) as [ r | _ ].
           {
             pattern m at 1; rewrite <- Rplus_0_r.
             apply Rplus_le_compat_l.
@@ -1717,7 +1923,7 @@ Proof.
               exact Rlt_0_2.
             }
           }
-          { apply H4. }
+          { apply hm. }
         }
       }
       {
@@ -1726,7 +1932,7 @@ Proof.
       }
     }
     {
-      set (Db := fun x:R => Dx x \/ x = y0).
+      set (Db := fun x:R => Dx x \/ x = ycov).
       exists Db.
       unfold covering_finite.
       split.
@@ -1757,11 +1963,11 @@ Proof.
           }
         }
         {
-          exists y0.
+          exists ycov.
           simpl.
           split.
           {
-            apply H8.
+            apply hfam.
             unfold disc.
             unfold Rabs.
             destruct (Rcase_abs (x0 - m)) as [Hlt|Hge].
@@ -1776,10 +1982,10 @@ Proof.
                 exact Hnle'.
               }
               {
-                apply Rplus_lt_reg_l with (x - eps).
-                replace (x - eps + (m - x)) with (m - eps).
+                apply Rplus_lt_reg_l with (x - delta).
+                replace (x - delta + (m - x)) with (m - delta).
                 {
-                  replace (x - eps + eps) with x.
+                  replace (x - delta + delta) with x.
                   {
                     exact Hltx.
                   }
@@ -1812,7 +2018,7 @@ Proof.
                 apply Rplus_lt_reg_l with m.
                 replace (m + (m' - m)) with m'.
                 {
-                  apply Rle_lt_trans with (m + eps / R2).
+                  apply Rle_lt_trans with (m + delta / R2).
                   {
                     unfold m'.
                     apply Rmin_l.
@@ -1829,7 +2035,7 @@ Proof.
                       rewrite <- Rinv_r_sym.
                       {
                         rewrite Rmult_1_l.
-                        pattern (pos eps) at 1; rewrite <- Rplus_0_r.
+                        pattern (pos delta) at 1; rewrite <- Rplus_0_r.
                         rewrite double.
                         apply Rplus_lt_compat_l.
                         apply cond_pos.
@@ -1860,7 +2066,7 @@ Proof.
         unfold family_finite in H13.
         unfold domain_finite in H13.
         destruct H13 as (l,H13).
-        exists (cons y0 l).
+        exists (cons ycov l).
         intro x0.
         split.
         {
@@ -1869,7 +2075,7 @@ Proof.
           unfold intersection_domain in H14.
           specialize (H13 x0).
           destruct H13 as [H13 H15].
-          destruct (Req_dec x0 y0) as [Heq|Hneq].
+          destruct (Req_dec x0 ycov) as [Heq|Hneq].
           {
             simpl.
             left.
@@ -1885,13 +2091,13 @@ Proof.
             decompose [and or] H14.
             {
               split.
-              { exact H7. }
-              { exact H16. }
+              { exact H. }
+              { exact H1. }
             }
             {
               exfalso.
               apply Hneq.
-              exact H16.
+              exact H1.
             }
           }
         }
@@ -1903,7 +2109,7 @@ Proof.
               apply cond_fam.
               rewrite H15.
               exists m.
-              exact H6.
+              exact hycov.
             }
             {
               unfold Db.
@@ -1938,215 +2144,9 @@ Proof.
   }
 }
 }
-{
-  destruct (classic (exists x : R, A x /\ m - eps < x <= m)) as [ H9 | H9 ].
-  {
-    exact H9.
-  }
-  {
-    destruct H3 as [H10 H11].
-    assert (H12 : is_upper_bound A (m - eps)).
-    {
-      clear - H9 H10.
-      set (P := fun n:R => A n /\ m - eps < n <= m).
-      fold P in H9.
 
-      unfold is_upper_bound.
-      intros x H13.
 
-      (* === apply H12 in H9 === *)
-      assert( H12 := not_ex_all_not).
-      specialize (H12 _ P H9).
-      clear H9. rename H12 into H9.
 
-      specialize (H9 x).
-      apply not_and_or in H9.
-      destruct H9 as [ H15 | H15 ].
-      {
-        exfalso.
-        apply H15.
-        exact H13.
-      }
-      {
-        apply not_and_or in H15.
-        destruct H15 as [H15|H15].
-        {
-          destruct (Rle_dec x (m - eps)) as [H17|H17].
-          {
-            exact H17.
-          }
-          {
-            exfalso.
-            apply H15.
-            apply Rnot_le_lt.
-            exact H17.
-          }
-        }
-        {
-          unfold is_upper_bound in H10.
-          specialize (H10 _ H13).
-          exfalso.
-          apply H15.
-          exact H10.
-        }
-      }
-    }
-
-    specialize (H11 _ H12).
-
-    exfalso.
-    eapply Rlt_irrefl.
-    eapply Rle_lt_trans.
-    { exact H11. }
-    {
-      pattern m at 2; rewrite <- Rplus_0_r.
-      unfold Rminus.
-      apply Rplus_lt_compat_l.
-      apply Ropp_lt_cancel.
-      rewrite Ropp_involutive.
-      rewrite Ropp_0.
-      apply cond_pos.
-    }
-
-  }
-}
-}
-}
-}
-{
-  destruct H3 as [ H3 H4 ].
-  unfold is_upper_bound in H3.
-  split.
-  {
-    specialize (H3 _ H0).
-    exact H3.
-  }
-  {
-    clear H5.
-    apply (H4 b).
-    unfold is_upper_bound.
-    intros x H5.
-    unfold A in H5.
-    destruct H5 as [ [ _ H5 ] _ ].
-    exact H5.
-  }
-}
-}
-{
-  exists a.
-  exact H0.
-}
-}
-{
-  unfold bound.
-  exists b.
-  unfold is_upper_bound.
-  intros x H1.
-  unfold A in H1.
-  destruct H1 as [ [ _ H1 ] _ ].
-  exact H1.
-}
-}
-{
-  unfold A.
-  split.
-  {
-    split.
-    {
-      right.
-      reflexivity.
-    }
-    { exact Hle. }
-  }
-  {
-    unfold covering in H.
-    cut (a <= a <= b).
-    {
-      intro H1.
-      unfold closed_interval in H.
-      specialize (H _ H1).
-      destruct H as [ y0 H2 ].
-      set (D' := fun x:R => x = y0).
-      exists D'.
-      unfold covering_finite.
-      split.
-      {
-        unfold covering.
-        simpl.
-        intros x H3.
-        cut (x = a).
-        {
-          intro H4.
-          subst x.
-          exists y0.
-          split.
-          {
-            exact H2.
-          }
-          {
-            unfold D'.
-            reflexivity.
-          }
-        }
-        {
-          destruct H3 as [ hax hxa ].
-          apply Rle_antisym.
-          { exact hxa. }
-          { exact hax. }
-        }
-      }
-      {
-        unfold family_finite.
-        unfold domain_finite.
-        exists (cons y0 nil).
-        intro x.
-        split.
-        {
-          simpl.
-          unfold intersection_domain.
-          intros [H3 H4].
-          {
-            unfold D' in H4.
-            left.
-            exact H4.
-          }
-        }
-        {
-          simpl.
-          unfold intersection_domain.
-          intros [ H4 | false ].
-          {
-            split.
-            {
-              rewrite H4.
-              apply cond_fam.
-              exists a.
-              exact H2.
-            }
-            {
-              exact H4.
-            }
-          }
-          {
-            contradiction.
-          }
-        }
-      }
-    }
-    {
-      split.
-      {
-        right.
-        reflexivity.
-      }
-      {
-        exact Hle.
-      }
-    }
-  }
-}
-}
-}
 {
   apply compact_eqDom with empty_set.
   { exact compact_EMP. }
@@ -2164,7 +2164,7 @@ Proof.
       unfold closed_interval.
       intros [ hax hxb ].
       unfold empty_set.
-      apply Hnle.
+      apply hab.
       eapply Rle_trans.
       { exact hax. }
       { exact hxb. }
