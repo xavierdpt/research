@@ -30,23 +30,42 @@ Definition intersection_domain (D1 D2:R -> Prop) (c:R) : Prop := D1 c /\ D2 c.
 Definition union_domain (D1 D2:R -> Prop) (c:R) : Prop := D1 c \/ D2 c.
 Definition interior (D:R -> Prop) (x:R) : Prop := neighbourhood D x.
 
-Lemma interior_P1 : forall D:R -> Prop, included (interior D) D.
+Lemma Rminus_diag : forall x, x - x=R0.
 Proof.
-  intro D.
-  unfold included.
-  intros x h.
-  unfold interior in h.
-  unfold neighbourhood in h.
-  destruct h as [ delta h ].
-  unfold included in h.
-  apply h.
-  unfold disc.
+  intro x.
   unfold Rminus.
   rewrite Rplus_opp_r.
+  reflexivity.
+Qed.
+
+(* x is in the disc centered at x *)
+Lemma disc_center : forall x delta, disc x delta x.
+Proof.
+  intros x d.
+  unfold disc.
+  rewrite Rminus_diag.
   rewrite Rabs_R0.
   apply cond_pos.
 Qed.
+(* Informal proof:
+   The distance between x and itself is 0, which is always smaller than the radius, therefore x is in the disc centered at x
+*)
 
+Lemma interior_P1 : forall D:R -> Prop, included (interior D) D.
+Proof.
+  intro D.
+  unfold included. (* we must show that forall x, if x is in the interior of D, then x is in D *)
+  intros x h.
+  unfold interior in h. (* x is in the interior of D iff x is in a neighbourhood of D *)
+  unfold neighbourhood in h. (* x is in a neighbourhood of D iff there is a disc around x which is included in D *)
+  destruct h as [ delta h ].
+  unfold included in h. (* so we know that forall y, if y is in a disc around x, y is in x *)
+  apply h. (* this holds in particular fo x *)
+  apply disc_center. (* x is obviously in the disc centered at x *)
+Qed.
+(* If x is in the interior of D, then x is in a disc centered at x and this disc included in D, therefore by transitivity, x is in D *)
+
+(* If D is an open set, then the interior of D is included in D *)
 Lemma interior_P2 : forall D:R -> Prop, open_set D -> included D (interior D).
 Proof.
   intros D h.
@@ -54,9 +73,12 @@ Proof.
   intros x hx.
   unfold interior.
   unfold open_set in h.
-  specialize (h x hx).
-  exact h.
+  apply h.
+  exact hx.
 Qed.
+(* Informal proof
+   D is an open set if any point of D is in a neighbourhood of D. This is the definition of the interior of D.
+*)
 
 Definition point_adherent (D:R -> Prop) (x:R) : Prop := forall V:R -> Prop,
     neighbourhood V x ->
@@ -64,29 +86,32 @@ Definition point_adherent (D:R -> Prop) (x:R) : Prop := forall V:R -> Prop,
 
 Definition adherence (D:R -> Prop) (x:R) : Prop := point_adherent D x.
 
+(* D is included in its adherence *)
 Lemma adherence_P1 : forall D:R -> Prop, included D (adherence D).
 Proof.
   intros D.
-  unfold included.
-  intros x hx.
+  unfold included. (* we must show that if x is in D, then it is in its adherence *)
+  intros x hx. (* let x be such a point *)
   unfold adherence.
   unfold point_adherent.
-  intros V h.
+  intros V h. (* let V be a set which contains a neighbourhood of x ; we must show that there is a point which is both in V and in D *)
   unfold neighbourhood in h.
-  destruct h as [ delta h].
+  destruct h as [ delta h]. (* V is included in a disc centered at x *)
   unfold included in h.
   unfold intersection_domain.
+  (* We can show that x is both in D and in V *)
   exists x.
   split.
-  apply h.
-  unfold disc.
-  unfold Rminus.
-  rewrite Rplus_opp_r.
-  rewrite Rabs_R0.
-  apply cond_pos.
-  exact hx.
+  { (* Since V contains the disc centered at x, x is in V *)
+    apply h.
+    apply disc_center.
+  }
+  { (* And we already know that x is in D *)
+    exact hx.
+  }
 Qed.
 
+(* Inclusion is transitive *)
 Lemma included_trans : forall D1 D2 D3:R -> Prop,
     included D1 D2 -> included D2 D3 -> included D1 D3.
 Proof.
@@ -94,26 +119,25 @@ Proof.
   intros hab hbc.
   unfold included.
   intros x ax.
-  unfold included in hbc.
+  unfold included in hbc, hab.
   apply hbc.
-  unfold included in hab.
   apply hab.
   exact ax.
 Qed.
 
+(* The interior is an open set *)
 Lemma interior_P3 : forall D:R -> Prop, open_set (interior D).
 Proof.
   intro D.
   unfold open_set.
-  intros x hdx.
+  intros x h.
 
-  unfold interior in hdx.
-  unfold neighbourhood in hdx.
-  destruct hdx as [ delta hdx ].
+  unfold interior in h.
+  unfold neighbourhood in h.
+  destruct h as [ delta h ].
 
   unfold neighbourhood.
   exists delta.
-
   unfold included.
   intros y hy.
 
@@ -122,6 +146,7 @@ Proof.
   unfold disc in hy.
 
   set (exp := delta - Rabs (y - x)).
+
   assert ( hpos : R0 < exp).
   {
     unfold exp.
@@ -136,15 +161,16 @@ Proof.
   set (delta' := mkposreal _ hpos).
   exists delta'.
 
-  unfold included. simpl.
+  unfold included.
   intros z hz.
   unfold disc in hz.
   subst delta'. simpl in hz.
   subst exp.
 
-  unfold included in hdx.
-  unfold disc in hdx.
-  apply hdx. clear hdx.
+  unfold included in h.
+  unfold disc in h.
+
+  apply h. clear h.
 
   unfold Rminus.
   pattern z;rewrite <- Rplus_0_r.
@@ -161,8 +187,7 @@ Proof.
 Qed.
 
 
-Lemma complementary_P1 :
-  forall D:R -> Prop,
+Lemma complementary_P1 : forall D:R -> Prop,
     ~ (exists y : R, intersection_domain D (complementary D) y).
 Proof.
   intros D h.
@@ -174,34 +199,45 @@ Proof.
   exact hy.
 Qed.
 
+(* If D is closed, then D contains its adherence *)
 Lemma adherence_P2 :
   forall D:R -> Prop, closed_set D -> included (adherence D) D.
 Proof.
   intros D hclosed.
   unfold included.
-  intros x hadh.
+  intros x h.
+  (* x is either in x or in its complement *)
   destruct (classic (D x)) as [ hdx | hdx ].
   { exact hdx. }
   {
+    (* x is in the complement of x *)
+    (* We must show that because x is in the adherence of D and D is closed, this cannot be the case *)
     exfalso.
-    unfold adherence in hadh.
-    unfold point_adherent in hadh.
-    unfold intersection_domain in hadh.
-    specialize (hadh (complementary D)).
-    destruct hadh as [ y [ l r ] ].
+    unfold adherence in h.
+    unfold point_adherent in h.
+    unfold intersection_domain in h.
+    specialize (h (complementary D)).
+    (* Hypotheseses allow us to assert that if x is in a neighbourhood of the complementary, then there's a point which is both in D and in its complementary *)
+    destruct h as [ y [ l r ] ].
     {
       unfold closed_set in hclosed.
+      (* Because D it's closed, it's complementary is open *)
       unfold open_set in hclosed.
+      (* this means that if x is in the comlementary of x, then x is in a neighbourhood of the complementary, which is what we want to show *)
       apply hclosed.
       unfold complementary.
+      (* and x is in the complementary indeed *)
       exact hdx.
     }
     {
+      (* we found a point which is both in D and in its complementary, which is impossible *)
       unfold complementary in l.
       apply l. exact r.
     }
   }
 Qed.
+
+
 
 Lemma Rabs_reg : forall x y z, Rabs (x-z) <= Rabs (x-y)+Rabs(y-z).
 Proof.
@@ -873,6 +909,7 @@ Definition subfamily (f:family) (D:R -> Prop) : family :=
   mkfamily (intersection_domain (ind f) D) (fun x y:R => f x y /\ D x)
   (restriction_family f D).
 
+
 Definition compact (X:R -> Prop) : Prop :=
   forall f:family,
     covering_open_set X f ->
@@ -1465,6 +1502,7 @@ Definition complete A := {m : R | is_lub A m }.
 Lemma compact_P3 : forall a b:R, compact (closed_interval a b).
 Proof.
   intros a b.
+
   destruct (Rle_dec a b) as [ hab | hab ].
   {
     unfold compact.
@@ -1483,12 +1521,12 @@ Proof.
         unfold covering in hcov.
         unfold closed_interval in hcov.
 
-        assert (hab' := ab_aab _ _ hab).
-        specialize (hcov _ hab').
+        apply ab_aab in hab.
+        specialize (hcov _ hab).
 
         destruct hcov as [ xa hxa ].
-        set (D' := eq xa).
-        exists D'.
+        set (D := eq xa).
+        exists D.
         unfold covering_finite.
         split.
         {
@@ -1506,19 +1544,20 @@ Proof.
           exists xa.
           split.
           { exact hxa. }
-          { unfold D'. reflexivity. }
+          { unfold D. reflexivity. }
         }
         {
           unfold family_finite.
+          simpl.
           unfold domain_finite.
           exists (cons xa nil).
+          simpl.
           intro xc.
           split.
           {
-            simpl.
             unfold intersection_domain.
             intros [hxcfam hxcd].
-            unfold D' in hxcd.
+            unfold D in hxcd.
             subst xc.
             left.
             reflexivity.
@@ -1536,7 +1575,7 @@ Proof.
                 exact hxa.
               }
               {
-                unfold D'.
+                unfold D.
                 reflexivity.
               }
             }
@@ -1546,27 +1585,21 @@ Proof.
       }
     }
 
-    assert ( hbound : bound A).
-    {
-      clear.
-      unfold bound.
-      exists b.
-      unfold is_upper_bound.
-      intros x h.
-      unfold A in h.
-      unfold AP3 in h.
-      destruct h as [ [ _ h ] _ ].
-      exact h.
-    }
-
-    assert (hinhabited : exists a0 : R, A a0).
-    { exists a. exact haa. }
-
     assert (hcomplete : complete A).
     {
       apply completeness.
-      { exact hbound. }
-      { exact hinhabited. }
+      {
+        clear.
+        unfold bound.
+        exists b.
+        unfold is_upper_bound.
+        intros x h.
+        unfold A in h.
+        unfold AP3 in h.
+        destruct h as [ [ _ h ] _ ].
+        exact h.
+      }
+      { exists a. exact haa. }
     }
 
     destruct hcomplete as [ m hlub ].
@@ -1674,143 +1707,137 @@ Proof.
         }
       }
     }
- 
-                destruct h as [ x [ hax [ Hltx _ ] ] ].
-                unfold A in hax.
-                destruct hax as [ H9 [ Dx hcovf ] ].
-                unfold covering_finite in hcovf.
-                destruct hcovf as [ H12 H13 ].
 
-                destruct (Req_dec m b) as [ hmb | hmb ].
-                {
-                  subst m.
-                  set (Db := fun x:R => Dx x \/ x = ycov).
-                  exists Db.
-                  unfold covering_finite.
-                  split.
-                  {
-                    unfold covering.
-                    intros x0 (H14,H18).
-                    unfold covering in H12.
-                    destruct (Rle_dec x0 x) as [Hle'|Hnle'].
-                    {
-                      cut (a <= x0 <= x).
-                      {
-                        intro H15.
-                        specialize (H12 _ H15).
-                        simpl in H12.
-                        destruct H12 as [ x1 [ H16 H17 ] ].
-                        exists x1.
-                        simpl.
-                        unfold Db.
-                        split.
-                        { apply H16. }
-                        {
-                          left.
-                          apply H17.
-                        }
-                      }
-                      {
-                        split.
-                        { exact H14. }
-                        { exact Hle'. }
-                      }
-                    }
+    destruct h as [ x [ hax [ Hltx _ ] ] ].
+    unfold A in hax.
+    destruct hax as [ H9 [ Dx hcovf ] ].
+    unfold covering_finite in hcovf.
+    destruct hcovf as [ H12 H13 ].
+
+    destruct (Req_dec m b) as [ hmb | hmb ].
+    {
+      subst m.
+      set (Db := fun x:R => Dx x \/ x = ycov).
+      exists Db.
+      unfold covering_finite.
+      split.
       {
-        exists ycov.
-        simpl.
-        split.
+        unfold covering.
+        intros x0 (H14,H18).
+        unfold covering in H12.
+        destruct (Rle_dec x0 x) as [Hle'|Hnle'].
         {
-          apply hfam.
-          unfold disc.
-          rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_right.
+          assert (H15 : a <= x0 <= x).
           {
-            apply Rlt_trans with (b - x).
+            split.
+            { exact H14. }
+            { exact Hle'. }
+          }
+
+          specialize (H12 _ H15).
+          simpl in H12.
+          destruct H12 as [ x1 [ H16 H17 ] ].
+          exists x1.
+          simpl.
+          unfold Db.
+          split.
+          { apply H16. }
+          {
+            left.
+            apply H17.
+          }
+        }
+        {
+          exists ycov.
+          simpl.
+          split.
+          {
+            apply hfam.
+            unfold disc.
+            rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_right.
             {
-              unfold Rminus.
-              apply Rplus_lt_compat_l.
-              apply Ropp_lt_contravar.
-              apply Rnot_le_lt.
-              exact Hnle'.
-            }
-            {
-              apply Rplus_lt_reg_l with (x - delta).
-              replace (x - delta + (b - x)) with (b - delta).
+              apply Rlt_trans with (b - x).
               {
-                replace (x - delta + delta) with x.
-                { apply Hltx. }
+                unfold Rminus.
+                apply Rplus_lt_compat_l.
+                apply Ropp_lt_contravar.
+                apply Rnot_le_lt.
+                exact Hnle'.
+              }
+              {
+                apply Rplus_lt_reg_l with (x - delta).
+                replace (x - delta + (b - x)) with (b - delta).
                 {
                   unfold Rminus.
+                  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+                  apply Hltx.
+                }
+                {
+                  unfold Rminus.
+                  symmetry.
+                  rewrite Rplus_comm.
+                  repeat rewrite <- Rplus_assoc.
+                  apply Rplus_eq_compat_r.
                   rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
                   reflexivity.
                 }
               }
-              {
-                unfold Rminus.
-                symmetry.
-                rewrite Rplus_comm.
-                repeat rewrite <- Rplus_assoc.
-                apply Rplus_eq_compat_r.
-                rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-                reflexivity.
-              }
+            }
+            {
+              unfold Rminus.
+              eapply Rplus_le_reg_r.
+              rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+              exact H18.
             }
           }
           {
-            unfold Rminus.
-            eapply Rplus_le_reg_r.
-            rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
-            exact H18.
+            unfold Db.
+            right.
+            reflexivity.
           }
         }
-        {
-          unfold Db.
-          right.
-          reflexivity.
-        }
       }
-    }
-    {
-      unfold family_finite.
-      unfold domain_finite.
-      unfold family_finite in H13.
-      unfold domain_finite in H13.
-      destruct H13 as (l,H13).
-      exists (cons ycov l).
-      intro x0.
-      split.
       {
-        intro H14.
-        simpl in H14.
-        unfold intersection_domain in H14.
-        specialize H13 with x0.
-        destruct H13 as [ H13 H15].
-        destruct (Req_dec x0 ycov) as [ H16 | H16 ].
+        unfold family_finite.
+        unfold domain_finite.
+        unfold family_finite in H13.
+        unfold domain_finite in H13.
+        destruct H13 as (l,H13).
+        exists (cons ycov l).
+        intro x0.
+        split.
         {
-          simpl.
-          left.
-          apply H16.
-        }
-        {
-          simpl.
-          right.
-          apply H13.
-          simpl.
-          unfold intersection_domain.
-          unfold Db in H14.
-          destruct H14 as [ H7 [ H11 | H11 ] ].
+          intro H14.
+          simpl in H14.
+          unfold intersection_domain in H14.
+          specialize H13 with x0.
+          destruct H13 as [ H13 H15].
+          destruct (Req_dec x0 ycov) as [ H16 | H16 ].
           {
-            split.
-            { exact H7. }
-            { exact H11. }
-          }
-          {
-            exfalso.
+            simpl.
+            left.
             apply H16.
-            exact H11.
+          }
+          {
+            simpl.
+            right.
+            apply H13.
+            simpl.
+            unfold intersection_domain.
+            unfold Db in H14.
+            destruct H14 as [ H7 [ H11 | H11 ] ].
+            {
+              split.
+              { exact H7. }
+              { exact H11. }
+            }
+            {
+              exfalso.
+              apply H16.
+              exact H11.
+            }
           }
         }
-      }
       {
         intro H14.
         simpl in H14.
@@ -2145,32 +2172,29 @@ Proof.
 }
 }
 
-
-
-{
-  apply compact_eqDom with empty_set.
-  { exact compact_EMP. }
   {
-    unfold eq_Dom.
-    split.
+    apply compact_eqDom with empty_set.
+    { exact compact_EMP. }
     {
+      unfold eq_Dom.
       unfold included.
-      intros x H.
-      contradiction.
-    }
-    {
-      unfold included.
-      intro x.
-      unfold closed_interval.
-      intros [ hax hxb ].
       unfold empty_set.
-      apply hab.
-      eapply Rle_trans.
-      { exact hax. }
-      { exact hxb. }
+      split.
+      {
+        intros x false.
+        destruct false.
+      }
+      {
+        intro x.
+        unfold closed_interval.
+        intros [ hax hxb ].
+        apply hab.
+        eapply Rle_trans.
+        { exact hax. }
+        { exact hxb. }
+      }
     }
-}
-}
+  }
 Qed.
 
 Lemma compact_P4 :
