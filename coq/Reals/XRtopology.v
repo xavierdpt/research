@@ -912,9 +912,37 @@ Proof.
   exact hx.
 Qed.
 
+
 Definition subfamily (f:family) (D:R -> Prop) : family :=
   mkfamily (intersection_domain (ind f) D) (fun x y:R => f x y /\ D x)
   (restriction_family f D).
+
+Goal forall (f:family) (D:R->Prop), covering D (subfamily f D) -> covering D f.
+Proof.
+intros fam D hcov.
+unfold covering.
+intros x dx.
+unfold covering in hcov.
+simpl in hcov.
+specialize (hcov x dx).
+destruct hcov as [ y hy ].
+destruct hy as [ hfam dy ].
+exists y. exact hfam.
+Qed.
+
+Goal forall (f:family) (D D':R->Prop), covering D (subfamily f D') -> covering D f.
+Proof.
+intros fam D D' hcov.
+unfold covering.
+intros x dx.
+unfold covering in hcov.
+simpl in hcov.
+specialize (hcov x dx).
+destruct hcov as [ y hy ].
+destruct hy as [ hfam dy ].
+exists y. exact hfam.
+Qed.
+
 
 
 
