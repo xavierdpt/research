@@ -868,18 +868,12 @@ Qed.
 
 Print posreal.
 
+
 Record family : Type := mkfamily {
   ind : R -> Prop;
   f :> R -> R -> Prop;
   cond_fam : forall x:R, (exists y : R, f x y) -> ind x
 }.
-
-Goal forall f:family, (exists (x y:R), f x y) -> (exists x, (ind f) x).
-Proof.
-intros f h.
-destruct h as [ x [ y fxy ] ].
-exists x. apply cond_fam. exists y. exact fxy.
-Qed.
 
 Definition family_open_set (f:family) : Prop := forall x:R, open_set (f x).
 
@@ -898,88 +892,171 @@ Definition covering_finite (D:R -> Prop) (f:family) : Prop :=
   covering D f /\ family_finite f.
 
 Lemma restriction_family : forall (f:family) (D:R -> Prop) (x:R),
-  (exists y : R, (fun z1 z2:R => f z1 z2 /\ D z1) x y) ->
+  (exists y : R,f x y /\ D x) ->
   intersection_domain (ind f) D x.
 Proof.
   intros f D x h.
-  destruct h as [ y h ].
-  destruct h as [ hxy hx ].
   unfold intersection_domain.
+  (*
+    f is a family, D is a subset of R, x is a real number
+    and there is y such that y is in the family indexed by x
+    and x is in D
+  *)
+  (*
+    we want to show that x is an index of f and x is in D
+  *)
+  destruct h as [ y [ hxy hx ] ].
   split.
-  apply f.
-  exists y.
-  exact hxy.
-  exact hx.
+  {
+    (* to show taht x is an index of f, we need to show that the set (f x) is not empty *)
+    apply cond_fam.
+    (* and it is the case, because y is in (f x) *)
+    exists y.
+    exact hxy.
+  }
+  { (* the fact that x is in D is in the hypotheses *)
+    exact hx.
+  }
 Qed.
 
+Definition RF (f:family) D x y := f x y /\ D x.
 
-Definition subfamily (f:family) (D:R -> Prop) : family :=
-  mkfamily (intersection_domain (ind f) D) (fun x y:R => f x y /\ D x)
+(* restriction_family allows to define the notion of subfamily *)
+(* a subfamily is a family projected on D, i.e. the index is restricted to elements of D, and if (f x y) holds only for those x which are in D *)
+Definition subfamily (f:family) (D:R -> Prop) : family := mkfamily
+  (intersection_domain (ind f) D)
+  (RF f D)
   (restriction_family f D).
 
 Goal forall (f:family) (D:R->Prop), covering D (subfamily f D) -> covering D f.
 Proof.
 intros fam D hcov.
+(* We want to show that if fam restricted on D covers D, then fam covers D *)
 unfold covering.
+(* fam covers D if for all x in D, there is a subset (f y) in fam such that x is in that subset *)
 intros x dx.
 unfold covering in hcov.
-simpl in hcov.
+(* We know that for all x in D, there's a subset in the subfamily of fam restricted to D such that x is in that subset *)
+simpl in hcov. unfold RF in hcov.
 specialize (hcov x dx).
-destruct hcov as [ y hy ].
-destruct hy as [ hfam dy ].
-exists y. exact hfam.
+destruct hcov as [ i [ hfam _ ] ].
+(* Let i be the index of the subset in the subfamily which contains x. Then because this subset is also in the family, we can use it to show that it contains x too *)
+exists i.
+exact hfam.
 Qed.
 
-Goal forall (f:family) (D D':R->Prop), covering D (subfamily f D') -> covering D f.
+(* The index set of a subfamily is included in the index set of the family *)
+Goal forall (f:family) (D:R->Prop), included (ind (subfamily f D)) (ind f).
 Proof.
-intros fam D D' hcov.
-unfold covering.
-intros x dx.
-unfold covering in hcov.
-simpl in hcov.
-specialize (hcov x dx).
-destruct hcov as [ y hy ].
-destruct hy as [ hfam dy ].
-exists y. exact hfam.
+intros f D.
+simpl.
+unfold included.
+unfold intersection_domain.
+intros x [ h _ ].
+exact h.
+Qed.
+
+(* The index set of a subfamily is included in the index set of the family *)
+Goal forall (f:family) (D:R->Prop) (i:R), included ((subfamily f D) i) (f i).
+Proof.
+intros f D i.
+simpl.
+unfold included.
+unfold RF.
+intros x [ hfix _ ].
+exact hfix.
+Qed.
+
+Definition empty_set (x:R) := False.
+
+Goal forall (f:family) (D:R->Prop) (i:R), ((subfamily f D) i) =_D (f i) \/ ((subfamily f D) i) =_D empty_set.
+Proof.
+  intros f D i.
+  simpl.
+  unfold "=_D".
+  unfold included.
+  unfold RF.
+  unfold empty_set.
+  destruct (classic (D i)) as [ di | ndi ].
+  {
+    left.
+    split.
+    {
+      intros x [ hfix _ ].
+      exact hfix.
+    }
+    {
+      intros x hfix.
+      split.
+      { exact hfix. }
+      { exact di. }
+    }
+  }
+  {
+    right.
+    split.
+    {
+      intros x [ hfix di ].
+      apply ndi.
+      exact di.
+    }
+    {
+      intros x false.
+      destruct false.
+    }
+  }
 Qed.
 
 
-
-
-Definition compact (X:R -> Prop) : Prop :=
-  forall f:family,
+(* A set X is compact if for every family f which covers X with open sets, there is set D such that the subfamily of f restricted to D covers X
+   with finitely many sets *)
+Definition compact (X:R -> Prop) : Prop := forall f:family,
     covering_open_set X f ->
-    exists D : R -> Prop, covering_finite X (subfamily f D).
+    exists D : R -> Prop,
+      covering_finite X (subfamily f D).
 
+(* Subfamilies of open sets are families of open sets *)
 Lemma family_P1 : forall (f:family) (D:R -> Prop),
   family_open_set f ->
   family_open_set (subfamily f D).
 Proof.
   intros f D h.
   unfold family_open_set.
-  intros x.
-  unfold open_set.
-  intros y hy.
-  unfold neighbourhood.
+  intros i.
+  (* we must show that every set index by i in the subfamily of D is open *)
   unfold family_open_set in h.
-  specialize (h x).
+  specialize (h i).
+  (* we know that every set indexed by i in the family is open *)
+  simpl.
+  unfold open_set.
+  unfold RF at 1.
   unfold open_set in h.
-  specialize (h y).
-  unfold subfamily in hy.
-  simpl in hy.
-  destruct hy as [ hxy hx ].
-  specialize (h hxy).
+  (*
+    We know that every for every x in (f i), x is in a neighbourhood of (f i).
+    We must show that for every x such that x is both in (f i) and D, x is a neighbourhood of the set indexed by i in the subfamily.
+  *)
+  intros x [ hfix di ].
+  specialize (h x hfix).
+  unfold neighbourhood.
   unfold neighbourhood in h.
+  (*
+    We know that (f i) is included in a disc centered at x.
+    We must show that the set indexed by i in the subfamily is included in a disc centered at x
+  *)
   destruct h as [ delta h ].
   exists delta.
   unfold included.
-  intros z hz.
-  unfold subfamily. simpl.
+  unfold RF.
   unfold included in h.
-  specialize (h z).
+  (*
+    We know that if y is in the disc centered at x, then y is in the is in (f i).
+    We must show that if y is in the disc centered at x, then y is in (f i) and also i is in D.
+  *)
+  intros y hy.
+  specialize (h y hy).
   split.
-  apply h. exact hz.
-  exact hx.
+  { exact h. }
+  { exact di. }
 Qed.
 
 Definition bounded (D:R -> Prop) : Prop :=
@@ -1010,146 +1087,153 @@ Proof.
   exact ha.
 Qed.
 
-Definition empty_set (x:R) := False.
+Lemma family_exists : exists (f:family), True.
+Proof.
+  assert (forall x : R, (exists _ : R, True) -> no_cond x).
+  { unfold no_cond. intros _ _. exact I. }
+  exists (mkfamily no_cond (fun _ _ => True) H).
+  exact I.
+Qed.
+
+Lemma posreal_exists : exists (p:posreal), True.
+Proof.
+  exists (mkposreal R1 Rlt_0_1).
+  exact I.
+Qed.
+
+Lemma exists_real : exists x:R, True. 
+Proof.
+exists R0. exact I.
+Qed.
+
+Lemma exists_real_pos : exists x:R, R0 < x.
+Proof.
+exists R1. exact Rlt_0_1.
+Qed.
+
+Lemma posreal_pos : forall x:R, R0 < x -> exists p:posreal, x = p.
+Proof.
+  intros x hx.
+  exists (mkposreal x hx).
+  simpl.
+  reflexivity.
+Qed.
+
+Definition disc_x x y := Rabs y < x.
+
+Lemma disc_x_cond_fam : forall x:R, (exists y, disc_x x y) -> True.
+Proof.
+  intros x _.
+  exact I.
+Qed.
+
+Definition disc_fam := mkfamily no_cond disc_x disc_x_cond_fam.
+
+Lemma disc_fam_cover : forall (X:R->Prop), covering X disc_fam.
+Proof.
+  intros X.
+  unfold covering.
+  intros x hx.
+  simpl.
+  unfold disc_x.
+  destruct exists_real_pos as [ e he ].
+  exists (Rabs x + e).
+  pattern (Rabs x) at 1;rewrite <- Rplus_0_r.
+  apply Rplus_lt_compat_l.
+  exact he.
+Qed.
+
+Lemma disc_fam_open_cover : forall (X:R->Prop), covering_open_set X disc_fam.
+Proof.
+  intros X.
+  unfold covering_open_set.
+  split.
+  { apply disc_fam_cover. }
+  {
+    unfold family_open_set.
+    intro i.
+    unfold open_set.
+    intro x.
+    simpl.
+    unfold disc_x at 1.
+    intros hxi.
+    unfold neighbourhood.
+
+    assert (hpos : R0 < i - Rabs x).
+    {
+      unfold Rminus.
+      eapply Rplus_lt_reg_r.
+      rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+      exact hxi.
+    }
+
+    destruct (posreal_pos _ hpos) as [ p heq ].
+    exists p.
+    unfold included.
+    intros y.
+    unfold disc.
+    intro h.
+    unfold disc_x.
+    rewrite <- heq in *.
+    clear heq p.
+    apply Rplus_lt_reg_r with (- Rabs x).
+    eapply Rle_lt_trans.
+    apply Rabs_triang_inv.
+    exact h.
+  }
+Qed.
+
+Lemma max_rlist : forall l : Rlist, exists x, forall y, In y l -> y <= x.
+Proof.
+  intro l.
+  exists (MaxRlist l).
+  intros y hy.
+  apply MaxRlist_P1.
+  exact hy.
+Qed.
 
 Lemma compact_P1 : forall X:R -> Prop, compact X -> bounded X.
 Proof.
   intros X hc.
   unfold compact in hc.
-  set (g := fun x y:R => Rabs y < x).
+  specialize (hc disc_fam).
+  specialize (hc (disc_fam_open_cover _ )).
 
-  assert (H0 : forall x:R, (exists y, g x y) -> True).
-  {
-    intros _ _.
-    exact I.
-  }
-
-  set (f0 := mkfamily no_cond g H0).
-  specialize (hc f0).
-
-  assert ( H2 : covering_open_set X f0).
-  {
-    clear. 
-    unfold covering_open_set.
-    split.
-    {
-      unfold covering.
-      intros x _.
-      simpl.
-      unfold g.
-      exists (Rabs x + R1).
-      pattern (Rabs x) at 1;rewrite <- Rplus_0_r.
-      apply Rplus_lt_compat_l.
-      apply Rlt_0_1.
-    }
-    {
-      unfold family_open_set.
-      simpl.
-      intro x.
-      destruct (Rtotal_order R0 x) as [ ho | ho ].
-      {
-
-        set (r := mkposreal _ ho).
-        assert (eq : x = r). { auto. }
-        clearbody r.
-
-        apply open_set_P6 with (disc R0 r).
-        { apply disc_P1. }
-        {
-          unfold eq_Dom.
-          split.
-          {
-            unfold included.
-            unfold disc.
-            unfold g.
-            intro y.
-            unfold Rminus.
-            rewrite Ropp_0.
-            rewrite Rplus_0_r.
-            rewrite eq.
-            intro hy.
-            exact hy.
-          }
-          {
-            unfold included.
-            unfold g.
-            unfold disc.
-            intros y hy.
-            unfold Rminus.
-            rewrite Ropp_0.
-            rewrite Rplus_0_r.
-            rewrite eq in hy.
-            exact hy.
-          }
-        }
-      }
-      {
-        apply open_set_P6 with empty_set.
-        { apply open_set_P4. }
-        {
-          unfold eq_Dom.
-          split.
-          {
-            unfold included.
-            intro y.
-            unfold empty_set.
-            intro f.
-            contradiction.
-          }
-          {
-            unfold included.
-            intros y.
-            unfold g.
-            intro hy.
-            unfold empty_set.
-            destruct ho as [ ho | ho ].
-            {
-              subst x.
-              eapply Rlt_irrefl.
-              eapply Rlt_le_trans.
-              { apply hy. }
-              { apply Rabs_pos. }
-            }
-            {
-              eapply Rlt_irrefl.
-              eapply Rlt_le_trans.
-              apply ho.
-              eapply Rle_trans.
-              eapply Rabs_pos.
-              left.
-              apply hy.
-            }
-          }
-        }
-      }
-    }
-  }
-
-  specialize (hc H2).
+  (* This means there is a finite subset D such that f0 restricted to D covers X *)
   destruct hc as [ D hc ].
 
   unfold covering_finite in hc.
   destruct hc as [ hcov hfam ].
+  (* f0|D covers X and f0|D is a finite family *)
   unfold family_finite in hfam.
   unfold domain_finite in hfam.
+  (* there's a list such that every indices of f0|D is in the list *)
   destruct hfam as [ l hfam ].
+
+  simpl in *.
+  unfold intersection_domain in hfam.
+  unfold no_cond in hfam.
+  unfold covering in hcov.
+  simpl in hcov.
+  unfold RF in hcov.
+  simpl in hcov.
+  unfold disc_x in hcov.
+
   unfold bounded.
-  set (r := MaxRlist l).
+
+  destruct (max_rlist l) as [r hr].
+
   exists (- r).
   exists r.
   intros x hx.
-  unfold covering in hcov.
+
   specialize (hcov _ hx).
   destruct hcov as [ y hy ].
-  simpl in hy.
   destruct hy as [ hyx hy ].
-  unfold g in hyx.
   specialize (hfam y).
-  simpl in hfam.
-  assert (hid : intersection_domain no_cond D y).
+
+  assert (hid : True /\ D y).
   {
-    unfold intersection_domain.
-    unfold no_cond.
     split.
     { exact I. }
     { exact hy. }
@@ -1157,36 +1241,25 @@ Proof.
 
   destruct hfam as [ hfaml _ ].
   specialize (hfaml hid).
+
   split.
   {
-    edestruct Rabs_def2.
-    {
-      eapply Rlt_le_trans.
-      { apply hyx. }
-      {
-        apply MaxRlist_P1.
-        exact hfaml.
-      }
-    }
-    {
-      left.
-      exact H1.
-    }
+    apply Rabs_def2 in hyx.
+    destruct hyx as [ hxy hyx ].
+    apply Rle_trans with (-y).
+    apply Ropp_le_contravar.
+    apply hr.
+    exact hfaml.
+    left.
+    exact hyx.
   }
   {
-    eapply Rle_trans.
-    { apply RRle_abs. }
-    {
-      eapply Rle_trans.
-      {
-        left.
-        apply hyx.
-      }
-      {
-        apply MaxRlist_P1.
-        exact hfaml.
-      }
-    }
+    apply Rle_trans with y.
+    2:{ apply hr. exact hfaml. }
+    apply Rle_trans with (Rabs x).
+    apply RRle_abs.
+    left.
+    exact hyx.
   }
 Qed.
 
