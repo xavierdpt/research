@@ -815,16 +815,24 @@ Qed.
 (**********)
 Lemma Rsqrt_Rsqrt : forall x:nonnegreal, Rsqrt x * Rsqrt x = x.
 Proof.
-  intros.
-  destruct (Rsqrt_exists (nonneg x) (cond_nonneg x)) as (x0 & H1 & H2).
+  intros x.
+  destruct (Rsqrt_exists (nonneg x) (cond_nonneg x)) as [ x0 [ H1 H2 ] ].
   cut (x0 = Rsqrt x).
-  intros.
-  rewrite <- H.
-  rewrite H2; reflexivity.
-  unfold Rsqrt.
-  case (Rsqrt_exists x (cond_nonneg x)) as (x1 & ? & ?).
-  apply Rsqr_inj.
-  assumption.
-  assumption.
-  rewrite <- H0, <- H2; reflexivity.
+  {
+    intros H.
+    rewrite <- H.
+    rewrite H2.
+    reflexivity.
+  }
+  {
+    unfold Rsqrt.
+    case (Rsqrt_exists x (cond_nonneg x)) as (x1 & ? & ?).
+    apply Rsqr_inj.
+    { assumption. }
+    { assumption. }
+    {
+      rewrite <- H0, <- H2.
+      reflexivity.
+    }
+  }
 Qed.

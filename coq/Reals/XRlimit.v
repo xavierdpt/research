@@ -225,9 +225,18 @@ Qed.
 (*********)
 Lemma lim_x : forall (D:R -> Prop) (x0:R), limit1_in (fun x:R => x) D x0 x0.
 Proof.
-  unfold limit1_in; unfold limit_in; simpl; intros;
-    split with eps; split; auto; intros; elim H0; intros;
-      auto.
+  intros D x.
+  unfold limit1_in.
+  unfold limit_in.
+  simpl.
+  intros e he.
+  exists e.
+  split.
+  { exact he. }
+  {
+    intros y [ hy h ].
+    exact h.
+  }
 Qed.
 
 (*********)
@@ -283,10 +292,21 @@ Lemma limit_free :
   forall (f:R -> R) (D:R -> Prop) (x x0:R),
     limit1_in (fun h:R => f x) D (f x) x0.
 Proof.
-  unfold limit1_in; unfold limit_in; simpl; intros;
-    split with eps; split; auto; intros; elim (R_dist_refl (f x) (f x));
-      intros a b; rewrite (b (eq_refl (f x))); 
-        assumption.
+  intros f D x y.
+  unfold limit1_in.
+  unfold limit_in.
+  simpl.
+  intros e he.
+  exists e.
+  split.
+  { exact he. }
+  {
+    intros _ _.
+    unfold R_dist.
+    unfold Rminus.
+    rewrite Rplus_opp_r, Rabs_R0.
+    exact he.
+  }
 Qed.
 
 (*********)

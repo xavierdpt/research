@@ -178,31 +178,67 @@ Qed.
 Lemma Dconst :
   forall (D:R -> Prop) (y x0:R), D_in (fun x:R => y) (fun x:R => R0) D x0.
 Proof.
-  unfold D_in; intros; unfold limit1_in;
-    unfold limit_in; unfold Rdiv; intros;
-      simpl; split with eps; split; auto.
-  intros; rewrite (Rminus_diag_eq y y (eq_refl y)); rewrite Rmult_0_l;
-    unfold R_dist; rewrite (Rminus_diag_eq R0 R0 (eq_refl R0));
-      unfold Rabs; case (Rcase_abs R0); intro.
-  absurd (R0 < R0); auto.
-  red; intro; apply (Rlt_irrefl R0 H1).
-  assumption.
+  intros D x y.
+  unfold D_in.
+  unfold limit1_in.
+  unfold limit_in.
+  simpl.
+  intros e he.
+  exists e.
+  split.
+  { exact he. }
+  {
+    intros z h.
+    destruct h as [ hl hr ].
+    unfold R_dist.
+    unfold Rminus.
+    rewrite Rplus_opp_r.
+    unfold Rdiv.
+    rewrite Rmult_0_l.
+    rewrite Rplus_0_l.
+    rewrite Ropp_0.
+    rewrite Rabs_R0.
+    exact he.
+  }
 Qed.
 
 (*********)
 Lemma Dx :
   forall (D:R -> Prop) (x0:R), D_in (fun x:R => x) (fun x:R => R1) D x0.
 Proof.
-  unfold D_in; unfold Rdiv; intros; unfold limit1_in;
-    unfold limit_in; intros; simpl; split with eps;
-      split; auto.
-  intros; elim H0; clear H0; intros; unfold D_x in H0; elim H0; intros;
-    rewrite (Rinv_r (x - x0) (Rminus_eq_contra x x0 (sym_not_eq H3)));
-      unfold R_dist; rewrite (Rminus_diag_eq R1 R1 (refl_equal R1));
-        unfold Rabs; case (Rcase_abs R0) as [Hlt|Hge].
-  absurd (R0 < R0); auto.
-  red in |- *; intro; apply (Rlt_irrefl R0 Hlt).
-  assumption.
+  intros D x.
+  unfold D_in.
+  unfold limit1_in.
+  unfold limit_in.
+  simpl.
+  intros e he.
+  exists e.
+  split.
+  { exact he. }
+  {
+    intros y h.
+    destruct h as [ hl hr ].
+    unfold D_x in hl.
+    destruct hl as [ hy hneq ].
+    unfold R_dist in hr.
+    unfold R_dist.
+    unfold Rdiv.
+    rewrite Rinv_r.
+    {
+      unfold Rminus.
+      rewrite Rplus_opp_r.
+      rewrite Rabs_R0.
+      exact he.
+    }
+    {
+      intro eq.
+      apply hneq.
+      symmetry.
+      apply Rplus_eq_reg_r with (-x).
+      rewrite Rplus_opp_r.
+      exact eq.
+    }
+  }
 Qed.
 
 (*********)
