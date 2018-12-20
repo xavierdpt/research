@@ -1007,6 +1007,28 @@ Proof.
   }
 Qed.
 
+Check cond_fam.
+
+Definition is_family (I:R->Prop) (M:R->R->Prop) := forall x, (exists y, M x y) -> I x.
+
+Definition restrict (I:R->Prop) (M:R->R->Prop) (x y:R) := M x y /\ I x.
+
+Lemma yyy : forall  (I I':R->Prop) (M:R->R->Prop), is_family I M -> is_family (intersection_domain I I') (restrict I' M).
+Proof.
+  intros I I' M h.
+  unfold is_family.
+  unfold intersection_domain.
+  unfold is_family in h.
+  intros x h'.
+  destruct h' as [ y h' ].
+  unfold restrict in h'.
+  destruct h' as [ hm hi ].
+  specialize (h x).
+  split.
+  apply h.
+  exists y. exact hm.
+  exact hi.
+Qed.
 
 (* A set X is compact if for every family f which covers X with open sets, there is set D such that the subfamily of f restricted to D covers X
    with finitely many sets *)
@@ -1263,6 +1285,130 @@ Proof.
   }
 Qed.
 
+Definition cP2_fn X x y z := Rabs (y - z) < Rabs (y - x) / R2 /\ X y.
+
+Lemma cP2_cond_fam : forall X x y, (exists z , (cP2_fn X x) y z) -> X y.
+Proof.
+  intros X x y hy.
+  destruct hy as [ z hyz ].
+  unfold cP2_fn in hyz.
+  destruct hyz as [ _ hy ].
+  exact hy.
+Qed.
+
+Definition cP2_fam X x := mkfamily X (cP2_fn X x) (cP2_cond_fam X x).
+
+Lemma cP2_tech : forall (X : R -> Prop) (x : R),
+  ~ X x -> forall y : R, X y -> R0 < Rabs (y - x) / R2.
+Proof.
+  intros X x hx y hy.
+  apply half_pos.
+  apply Rabs_pos_lt.
+  apply Rminus_eq_contra.
+  intro eq.
+  subst y.
+  apply hx.
+  exact hy.
+Qed.
+
+Lemma cP2_open_covering : forall (X : R -> Prop) (x : R),
+  ~ X x ->
+  covering_open_set X (cP2_fam X x).
+Proof.
+  intros X x h.
+  unfold covering_open_set.
+  split.
+  {
+    unfold covering.
+    intros y hy.
+    exists y.
+    simpl.
+    unfold cP2_fn.
+    split.
+    {
+      unfold Rminus.
+      rewrite Rplus_opp_r.
+      rewrite Rabs_R0.
+      eapply cP2_tech.
+      apply h.
+      exact hy.
+    }
+    { exact hy. }
+  }
+  {
+    unfold family_open_set.
+    simpl.
+    intro y.
+    destruct  (classic (X y)) as [ hy | hy ].
+    {
+      assert (h':=cP2_tech).
+      specialize (h' _ _ h _ hy).
+
+      set ( ep := mkposreal _ h' ).
+      set ( e := pos ep).
+      simpl in e.
+      assert (eq : e = ep).
+      reflexivity.
+      clearbody ep.
+
+      apply open_set_P6 with (disc y ep).
+      { apply disc_P1. }
+      {
+        unfold eq_Dom.
+        split.
+        {
+          unfold included.
+          unfold disc.
+          intros z hzy.
+          unfold cP2_fn.
+          split.
+          {
+            fold e.
+            rewrite Rabs_minus_sym.
+            rewrite eq.
+            exact hzy.
+          }
+          { exact hy. }
+        }
+        {
+          unfold included.
+          unfold disc.
+          intros z hzy.
+          unfold cP2_fn in hzy.
+          destruct hzy as [ hzy _ ].
+          rewrite Rabs_minus_sym.
+          fold e in hzy.
+          rewrite eq in hzy.
+          exact hzy.
+        }
+      }
+    }
+    {
+      apply open_set_P6 with empty_set.
+      { exact open_set_P4. }
+      {
+        unfold eq_Dom.
+        split.
+        {
+          unfold included.
+          intros z hz.
+          unfold empty_set in hz.
+          contradiction.
+        }
+        {
+          unfold included.
+          intros z hz.
+          unfold cP2_fn in hz.
+          destruct hz as [ _ hy' ].
+          unfold empty_set.
+          apply hy.
+          exact hy'.
+        }
+      }
+    }
+  }
+Qed.
+
 Lemma compact_P2 : forall X:R -> Prop, compact X -> closed_set X.
 Proof.
   intros X hc.
@@ -1281,123 +1427,16 @@ Proof.
     {
       assert ( H2 : forall y:R, X y -> R0 < Rabs (y - x) / R2).
       {
-        intros y hy.
-        apply half_pos.
-        apply Rabs_pos_lt.
-        apply Rminus_eq_contra.
-        intro eq.
-        subst y.
-        apply hx.
-        exact hy.
+        apply cP2_tech.
+        exact hx.
       }
 
-      set (g := fun y z:R => Rabs (y - z) < Rabs (y - x) / R2 /\ X y).
+      specialize (hc (cP2_fam X x)).
 
-      assert ( H3 : forall x:R, (exists y : _, g x y) -> X x).
+      assert ( H5 : covering_open_set X (cP2_fam X x)).
       {
-        intros y hy.
-        destruct hy as [ z hyz ].
-        unfold g in hyz.
-        destruct hyz as [ _ hy ].
-        exact hy.
-      }
-
-      set (f0 := mkfamily X g H3).
-
-      specialize (hc f0).
-
-      assert ( H5 : covering_open_set X f0).
-      {
-        clear - H2.
-        unfold covering_open_set.
-        split.
-        {
-          unfold covering.
-          intros y hy.
-          exists y.
-          simpl.
-          unfold g.
-          split.
-          {
-            unfold Rminus.
-            rewrite Rplus_opp_r.
-            rewrite Rabs_R0.
-            apply H2.
-            exact hy.
-          }
-          { exact hy. }
-        }
-        {
-          unfold family_open_set.
-          simpl.
-          intro y.
-          destruct  (classic (X y)) as [ hy | hy ].
-          {
-            specialize (H2 _ hy).
-
-            set ( ep := mkposreal _ H2 ).
-            set ( e := pos ep).
-            simpl in e.
-            assert (eq : e = ep).
-            reflexivity.
-            clearbody ep.
-
-            apply open_set_P6 with (disc y ep).
-            { apply disc_P1. }
-            {
-              unfold eq_Dom.
-              split.
-              {
-                unfold included.
-                unfold disc.
-                intros z hzy.
-                unfold g.
-                split.
-                {
-                  fold e.
-                  rewrite Rabs_minus_sym.
-                  rewrite eq.
-                  exact hzy.
-                }
-                { exact hy. }
-              }
-              {
-                unfold included.
-                unfold disc.
-                intros z hzy.
-                unfold g in hzy.
-                destruct hzy as [ hzy _ ].
-                rewrite Rabs_minus_sym.
-                fold e in hzy.
-                rewrite eq in hzy.
-                exact hzy.
-              }
-            }
-          }
-          {
-            apply open_set_P6 with empty_set.
-            { exact open_set_P4. }
-            {
-              unfold eq_Dom.
-              split.
-              {
-                unfold included.
-                intros z hz.
-                unfold empty_set in hz.
-                contradiction.
-              }
-              {
-                unfold included.
-                intros z hz.
-                unfold g in hz.
-                destruct hz as [ _ hy' ].
-                unfold empty_set.
-                apply hy.
-                exact hy'.
-              }
-            }
-          }
-        }
+        apply cP2_open_covering.
+        exact hx.
       }
 
       specialize (hc H5).
@@ -1458,8 +1497,10 @@ Proof.
 
       specialize (hcov _ hy).
       destruct hcov as [ z hcov ].
+      unfold RF in hcov.
       destruct hcov as [ hzy hdz ].
-      unfold g in hzy.
+      simpl in hzy.
+      unfold cP2_fn in hzy.
       destruct hzy as [ hzy hxz ].
 
       unfold disc in hxy.
@@ -2300,87 +2341,542 @@ Proof.
   }
 Qed.
 
+Definition cond_fam_gen (D:R->Prop) (f:R->R->Prop) := forall x, (exists y, f x y) -> D x.
+
+Definition fun_P4 (f0:family) (F:R->Prop) (x y:R) := f0 x y \/ complementary F y /\ (ind f0) x.
+
+Lemma cond_fam_P4 : forall (f0:family) (F:R->Prop) , cond_fam_gen (ind f0) (fun_P4 f0 F).
+Proof.
+  intros f0 F.
+  unfold cond_fam_gen.
+  intros x h.
+  destruct h as [ y h ].
+  unfold fun_P4 in h.
+  destruct h as [ h | h ].
+  {
+    apply cond_fam.
+    exists y.
+    exact h.
+  }
+  {
+    destruct h as [ _ h ].
+    exact h.
+  }
+Qed.
+
+Definition fam_P4 f0 F := mkfamily
+  (ind f0)
+  (fun_P4 f0 F)
+  (cond_fam_P4 f0 F).
+
+Lemma lem_P4 : 
+forall X F : R -> Prop,
+open_set (complementary F) ->
+forall f0 : family,
+covering_open_set F f0 ->
+(exists z : R, F z) ->
+covering_open_set X (fam_P4 f0 F).
+Proof.
+  intros X F.
+  intros hco fam hcov hnot_empty.
+  unfold covering_open_set.
+  unfold covering_open_set in hcov.
+  destruct hcov as [ H2 H4 ].
+  split.
+  {
+    clear - H2 hnot_empty.
+    unfold covering.
+    unfold covering in H2.
+    intros x H5.
+    destruct (classic (F x)) as [ H6 | H6 ].
+    {
+      clear - H2 H6.
+      specialize (H2 _ H6).
+      destruct H2 as [y0 H7].
+      exists y0.
+      simpl.
+      unfold fun_P4.
+      left.
+      exact H7.
+    }
+    {
+      cut (exists z : R, (ind fam) z).
+      {
+        clear - H6.
+        intro H7.
+        destruct H7 as [x0 H7].
+        exists x0.
+        simpl.
+        unfold fun_P4.
+        right.
+        split.
+        {
+          clear - H6.
+          unfold complementary.
+          exact H6.
+        }
+        {
+          clear - H7.
+          exact H7.
+        }
+      }
+      {
+        clear - hnot_empty H2.
+        destruct hnot_empty as [z0 H7].
+        specialize (H2 _ H7).
+        destruct H2 as [ t H8 ].
+        exists t.
+        apply cond_fam.
+        exists z0.
+        exact H8.
+      }
+    }
+  }
+  {
+    clear - hco H4.
+    unfold family_open_set.
+    intro x.
+    simpl.
+    unfold fun_P4.
+    destruct (classic ((ind fam) x)) as [ H5 | H5].
+    {
+      clear - hco H4 H5.
+      apply open_set_P6 with (union_domain (fam x) (complementary F)).
+      {
+        clear - hco H4.
+        apply open_set_P2.
+        {
+          clear - H4.
+          unfold family_open_set in H4.
+          apply H4.
+        }
+        {
+          clear - hco.
+          exact hco.
+        }
+      }
+      {
+        clear - H5.
+        unfold eq_Dom.
+        unfold included.
+        unfold union_domain.
+        unfold complementary.
+        split.
+        {
+          clear - H5.
+          intros y h.
+          destruct h as [ h | h ].
+          {
+            left.
+            exact h.
+          }
+          {
+            right.
+            split.
+            { exact h. }
+            { exact H5. }
+          }
+        }
+        {
+          clear.
+          intros y h.
+          destruct h as [ h | h ].
+          {
+            left.
+            apply h.
+          }
+          {
+            right.
+            destruct h as [ h _ ].
+            exact h.
+          }
+        }
+      }
+    }
+    {
+      clear - H4 H5.
+      apply open_set_P6 with (fam x).
+      {
+        clear - H4.
+        unfold family_open_set in H4.
+        apply H4.
+      }
+      {
+        clear - H5.
+        unfold eq_Dom.
+        split.
+        {
+          clear.
+          unfold included.
+          unfold complementary.
+          intros y hfxy.
+          left.
+          exact hfxy.
+        }
+        {
+          clear - H5.
+          unfold included.
+          unfold complementary.
+          intros x0 H6.
+          destruct H6 as [ H7 | H7 ].
+          {
+            clear - H7.
+            apply H7.
+          }
+          {
+            clear - H7 H5.
+            destruct H7 as [ _ H7 ].
+            exfalso.
+            apply H5.
+            exact H7.
+          }
+        }
+      }
+    }
+  }
+Qed.
+
+
 Lemma compact_P4 :
   forall X F:R -> Prop, compact X -> closed_set F -> included F X -> compact F.
 Proof.
-  unfold compact; intros; elim (classic (exists z : R, F z));
-    intro Hyp_F_NE.
-  set (D := ind f0); set (g := f f0); unfold closed_set in H0.
-  set (g' := fun x y:R => f0 x y \/ complementary F y /\ D x).
-  set (D' := D).
-  cut (forall x:R, (exists y : R, g' x y) -> D' x).
-  intro; set (f' := mkfamily D' g' H3); cut (covering_open_set X f').
-  intro; elim (H _ H4); intros DX H5; exists DX.
-  unfold covering_finite; unfold covering_finite in H5; elim H5;
-    clear H5; intros.
-  split.
-  unfold covering; unfold covering in H5; intros.
-  elim (H5 _ (H1 _ H7)); intros y0 H8; exists y0; simpl in H8; simpl;
-    elim H8; clear H8; intros.
-  split.
-  unfold g' in H8; elim H8; intro.
-  apply H10.
-  elim H10; intros H11 _; unfold complementary in H11; elim H11; apply H7.
-  apply H9.
-  unfold family_finite; unfold domain_finite;
-    unfold family_finite in H6; unfold domain_finite in H6;
-      elim H6; clear H6; intros l H6; exists l; intro; assert (H7 := H6 x);
-        elim H7; clear H7; intros.
-  split.
-  intro; apply H7; simpl; unfold intersection_domain;
-    simpl in H9; unfold intersection_domain in H9; unfold D';
-      apply H9.
-  intro; assert (H10 := H8 H9); simpl in H10; unfold intersection_domain in H10;
-    simpl; unfold intersection_domain;
-      unfold D' in H10; apply H10.
-  unfold covering_open_set; unfold covering_open_set in H2; elim H2;
-    clear H2; intros.
-  split.
-  unfold covering; unfold covering in H2; intros.
-  elim (classic (F x)); intro.
-  elim (H2 _ H6); intros y0 H7; exists y0; simpl; unfold g';
-    left; assumption.
-  cut (exists z : R, D z).
-  intro; elim H7; clear H7; intros x0 H7; exists x0; simpl;
-    unfold g'; right.
-  split.
-  unfold complementary; apply H6.
-  apply H7.
-  elim Hyp_F_NE; intros z0 H7.
-  assert (H8 := H2 _ H7).
-  elim H8; clear H8; intros t H8; exists t; apply (cond_fam f0); exists z0;
-    apply H8.
-  unfold family_open_set; intro; simpl; unfold g';
-    elim (classic (D x)); intro.
-  apply open_set_P6 with (union_domain (f0 x) (complementary F)).
-  apply open_set_P2.
-  unfold family_open_set in H4; apply H4.
-  apply H0.
-  unfold eq_Dom; split.
-  unfold included, union_domain, complementary; intros.
-  elim H6; intro; [ left; apply H7 | right; split; assumption ].
-  unfold included, union_domain, complementary; intros.
-  elim H6; intro; [ left; apply H7 | right; elim H7; intros; apply H8 ].
-  apply open_set_P6 with (f0 x).
-  unfold family_open_set in H4; apply H4.
-  unfold eq_Dom; split.
-  unfold included, complementary; intros; left; apply H6.
-  unfold included, complementary; intros.
-  elim H6; intro.
-  apply H7.
-  elim H7; intros _ H8; elim H5; apply H8.
-  intros; elim H3; intros y0 H4; unfold g' in H4; elim H4; intro.
-  apply (cond_fam f0); exists y0; apply H5.
-  elim H5; clear H5; intros _ H5; apply H5.
-(* Cas ou F est l'ensemble vide *)
-  cut (compact F).
-  intro; apply (H3 f0 H2).
-  apply compact_eqDom with (fun _:R => False).
-  apply compact_EMP.
-  unfold eq_Dom; split.
-  unfold included; intros; elim H3.
-  assert (H3 := not_ex_all_not _ _ Hyp_F_NE); unfold included; intros;
-    elim (H3 x); apply H4.
+  unfold compact.
+  intros X F H H0 H1 f0 H2.
+  destruct (classic (exists z : R, F z)) as [ Hyp_F_NE | Hyp_F_NE ].
+  {
+    set (D := ind f0).
+    set (g := f f0).
+
+    unfold closed_set in H0.
+    set (g' := fun x y:R => f0 x y \/ complementary F y /\ D x).
+    cut (forall x:R, (exists y : R, g' x y) -> D x).
+    {
+      intro H3.
+
+      set (f' := mkfamily D g' H3).
+
+      cut (covering_open_set X f').
+      {
+        intro H4. clear H4.
+        assert( lp := lem_P4).
+        specialize (lp X F).
+        specialize (lp H0).
+        specialize (lp f0).
+        specialize (lp H2).
+        specialize (lp Hyp_F_NE).
+        clear - H H1 lp.
+        specialize (H _ lp).
+        clear lp.
+        destruct H as [ DX H5 ].
+        exists DX.
+        unfold covering_finite.
+        unfold covering_finite in H5.
+        destruct H5 as [ H H5 ].
+        split.
+        {
+          clear - H H1.
+          unfold covering.
+          unfold covering in H.
+          intros x H7.
+          specialize (H1 _ H7).
+          specialize (H _ H1).
+          destruct H as [ y0 H8 ].
+          exists y0.
+          simpl in H8.
+          unfold RF in H8.
+          simpl in H8.
+          simpl.
+          destruct H8 as [ H8 H5 ].
+          split.
+          {
+            clear - H7 H8.
+            unfold fun_P4 in H8.
+            destruct H8 as [ H10 | H10 ].
+            {
+              clear - H10.
+              exact H10.
+            }
+            {
+              clear - H10 H7.
+              destruct H10 as [ H11 _ ].
+              unfold complementary in H11.
+              exfalso.
+              apply H11.
+              exact H7.
+            }
+          }
+          {
+            clear - H5.
+            exact H5.
+          }
+        }
+        {
+          clear - H5.
+          unfold family_finite.
+          unfold domain_finite.
+          unfold family_finite in H5.
+          unfold domain_finite in H5.
+          destruct H5 as [ l H6 ].
+          exists l.
+          intro x.
+          specialize (H6 x).
+          destruct H6 as [ H7 H8 ].
+          split.
+          {
+            clear - H7.
+            intro H9.
+            apply H7.
+            simpl.
+            unfold intersection_domain.
+            simpl in H9.
+            unfold intersection_domain in H9.
+            apply H9.
+          }
+          {
+            clear - H8.
+            intro H9.
+            assert (H10 := H8 H9).
+            simpl in H10.
+            unfold intersection_domain in H10.
+            simpl.
+            unfold intersection_domain.
+            apply H10.
+          }
+        }
+      }
+      {
+        clear - H2 Hyp_F_NE H0.
+
+        revert f'.
+        revert H3.
+        revert g'.
+        revert D.
+        revert Hyp_F_NE.
+        revert H2.
+        revert f0.
+        revert H0.
+        revert F.
+        revert X.
+
+        intros X F H0 f0 H2 Hyp_F_NE D g' H3 f'.
+
+        unfold covering_open_set.
+        unfold covering_open_set in H2.
+        destruct H2 as [ H2 H4 ].
+        split.
+        {
+          clear - H2 Hyp_F_NE.
+          unfold covering.
+          unfold covering in H2.
+          intros x H5.
+          destruct (classic (F x)) as [ H6 | H6 ].
+          {
+            clear - H2 H6.
+            specialize (H2 _ H6).
+            destruct H2 as [y0 H7].
+            exists y0.
+            simpl.
+            unfold g'.
+            left.
+            exact H7.
+          }
+          {
+            cut (exists z : R, D z).
+            {
+              clear - H6.
+              intro H7.
+              destruct H7 as [x0 H7].
+              exists x0.
+              simpl.
+              unfold g'.
+              right.
+              split.
+              {
+                clear - H6.
+                unfold complementary.
+                exact H6.
+              }
+              {
+                clear - H7.
+                exact H7.
+              }
+            }
+            {
+              clear - Hyp_F_NE H2.
+              destruct Hyp_F_NE as [z0 H7].
+              specialize (H2 _ H7).
+              destruct H2 as [ t H8 ].
+              exists t.
+              apply cond_fam.
+              exists z0.
+              exact H8.
+            }
+          }
+        }
+        {
+          clear - H0 H4.
+          unfold family_open_set.
+          intro x.
+          simpl.
+          unfold g'.
+          destruct (classic (D x)) as [ H5 | H5].
+          {
+            clear - H0 H4 H5.
+            apply open_set_P6 with (union_domain (f0 x) (complementary F)).
+            {
+              clear - H0 H4.
+              apply open_set_P2.
+              {
+                clear - H4.
+                unfold family_open_set in H4.
+                apply H4.
+              }
+              {
+                clear - H0.
+                exact H0.
+              }
+            }
+            {
+              clear - H5.
+              unfold eq_Dom.
+              unfold included.
+              unfold union_domain.
+              unfold complementary.
+              split.
+              {
+                clear - H5.
+                intros y h.
+                destruct h as [ h | h ].
+                {
+                  left.
+                  exact h.
+                }
+                {
+                  right.
+                  split.
+                  { exact h. }
+                  { exact H5. }
+                }
+              }
+              {
+                clear.
+                intros y h.
+                destruct h as [ h | h ].
+                {
+                  left.
+                  apply h.
+                }
+                {
+                  right.
+                  destruct h as [ h _ ].
+                  exact h.
+                }
+              }
+            }
+          }
+          {
+            clear - H4 H5.
+            apply open_set_P6 with (f0 x).
+            {
+              clear - H4.
+              unfold family_open_set in H4.
+              apply H4.
+            }
+            {
+              clear - H5.
+              unfold eq_Dom.
+              split.
+              {
+                clear.
+                unfold included.
+                unfold complementary.
+                intros y hfxy.
+                left.
+                exact hfxy.
+              }
+              {
+                clear - H5.
+                unfold included.
+                unfold complementary.
+                intros x0 H6.
+                destruct H6 as [ H7 | H7 ].
+                {
+                  clear - H7.
+                  apply H7.
+                }
+                {
+                  clear - H7 H5.
+                  destruct H7 as [ _ H7 ].
+                  exfalso.
+                  apply H5.
+                  exact H7.
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      clear.
+      intros x hex.
+      destruct hex as [y hy].
+      unfold g' in hy.
+      destruct hy as [ hy | hy ].
+      {
+        clear - hy.
+        apply cond_fam.
+        exists y.
+        exact hy.
+      }
+      {
+        clear - hy.
+        destruct hy as [ _ hy ].
+        unfold D.
+        exact hy.
+      }
+    }
+  }
+  {
+    clear - H2 Hyp_F_NE.
+    cut (compact F).
+    {
+      clear - H2.
+      intro hcompact.
+      unfold compact in hcompact.
+      apply hcompact.
+      exact H2.
+    }
+    {
+      clear - Hyp_F_NE.
+      apply compact_eqDom with empty_set.
+      {
+        clear.
+        apply compact_EMP.
+      }
+      {
+        clear - Hyp_F_NE.
+        unfold eq_Dom.
+        split.
+        {
+          clear.
+          unfold included.
+          intros x empty.
+          unfold empty_set in empty.
+          destruct empty.
+        }
+        {
+          clear - Hyp_F_NE.
+          assert (H3 := not_ex_all_not _ _ Hyp_F_NE) ; clear Hyp_F_NE ; rename H3 into Hyp_F_NE.
+          unfold included.
+          intros x hfx.
+          unfold empty_set.
+          apply Hyp_F_NE with x.
+          exact hfx.
+        }
+      }
+    }
+  }
 Qed.
 
 (**********)
