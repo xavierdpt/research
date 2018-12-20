@@ -568,13 +568,20 @@ Lemma limit_inv :
 Proof.
   unfold limit1_in; unfold limit_in; simpl;
     unfold R_dist; intros; elim (H (Rabs l / R2)).
+{
   intros delta1 H2; elim (H (eps * (Rsqr l / R2))).
+{
   intros delta2 H3; elim H2; elim H3; intros; exists (Rmin delta1 delta2);
     split.
+{
   unfold Rmin; case (Rle_dec delta1 delta2); intro; assumption.
+}
+{
   intro; generalize (H5 x); clear H5; intro H5; generalize (H7 x); clear H7;
     intro H7; intro H10; elim H10; intros; cut (D x /\ Rabs (x - x0) < delta1).
+{
   cut (D x /\ Rabs (x - x0) < delta2).
+{
   intros; generalize (H5 H11); clear H5; intro H5; generalize (H7 H12);
     clear H7; intro H7; generalize (Rabs_triang_inv l (f x));
       intro; rewrite Rabs_minus_sym in H7;
@@ -585,133 +592,279 @@ Proof.
               (Rplus_lt_compat_l (Rabs (f x) - Rabs l / R2) (Rabs l - Rabs (f x))
                 (Rabs l / R2) H14);
               replace (Rabs (f x) - Rabs l / R2 + (Rabs l - Rabs (f x))) with (Rabs l / R2).
+{
   unfold Rminus; rewrite Rplus_assoc; rewrite Rplus_opp_l;
     rewrite Rplus_0_r; intro; cut (f x <> R0).
+{
   intro; replace (/ f x + - / l) with ((l - f x) * / (l * f x)).
+{
   rewrite Rabs_mult; rewrite Rabs_Rinv.
+{
   cut (/ Rabs (l * f x) < R2 / Rsqr l).
+{
   intro; rewrite Rabs_minus_sym in H5; cut (R0 <= / Rabs (l * f x)).
+{
   intro;
     generalize
       (Rmult_le_0_lt_compat (Rabs (l - f x)) (eps * (Rsqr l / R2))
         (/ Rabs (l * f x)) (R2 / Rsqr l) (Rabs_pos (l - f x)) H18 H5 H17);
       replace (eps * (Rsqr l / R2) * (R2 / Rsqr l)) with eps.
+{
   intro; assumption.
+}
+{
   unfold Rdiv; unfold Rsqr; rewrite Rinv_mult_distr.
+{
   repeat rewrite Rmult_assoc.
   rewrite (Rmult_comm l).
   repeat rewrite Rmult_assoc.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r.
   rewrite (Rmult_comm l).
   repeat rewrite Rmult_assoc.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r; reflexivity.
+}
+{
   exact Neq_2_0.
+}
+}
+{
   exact H0.
+}
+}
+{
   exact H0.
+}
+}
+{
   exact H0.
+}
+{
   exact H0.
+}
+}
+}
+{
   left; apply Rinv_0_lt_compat; apply Rabs_pos_lt; apply prod_neq_R0;
     assumption.
+}
+}
+{
   rewrite Rmult_comm; rewrite Rabs_mult; rewrite Rinv_mult_distr.
+{
   rewrite (Rsqr_abs l); unfold Rsqr; unfold Rdiv;
     rewrite Rinv_mult_distr.
+{
   repeat rewrite <- Rmult_assoc; apply Rmult_lt_compat_r.
+{
   apply Rinv_0_lt_compat; apply Rabs_pos_lt; assumption.
+}
+{
   apply Rmult_lt_reg_l with (Rabs (f x) * Rabs l * / R2).
+{
   repeat apply Rmult_lt_0_compat.
+{
   apply Rabs_pos_lt; assumption.
+}
+{
   apply Rabs_pos_lt; assumption.
+}
+{
   apply Rinv_0_lt_compat; cut (0%nat <> 2%nat);
     [ intro H17; generalize (lt_INR_0 2 (neq_O_lt 2 H17)); unfold INR;
       intro H18; assumption
       | discriminate ].
+}
+}
+{
   replace (Rabs (f x) * Rabs l * / R2 * / Rabs (f x)) with (Rabs l / R2).
+{
   replace (Rabs (f x) * Rabs l * / R2 * (R2 * / Rabs l)) with (Rabs (f x)).
+{
   assumption.
+}
+{
   repeat rewrite Rmult_assoc.
   rewrite (Rmult_comm (Rabs l)).
   repeat rewrite Rmult_assoc.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r; reflexivity.
+}
+{
   exact Neq_2_0.
+}
+}
+{
   apply Rabs_no_R0.
-  assumption.
+  exact H0.
+}
+}
+}
+{
   unfold Rdiv.
   repeat rewrite Rmult_assoc.
   rewrite (Rmult_comm (Rabs (f x))).
   repeat rewrite Rmult_assoc.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r.
   reflexivity.
-  apply Rabs_no_R0; assumption.
-  apply Rabs_no_R0; assumption.
-  apply Rabs_no_R0; assumption.
-  apply Rabs_no_R0; assumption.
-  apply Rabs_no_R0; assumption.
-  apply prod_neq_R0; assumption.
+}
+{
+  apply Rabs_no_R0.
+  exact H16.
+}
+}
+}
+}
+}
+{
+  apply Rabs_no_R0.
+  exact H0.
+}
+{
+  apply Rabs_no_R0.
+  exact H0.
+}
+}
+{
+  apply Rabs_no_R0.
+  exact H16.
+}
+{
+  apply Rabs_no_R0.
+  exact H0.
+}
+}
+}
+{
+  apply prod_neq_R0.
+  { exact H0. }
+  { exact H16. }
+}
+}
+{
   rewrite (Rinv_mult_distr _ _ H0 H16).
   unfold Rminus; rewrite Rmult_plus_distr_r.
   rewrite <- Rmult_assoc.
   rewrite <- Rinv_r_sym.
+{
   rewrite Rmult_1_l.
   rewrite Ropp_mult_distr_l_reverse.
   rewrite (Rmult_comm (f x)).
   rewrite Rmult_assoc.
   rewrite <- Rinv_l_sym.
+{
   rewrite Rmult_1_r.
   reflexivity.
-  assumption.
-  assumption.
-  red; intro; rewrite H16 in H15; rewrite Rabs_R0 in H15;
-    cut (R0 < Rabs l / R2).
-  intro; elim (Rlt_irrefl R0 (Rlt_trans R0 (Rabs l / R2) R0 H17 H15)).
-  unfold Rdiv; apply Rmult_lt_0_compat.
-  apply Rabs_pos_lt; assumption.
-  apply Rinv_0_lt_compat; cut (0%nat <> 2%nat);
-    [ intro H17; generalize (lt_INR_0 2 (neq_O_lt 2 H17)); unfold INR;
-      intro; assumption
-      | discriminate ].
-  pattern (Rabs l) at 3; rewrite double_var.
-{
-symmetry.
-unfold Rminus.
-repeat rewrite Rplus_assoc.
-rewrite Rplus_comm.
-repeat rewrite Rplus_assoc.
-rewrite Rplus_opp_l.
-rewrite Rplus_0_r.
-repeat rewrite <- Rplus_assoc.
-rewrite Rplus_opp_l.
-rewrite Rplus_0_l.
-reflexivity.
 }
-
-  split;
-    [ assumption
-      | apply Rlt_le_trans with (Rmin delta1 delta2);
-        [ assumption | apply Rmin_r ] ].
-  split;
-    [ assumption
-      | apply Rlt_le_trans with (Rmin delta1 delta2);
-        [ assumption | apply Rmin_l ] ].
-  change (R0 < eps * (Rsqr l / R2)); unfold Rdiv;
-    repeat rewrite Rmult_assoc; apply Rmult_lt_0_compat.
-  assumption.
-  apply Rmult_lt_0_compat. apply Rsqr_pos_lt; assumption.
-  apply Rinv_0_lt_compat; cut (0%nat <> 2%nat);
-    [ intro H3; generalize (lt_INR_0 2 (neq_O_lt 2 H3)); unfold INR;
-      intro; assumption
-      | discriminate ].
-  change (R0 < Rabs l / R2); unfold Rdiv; apply Rmult_lt_0_compat;
-    [ apply Rabs_pos_lt; assumption
-      | apply Rinv_0_lt_compat; cut (0%nat <> 2%nat);
-        [ intro H3; generalize (lt_INR_0 2 (neq_O_lt 2 H3)); unfold INR;
-          intro; assumption
-          | discriminate ] ].
+{ exact H16. }
+}
+}
+{ exact H0. }
+}
+}
+{
+  intro H16.
+  rewrite H16 in H15.
+  rewrite Rabs_R0 in H15.
+  cut (R0 < Rabs l / R2).
+{
+  intro H17.
+  eapply Rlt_irrefl.
+  eapply Rlt_trans.
+  { exact H17. }
+  { exact H15. }
+}
+{
+  unfold Rdiv.
+  apply Rmult_lt_0_compat.
+{
+  apply Rabs_pos_lt.
+  exact H0.
+}
+{
+  apply Rinv_0_lt_compat.
+  exact Rlt_0_2.
+}
+}
+}
+}
+{
+  pattern (Rabs l) at 3; rewrite double_var.
+  symmetry.
+  unfold Rminus.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_comm.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  repeat rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  reflexivity.
+}
+}
+{
+  split.
+  { exact H8. }
+  {
+    apply Rlt_le_trans with (Rmin delta1 delta2).
+    { exact H9. }
+    { apply Rmin_r. }
+  }
+}
+}
+{
+  split.
+  { exact H8. }
+  {
+    apply Rlt_le_trans with (Rmin delta1 delta2).
+    { exact H9. }
+    { apply Rmin_l. }
+  }
+}
+}
+}
+{
+  unfold Rdiv.
+  apply Rmult_lt_0_compat.
+{
+  exact H1.
+}
+{
+  apply Rmult_lt_0_compat.
+{
+  apply Rsqr_pos_lt.
+  exact H0.
+}
+{
+  apply Rinv_0_lt_compat.
+  exact Rlt_0_2.
+}
+}
+}
+}
+{
+  unfold Rdiv.
+  apply Rmult_lt_0_compat.
+  {
+    apply Rabs_pos_lt.
+    exact H0.
+  }
+  {
+    apply Rinv_0_lt_compat.
+    exact Rlt_0_2.
+  }
+}
 Qed.
