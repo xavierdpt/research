@@ -1578,13 +1578,87 @@ Proof.
   destruct hx as [ hx | hx ].
   {
     destruct (Rtotal_order x R1) as [ ho | [ ho | ho ] ].
-    1:admit.
+    {
+      exists R1.
+      intros y hy.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      {
+        destruct (Rtotal_order y (-R1)) as [ hoy' | [ hoy' | hoy' ] ].
+        {
+          apply Rle_trans with (-R1).
+          left. exact hoy'.
+          apply Rle_trans with R0.
+          rewrite <- Ropp_0. apply Ropp_le_contravar. left. exact Rlt_0_1.
+          left. exact Rlt_0_1.
+        }
+        {
+          subst y.
+          apply Rle_trans with R0.
+          { rewrite <- Ropp_0. apply Ropp_le_contravar. left. exact Rlt_0_1. }
+          { left. exact Rlt_0_1. }
+        }
+        {
+          apply Rle_trans with R0.
+          left. exact hoy.
+          left. exact Rlt_0_1.
+        }
+      }
+      {
+        subst y.
+        left.
+        exact Rlt_0_1.
+      }
+      {
+        destruct (Rtotal_order y R1) as [ hoy' | [ hoy' | hoy' ] ].
+        {
+          left.
+          exact hoy'.
+        }
+        {
+          subst y.
+          right.
+          reflexivity.
+        }
+        {
+          exfalso.
+          eapply Rlt_irrefl.
+          eapply Rlt_le_trans.
+          { exact hoy'. }
+          {
+            eapply Rle_trans.
+            2:{
+              left.
+              exact ho.
+            }
+            {
+              clear ho.
+              apply Rmult_le_reg_r with y.
+              { exact hoy. }
+              {
+                eapply Rle_trans.
+                { exact hy. }
+                {
+                  pattern x at 1;rewrite <- Rmult_1_r.
+                  apply Rmult_le_compat_l.
+                  { left. exact hx. }
+                  { left. exact hoy'. }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     {
       subst x.
       exists R1.
       intros y hy.
       destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
-      1:admit.
+      {
+        apply Rle_trans with R0.
+        left. exact hoy.
+        left. exact Rlt_0_1.
+      }
       {
         subst y.
         left.
@@ -1610,7 +1684,46 @@ Proof.
         }
       }
     }
-    { admit. }
+    {
+      exists x.
+      intros y hy.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      {
+        left.
+        apply Rlt_trans with R0.
+        exact hoy.
+        exact hx.
+      }
+      {
+        subst y.
+        left.
+        exact hx.
+      }
+      {
+        destruct (Rtotal_order y R1) as [ hoy' | [ hoy' | hoy' ] ].
+        {
+          left.
+          apply Rlt_trans with R1.
+          exact hoy'.
+          exact ho.
+        }
+        {
+          subst y .
+          left.
+          exact ho.
+        }
+        {
+          apply Rmult_le_reg_r with y.
+          exact hoy.
+          apply Rle_trans with x.
+          exact hy.
+          pattern x at 1;rewrite <- Rmult_1_r.
+          apply Rmult_le_compat_l.
+          left. exact hx.
+          left. exact hoy'.
+        }
+      }
+    }
   }
   {
     subst x.
@@ -1622,8 +1735,31 @@ Proof.
   }
 Qed.
 
+Lemma tada_exists : forall x, R0 <= x -> (exists y, tada x y).
+Proof.
+  intros x hx.
+  unfold tada.
+  exists R0.
+  rewrite Rmult_0_l.
+  exact hx.
+Qed.
 
+Lemma tada_completeness : forall x, R0 <= x -> {m : R | is_lub (tada x) m}.
+Proof.
+intros x hx.
+apply completeness.
+apply tada_bound. exact hx.
+apply tada_exists. exact hx.
+Qed.
 
-
-
-
+Lemma tada_eq : forall x, R0 <= x -> {m : R | is_lub (tada x) m} -> exists m, m * m = x.
+Proof.
+  intros x hx hc.
+  destruct hc as [ m hlub ].
+  exists m.
+  unfold is_lub in hlub.
+  destruct hlub as [ hl hr ].
+  unfold is_upper_bound in hl.
+  unfold is_upper_bound in hr.
+  unfold tada in hl, hr.
+Qed.
