@@ -1523,4 +1523,107 @@ destruct (Rle_dec y z) as [ hyz | hyz ] eqn:eqyz.
   }
 }
 Qed.
+(*
+completeness
+     : forall E : R -> Prop, bound E -> (exists x : R, E x) -> {m : R | is_lub E m}
+*)
+
+Definition tada x s := s * s <= x.
+
+Lemma Rsqr_le_1 : forall x, R0 < x -> x <= R1 -> x * x <= x.
+Proof.
+  intros x hl hr .
+  destruct hr as [ hr | hr ].
+  {
+    left.
+    pattern x at 3;rewrite <- Rmult_1_r.
+    apply Rmult_lt_compat_l.
+    exact hl.
+    exact hr.
+  }
+  {
+    subst x.
+    rewrite Rmult_1_l.
+    right.
+    reflexivity.
+  }
+Qed.
+
+Lemma Rsqr_le_0 : forall x, Rsqr x <= R0 -> x = R0.
+Proof.
+  intros x h.
+  destruct h as [ h | h ].
+  {
+    exfalso.
+    apply Rlt_irrefl with R0.
+    apply Rle_lt_trans with (Rsqr x).
+    { apply Rle_0_sqr. }
+    { exact h. }
+  }
+  {
+    unfold Rsqr in h.
+    apply Rmult_integral in h.
+    destruct h as [ h | h ].
+    { exact h. }
+    { exact h. }
+  }
+Qed.
+
+Lemma tada_bound : forall x, R0 <= x -> bound (tada x).
+Proof.
+  intros x hx.
+  unfold bound.
+  unfold is_upper_bound.
+  unfold tada.
+  destruct hx as [ hx | hx ].
+  {
+    destruct (Rtotal_order x R1) as [ ho | [ ho | ho ] ].
+    1:admit.
+    {
+      subst x.
+      exists R1.
+      intros y hy.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      1:admit.
+      {
+        subst y.
+        left.
+        exact Rlt_0_1.
+      }
+      {
+        destruct (Rtotal_order y R1) as [ hoy' | [ hoy' | hoy' ] ].
+        { left. exact hoy'. }
+        { subst y. right. reflexivity. }
+        {
+          exfalso.
+          eapply Rlt_irrefl.
+          eapply Rle_lt_trans.
+          { apply hy. }
+          {
+            pattern R1;rewrite <- Rmult_1_r.
+            apply Rmult_gt_0_lt_compat.
+            { exact Rlt_0_1. }
+            { exact hoy. }
+            { exact hoy'. }
+            { exact hoy'. }
+          }
+        }
+      }
+    }
+    { admit. }
+  }
+  {
+    subst x.
+    exists R0.
+    intros x hx.
+    apply Rsqr_le_0 in hx.
+    right.
+    exact hx.
+  }
+Qed.
+
+
+
+
+
 
