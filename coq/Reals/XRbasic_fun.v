@@ -1756,10 +1756,104 @@ Lemma tada_eq : forall x, R0 <= x -> {m : R | is_lub (tada x) m} -> exists m, m 
 Proof.
   intros x hx hc.
   destruct hc as [ m hlub ].
-  exists m.
   unfold is_lub in hlub.
   destruct hlub as [ hl hr ].
-  unfold is_upper_bound in hl.
-  unfold is_upper_bound in hr.
+  unfold is_upper_bound in hl, hr.
   unfold tada in hl, hr.
+  destruct hx as [ hx | hx ].
+  {
+    destruct (Rtotal_order x R1) as [ hx' | [ hx' | hx' ] ].
+    {
+      exists m.
+      destruct (Rtotal_order m R0) as [ hm | [ hm | hm ] ].
+      {
+        admit.
+      }
+      {
+        subst m.
+        rewrite Rmult_0_r.
+        apply Rle_antisym.
+        {
+          apply hr.
+          clear hr.
+          intros y h.
+          destruct (Rtotal_order y R0) as [ hy | [ hy | hy ] ].
+          {
+            apply Rle_trans with R0.
+            left. exact hy.
+            left. exact hx.
+          }
+          {
+            subst y.
+            left.
+            exact hx.
+          }
+          {
+            destruct (Rtotal_order y R1) as [ hy' | [ hy' | hy' ] ].
+            {
+              assert (rx : x*x <= x ).
+              apply Rsqr_le_1. exact hx. left. exact hx'.
+              assert (ry : y*y <= y ).
+              apply Rsqr_le_1. exact hy. left. exact hy'.
+              destruct (Rtotal_order y x) as [ hxy | [ hxy | hxy ] ].
+              {
+                left.
+                exact hxy.
+              }
+              {
+                subst y.
+                right.
+                reflexivity.
+              }
+              {
+                specialize (hl y).
+                specialize (hl h).
+                exfalso.
+                eapply Rlt_irrefl.
+                eapply Rle_lt_trans.
+                exact hl.
+                exact hy.
+              }
+            }
+            {
+              subst y.
+              rewrite Rmult_1_l in h.
+              exact h.
+            }
+            {
+              apply Rmult_le_reg_r with y.
+              exact hy.
+              apply Rle_trans with x.
+              exact h.
+              pattern x at 1;rewrite <- Rmult_1_r.
+              apply Rmult_le_compat_l.
+              left. exact hx.
+              left. exact hy'.
+            }
+          }
+        }
+        {
+          admit.
+        }
+      }
+      {
+        admit.
+      }
+    }
+    {
+      subst x.
+      exists R1.
+      rewrite Rmult_1_r.
+      reflexivity.
+    }
+    {
+      admit.
+    }
+  }
+  {
+    subst x.
+    exists R0.
+    rewrite Rmult_0_l.
+    reflexivity.
+  }
 Qed.
