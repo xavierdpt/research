@@ -1752,108 +1752,129 @@ apply tada_bound. exact hx.
 apply tada_exists. exact hx.
 Qed.
 
-Lemma tada_eq : forall x, R0 <= x -> {m : R | is_lub (tada x) m} -> exists m, m * m = x.
+Lemma two : is_lub (tada R4) R2.
 Proof.
-  intros x hx hc.
-  destruct hc as [ m hlub ].
-  unfold is_lub in hlub.
-  destruct hlub as [ hl hr ].
-  unfold is_upper_bound in hl, hr.
-  unfold tada in hl, hr.
-  destruct hx as [ hx | hx ].
+unfold is_lub.
+unfold is_upper_bound.
+unfold tada.
+split.
+{
+  intros x h.
+  destruct (Rtotal_order x R0) as [ hx | [ hx | hx ] ].
   {
-    destruct (Rtotal_order x R1) as [ hx' | [ hx' | hx' ] ].
-    {
-      exists m.
-      destruct (Rtotal_order m R0) as [ hm | [ hm | hm ] ].
-      {
-        admit.
-      }
-      {
-        subst m.
-        rewrite Rmult_0_r.
-        apply Rle_antisym.
-        {
-          apply hr.
-          clear hr.
-          intros y h.
-          destruct (Rtotal_order y R0) as [ hy | [ hy | hy ] ].
-          {
-            apply Rle_trans with R0.
-            left. exact hy.
-            left. exact hx.
-          }
-          {
-            subst y.
-            left.
-            exact hx.
-          }
-          {
-            destruct (Rtotal_order y R1) as [ hy' | [ hy' | hy' ] ].
-            {
-              assert (rx : x*x <= x ).
-              apply Rsqr_le_1. exact hx. left. exact hx'.
-              assert (ry : y*y <= y ).
-              apply Rsqr_le_1. exact hy. left. exact hy'.
-              destruct (Rtotal_order y x) as [ hxy | [ hxy | hxy ] ].
-              {
-                left.
-                exact hxy.
-              }
-              {
-                subst y.
-                right.
-                reflexivity.
-              }
-              {
-                specialize (hl y).
-                specialize (hl h).
-                exfalso.
-                eapply Rlt_irrefl.
-                eapply Rle_lt_trans.
-                exact hl.
-                exact hy.
-              }
-            }
-            {
-              subst y.
-              rewrite Rmult_1_l in h.
-              exact h.
-            }
-            {
-              apply Rmult_le_reg_r with y.
-              exact hy.
-              apply Rle_trans with x.
-              exact h.
-              pattern x at 1;rewrite <- Rmult_1_r.
-              apply Rmult_le_compat_l.
-              left. exact hx.
-              left. exact hy'.
-            }
-          }
-        }
-        {
-          admit.
-        }
-      }
-      {
-        admit.
-      }
-    }
-    {
-      subst x.
-      exists R1.
-      rewrite Rmult_1_r.
-      reflexivity.
-    }
-    {
-      admit.
-    }
+    apply Rle_trans with R0.
+    left. exact hx.
+    left. exact Rlt_0_2.
   }
   {
     subst x.
-    exists R0.
-    rewrite Rmult_0_l.
-    reflexivity.
+    left.
+    exact Rlt_0_2.
   }
+  {
+    destruct (Rtotal_order x R2) as [ h2 | [ h2 | h2 ] ].
+    { left. exact h2. }
+    { right. exact h2. }
+    {
+      exfalso.
+      eapply Rlt_irrefl.
+      eapply Rle_lt_trans.
+      exact h.
+      replace R4 with (R2*R2).
+      apply Rmult_gt_0_lt_compat.
+      exact Rlt_0_2.
+      exact hx.
+      exact h2.
+      exact h2.
+      unfold R4.
+      rewrite <- double.
+      reflexivity.
+    }
+  }
+}
+{
+  intros y h.
+  apply h.
+  right.
+  unfold R4.
+  rewrite <- double.
+  reflexivity.
+}
+Qed.
+
+Lemma lem_half : is_lub (tada (/R4)) (/R2).
+Proof.
+unfold is_lub.
+unfold is_upper_bound, tada.
+split.
+{
+  intros x h.
+  destruct (Rtotal_order x R0) as [ hx | [ hx | hx ] ].
+  { apply Rle_trans with R0. left. exact hx.
+    left. apply Rinv_0_lt_compat. exact Rlt_0_2.
+  }
+  {
+    subst x. left. apply Rinv_0_lt_compat. exact Rlt_0_2.
+  }
+  {
+    destruct (Rtotal_order x (/R2)) as [ hx' | [ hx' | hx' ] ].
+    { left. exact hx'. }
+    { right. exact hx'. }
+    {
+      exfalso.
+      eapply Rlt_irrefl.
+      eapply Rle_lt_trans.
+      exact h.
+      replace (/R4) with ((/R2)*(/R2)).
+      apply Rmult_gt_0_lt_compat.
+      apply Rinv_0_lt_compat. exact Rlt_0_2.
+      exact hx.
+      exact hx'.
+      exact hx'.
+      apply Rmult_eq_reg_r with R4.
+      rewrite Rinv_l.
+      apply Rmult_eq_reg_l with R2.
+      repeat rewrite <- Rmult_assoc.
+      rewrite Rinv_r.
+      rewrite Rmult_1_l, Rmult_1_r.
+      apply Rmult_eq_reg_l with R2.
+      repeat rewrite <- Rmult_assoc.
+      rewrite Rinv_r.
+      rewrite Rmult_1_l.
+      unfold R4.
+      rewrite <- double.
+      reflexivity.
+      exact Neq_2_0.
+      exact Neq_2_0.
+      exact Neq_2_0.
+      exact Neq_2_0.
+      apply Rlt_not_eq'. exact Rlt_0_4.
+      apply Rlt_not_eq'. exact Rlt_0_4.
+    }
+  }
+}
+{
+  intros y h.
+  apply h.
+  right.
+  apply Rmult_eq_reg_r with R4.
+  rewrite Rinv_l.
+  apply Rmult_eq_reg_l with R2.
+  repeat rewrite <- Rmult_assoc.
+  rewrite Rinv_r.
+  rewrite Rmult_1_l, Rmult_1_r.
+  apply Rmult_eq_reg_l with R2.
+  repeat rewrite <- Rmult_assoc.
+  rewrite Rinv_r.
+  rewrite Rmult_1_l.
+  unfold R4.
+  rewrite <- double.
+  reflexivity.
+  exact Neq_2_0.
+  exact Neq_2_0.
+  exact Neq_2_0.
+  exact Neq_2_0.
+  apply Rlt_not_eq'. exact Rlt_0_4.
+  apply Rlt_not_eq'. exact Rlt_0_4.
+}
 Qed.
