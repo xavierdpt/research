@@ -1878,3 +1878,150 @@ split.
   apply Rlt_not_eq'. exact Rlt_0_4.
 }
 Qed.
+
+Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
+Proof.
+  intros x m hx hl.
+  unfold is_lub in hl.
+  destruct hl as [ hl hr ].
+  unfold is_upper_bound in hl, hr.
+  unfold tada in hl, hr.
+
+  assert (hx' : R0 < x).
+  { apply Rlt_le_trans with R1. exact Rlt_0_1. exact hx. }
+
+  assert ( hm: R0 <= m ).
+  { apply hl. rewrite Rmult_0_l. left. exact hx'. }
+
+  apply Rle_antisym.
+  {
+    destruct hm as [ hm | hm ].
+    {
+      assert(hm' : R1 <= m).
+      {
+        apply hl.
+        rewrite Rmult_1_r.
+        exact hx.
+      }
+      destruct hx as [ hx | hx ].
+      {
+destruct hm' as [ hm' | hm' ].
+{
+admit.
+}
+{
+subst m.
+admit.
+}
+      }
+{
+subst x.
+pattern R1 at 1;rewrite <- Rmult_1_l.
+apply Rmult_le_compat.
+admit. admit. admit. admit.
+}
+
+
+    }
+    {
+      subst m.
+      rewrite Rmult_0_r.
+      exfalso.
+      eapply Rlt_irrefl.
+      eapply Rle_lt_trans.
+      eapply hl.
+      rewrite Rmult_1_r.
+      exact hx.
+      exact Rlt_0_1.
+  }
+}
+  {
+    clear hl.
+    destruct hm as [ hm | hm ].
+    {
+      apply Rmult_le_reg_r with (/m).
+      { apply Rinv_0_lt_compat. assumption. }
+      rewrite Rmult_assoc. rewrite Rinv_r. rewrite Rmult_1_r.
+      2:{ apply Rlt_not_eq'. assumption. }
+      apply hr.
+      intros y h.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      {
+        apply Rle_trans with R0.
+        left. exact hoy.
+        apply Rmult_le_pos.
+        left. assumption.
+        left. apply Rinv_0_lt_compat. assumption.
+      }
+      {
+        subst y.
+        apply Rmult_le_pos.
+        left. assumption.
+        left. apply Rinv_0_lt_compat. assumption.
+      }
+      {
+        apply Rmult_le_reg_r with m.
+        { assumption. }
+        rewrite Rmult_assoc. rewrite Rinv_l. rewrite Rmult_1_r.
+        apply Rmult_le_reg_l with (/y).
+        { apply Rinv_0_lt_compat. assumption. }
+        rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
+        apply hr.
+        intros z hz.
+        destruct (Rtotal_order z R0) as [ hoz | [ hoz | hoz ] ].
+        {
+          apply Rle_trans with R0.
+          left. exact hoz.
+          apply Rmult_le_pos.
+          left. apply Rinv_0_lt_compat. assumption.
+          left. assumption.
+        }
+        {
+          subst z.
+          apply Rmult_le_pos.
+          left. apply Rinv_0_lt_compat. exact hoy.
+          rewrite Rmult_0_r in hz. exact hz.
+        }
+        {
+          apply Rmult_le_reg_l with y.
+          { assumption. }
+          rewrite <- Rmult_assoc, Rinv_r, Rmult_1_l.
+          apply Rle_trans with (Rmax (y*y) (z*z)).
+          {
+            destruct (Rtotal_order y z) as [ hyz | [ hyz | hyz ] ].
+            {
+              rewrite Rmax_right.
+              apply Rmult_le_compat_r.
+              left. assumption.
+              left.
+              exact hyz.
+              apply Rmult_le_compat.
+              left. assumption.
+              left. assumption.
+              left. assumption.
+              left. assumption.
+            }
+            { subst y. rewrite Rmax_left. right. reflexivity. right. reflexivity. }
+            {
+              rewrite Rmax_left.
+              apply Rmult_le_compat_l.
+              left. assumption.
+              left. assumption.
+              apply Rmult_le_compat.
+              left. assumption.
+              left. assumption.
+              left. assumption.
+              left. assumption.
+            }
+          }
+          apply Rmax_case.
+          exact h.
+          exact hz.
+          { apply Rlt_not_eq'. assumption. }
+        }
+        { apply Rlt_not_eq'. assumption. }
+        { apply Rlt_not_eq'. assumption. }
+      }
+    }
+    { subst m. rewrite Rmult_0_l. left. assumption. }
+  }
