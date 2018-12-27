@@ -1530,6 +1530,8 @@ completeness
 
 Definition tada x s := s * s <= x.
 
+Definition tada' x s := s * s = x.
+
 Lemma Rsqr_le_1 : forall x, R0 < x -> x <= R1 -> x * x <= x.
 Proof.
   intros x hl hr .
@@ -1735,6 +1737,190 @@ Proof.
   }
 Qed.
 
+Lemma xx1 : forall x, x * x = R1 -> x = R1.
+Proof.
+  intros x hx.
+  destruct (Rtotal_order x (x*x)).
+
+Lemma tada'_bound : forall x, R0 <= x -> bound (tada' x).
+Proof.
+  intros x hx.
+  unfold bound.
+  unfold is_upper_bound.
+  unfold tada'.
+  destruct hx as [ hx | hx ].
+  {
+    destruct (Rtotal_order x R1) as [ ho | [ ho | ho ] ].
+    {
+      exists R1.
+      intros y hy.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      {
+        destruct (Rtotal_order y (-R1)) as [ hoy' | [ hoy' | hoy' ] ].
+        {
+          apply Rle_trans with (-R1).
+          left. exact hoy'.
+          apply Rle_trans with R0.
+          rewrite <- Ropp_0. apply Ropp_le_contravar. left. exact Rlt_0_1.
+          left. exact Rlt_0_1.
+        }
+        {
+          subst y.
+          apply Rle_trans with R0.
+          { rewrite <- Ropp_0. apply Ropp_le_contravar. left. exact Rlt_0_1. }
+          { left. exact Rlt_0_1. }
+        }
+        {
+          apply Rle_trans with R0.
+          left. exact hoy.
+          left. exact Rlt_0_1.
+        }
+      }
+      {
+        subst y.
+        left.
+        exact Rlt_0_1.
+      }
+      {
+        destruct (Rtotal_order y R1) as [ hoy' | [ hoy' | hoy' ] ].
+        {
+          left.
+          exact hoy'.
+        }
+        {
+          subst y.
+          right.
+          reflexivity.
+        }
+        {
+          exfalso.
+          eapply Rlt_irrefl.
+          eapply Rlt_le_trans.
+          { exact hoy'. }
+          {
+            eapply Rle_trans.
+            2:{
+              left.
+              exact ho.
+            }
+            {
+              clear ho.
+              apply Rmult_le_reg_r with y.
+              { exact hoy. }
+              {
+                subst x.
+                apply Rmult_le_compat_r.
+                left. assumption.
+                pattern y at 1;rewrite <- Rmult_1_l.
+                apply Rmult_le_compat_r.
+                left. assumption.
+                left. assumption.
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      subst x.
+      exists R1.
+      intros y hy.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      {
+        apply Rle_trans with R0.
+        left. exact hoy.
+        left. exact Rlt_0_1.
+      }
+      {
+        subst y.
+        left.
+        exact Rlt_0_1.
+      }
+      {
+        destruct (Rtotal_order y R1) as [ hoy' | [ hoy' | hoy' ] ].
+        { left. exact hoy'. }
+        { subst y. right. reflexivity. }
+        {
+
+          right.
+          assert (y = / y).
+          {
+            apply Rmult_eq_reg_r with y. rewrite hy. rewrite Rinv_l. reflexivity.
+            apply Rlt_not_eq'.  assumption. apply Rlt_not_eq'. assumption.
+          }
+          apply Rmult_eq_reg_r with y.
+          
+    
+
+
+          exfalso.
+          eapply Rlt_irrefl.
+          eapply Rle_lt_trans.
+          { apply hy. }
+          {
+            pattern R1;rewrite <- Rmult_1_r.
+            apply Rmult_gt_0_lt_compat.
+            { exact Rlt_0_1. }
+            { exact hoy. }
+            { exact hoy'. }
+            { exact hoy'. }
+          }
+        }
+      }
+    }
+    {
+      exists x.
+      intros y hy.
+      destruct (Rtotal_order y R0) as [ hoy | [ hoy | hoy ] ].
+      {
+        left.
+        apply Rlt_trans with R0.
+        exact hoy.
+        exact hx.
+      }
+      {
+        subst y.
+        left.
+        exact hx.
+      }
+      {
+        destruct (Rtotal_order y R1) as [ hoy' | [ hoy' | hoy' ] ].
+        {
+          left.
+          apply Rlt_trans with R1.
+          exact hoy'.
+          exact ho.
+        }
+        {
+          subst y .
+          left.
+          exact ho.
+        }
+        {
+          apply Rmult_le_reg_r with y.
+          exact hoy.
+          apply Rle_trans with x.
+          exact hy.
+          pattern x at 1;rewrite <- Rmult_1_r.
+          apply Rmult_le_compat_l.
+          left. exact hx.
+          left. exact hoy'.
+        }
+      }
+    }
+  }*)
+  {
+    subst x.
+    exists R0.
+    intros x hx.
+    right.
+    apply Rmult_integral in hx.
+    destruct hx as [ hx | hx ].
+    exact hx.
+    exact hx.
+  }
+Qed.
+
 Lemma tada_exists : forall x, R0 <= x -> (exists y, tada x y).
 Proof.
   intros x hx.
@@ -1878,6 +2064,97 @@ split.
   apply Rlt_not_eq'. exact Rlt_0_4.
 }
 Qed.
+
+Lemma lem_greater_1_m : forall m, R1 <= m -> is_lub (tada (m*m)) m.
+Proof.
+  intros m hm.
+  unfold is_lub.
+  unfold is_upper_bound, tada.
+  split.
+  {
+    intros x h.
+    destruct (Rtotal_order x m) as [ hxm | [ hxm | hxm ] ].
+    { left. exact hxm. }
+    { right. exact hxm. }
+    {
+      assert (hmz : R0 < m).
+      { apply Rlt_le_trans with R1. exact Rlt_0_1. exact hm. }
+      assert (hxz : R0 < x).
+      { apply Rlt_trans with m. exact hmz. exact hxm. }
+      exfalso.
+      eapply Rlt_irrefl.
+      eapply Rlt_le_trans.
+      exact hxm.
+      apply Rmult_le_reg_r with x.
+      exact hxz.
+      apply Rle_trans with (m*m).
+      exact h.
+      apply Rmult_le_compat_l.
+      left. exact hmz.
+      left. exact hxm.
+    }
+  }
+  {
+    intros x h.
+    apply h.
+    right.
+    reflexivity.
+  }
+Qed.
+
+Lemma lub_same : forall P x y, is_lub P x -> is_lub P y -> x = y.
+Proof.
+  intros P x y hx hy.
+  unfold is_lub in hx, hy.
+  destruct hx as [ hxl hxr ].
+  destruct hy as [ hyl hyr ].
+  unfold is_upper_bound in *.
+  apply Rle_antisym.
+  {
+    apply hxr.
+    intros z hz.
+    apply hyl.
+    exact hz.
+  }
+  {
+    apply hyr.
+    intros z hz.
+    apply hxl.
+    exact hz.
+  }
+Qed.
+
+Definition is_nice (P:R->R->Prop) := forall x y m, is_lub (P x) m -> is_lub (P y) m -> x = y.
+
+Lemma something : forall (x y:R), x = y -> x <> y -> False.
+Proof.
+  intros x y heq hneq.
+  subst y.
+  apply hneq.
+  reflexivity.
+Qed.
+
+Definition R64 := R8 * R8.
+Definition R81 := R9 * R9.
+
+Lemma tada_nice : is_nice tada.
+Proof.
+  unfold is_nice.
+  unfold is_lub, is_upper_bound, tada.
+  intros x y m [ hxl hxr ] [ hyl hyr ].
+Qed.
+
+
+Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
+Proof.
+  intros x m hx hlub.
+  assert (hm := lem_greater_1_m).
+  assert (hs := lub_same).
+  specialize (hs (tada x)).
+  specialize (hs m).
+  specialize (hm m).
+  assert (hm1 : R1 <= m). admit.
+  specialize (hm hm1).
 
 Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
 Proof.
