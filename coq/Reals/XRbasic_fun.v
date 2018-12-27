@@ -1530,7 +1530,7 @@ completeness
 
 Definition tada x s := s * s <= x.
 
-Definition tada' x s := s * s = x.
+Definition tada' x s := s * s = x \/ s * s = R0.
 
 Lemma Rsqr_le_1 : forall x, R0 < x -> x <= R1 -> x * x <= x.
 Proof.
@@ -1737,10 +1737,6 @@ Proof.
   }
 Qed.
 
-Lemma xx1 : forall x, x * x = R1 -> x = R1.
-Proof.
-  intros x hx.
-  destruct (Rtotal_order x (x*x)).
 
 Lemma tada'_bound : forall x, R0 <= x -> bound (tada' x).
 Proof.
@@ -1808,13 +1804,26 @@ Proof.
               apply Rmult_le_reg_r with y.
               { exact hoy. }
               {
-                subst x.
-                apply Rmult_le_compat_r.
-                left. assumption.
-                pattern y at 1;rewrite <- Rmult_1_l.
-                apply Rmult_le_compat_r.
-                left. assumption.
-                left. assumption.
+                destruct hy as [ hy | hy ].
+                {
+                  subst x.
+                  apply Rmult_le_compat_r.
+                  left. assumption.
+                  pattern y at 1;rewrite <- Rmult_1_l.
+                  apply Rmult_le_compat_r.
+                  left. assumption.
+                  left. assumption.
+                }
+                {
+                  assert (eq : y = R0).
+                  {
+                    apply Rmult_integral in hy.
+                    destruct hy;assumption.
+                  }
+                  subst y.
+                  repeat rewrite Rmult_0_r.
+                  right;reflexivity.
+                }
               }
             }
           }
@@ -1841,29 +1850,21 @@ Proof.
         { left. exact hoy'. }
         { subst y. right. reflexivity. }
         {
-
-          right.
-          assert (y = / y).
+          destruct hy as [ hy | hy ].
           {
-            apply Rmult_eq_reg_r with y. rewrite hy. rewrite Rinv_l. reflexivity.
-            apply Rlt_not_eq'.  assumption. apply Rlt_not_eq'. assumption.
+            pattern y;rewrite <- Rmult_1_r.
+            pattern R1 at 2;rewrite <- hy.
+            apply Rmult_le_compat.
+            left;assumption.
+            left;exact Rlt_0_1.
+            right;reflexivity.
+            left;assumption.
           }
-          apply Rmult_eq_reg_r with y.
-          
-    
-
-
-          exfalso.
-          eapply Rlt_irrefl.
-          eapply Rle_lt_trans.
-          { apply hy. }
           {
-            pattern R1;rewrite <- Rmult_1_r.
-            apply Rmult_gt_0_lt_compat.
-            { exact Rlt_0_1. }
-            { exact hoy. }
-            { exact hoy'. }
-            { exact hoy'. }
+            assert (eq : y = R0 ).
+            { apply Rmult_integral in hy; destruct hy;assumption. }
+            subst y.
+            left; exact Rlt_0_1.
           }
         }
       }
@@ -1897,27 +1898,40 @@ Proof.
           exact ho.
         }
         {
-          apply Rmult_le_reg_r with y.
-          exact hoy.
-          apply Rle_trans with x.
-          exact hy.
-          pattern x at 1;rewrite <- Rmult_1_r.
-          apply Rmult_le_compat_l.
-          left. exact hx.
-          left. exact hoy'.
+          destruct hy as [ hy | hy ].
+          {
+            subst x.
+            pattern y at 1;rewrite <- Rmult_1_r.
+            apply Rmult_le_compat.
+            left;assumption.
+            left;exact Rlt_0_1.
+            right;reflexivity.
+            left;assumption.
+          }
+          {
+            assert (eq : y = R0 ).
+            { apply Rmult_integral in hy; destruct hy;assumption. }
+            subst y.
+            left; assumption.
+          }
         }
       }
     }
-  }*)
+  }
   {
     subst x.
     exists R0.
     intros x hx.
+    assert (eq : x = R0 ).
+    {
+      destruct hx as [ hx | hx ];
+      apply Rmult_integral in hx;
+      destruct hx;
+      assumption.
+    }
+    subst x.
     right.
-    apply Rmult_integral in hx.
-    destruct hx as [ hx | hx ].
-    exact hx.
-    exact hx.
+    reflexivity.
   }
 Qed.
 
@@ -1930,12 +1944,31 @@ Proof.
   exact hx.
 Qed.
 
+Lemma tada'_exists : forall x, R0 <= x -> (exists y, tada' x y).
+Proof.
+  intros x hx.
+  unfold tada'.
+  exists R0.
+  right.
+  rewrite Rmult_0_r.
+  reflexivity.
+Qed.
+
+
 Lemma tada_completeness : forall x, R0 <= x -> {m : R | is_lub (tada x) m}.
 Proof.
-intros x hx.
-apply completeness.
-apply tada_bound. exact hx.
-apply tada_exists. exact hx.
+  intros x hx.
+  apply completeness.
+  apply tada_bound. exact hx.
+  apply tada_exists. exact hx.
+Qed.
+
+Lemma tada'_completeness : forall x, R0 <= x -> {m : R | is_lub (tada' x) m}.
+Proof.
+  intros x hx.
+  apply completeness.
+  apply tada'_bound. exact hx.
+  apply tada'_exists. exact hx.
 Qed.
 
 Lemma two : is_lub (tada R4) R2.
@@ -1982,6 +2015,65 @@ split.
   intros y h.
   apply h.
   right.
+  unfold R4.
+  rewrite <- double.
+  reflexivity.
+}
+Qed.
+
+Lemma two' : is_lub (tada' R4) R2.
+Proof.
+unfold is_lub.
+unfold is_upper_bound.
+unfold tada'.
+split.
+{
+  intros x h.
+  destruct (Rtotal_order x R0) as [ hx | [ hx | hx ] ].
+  {
+    apply Rle_trans with R0.
+    left. exact hx.
+    left. exact Rlt_0_2.
+  }
+  {
+    subst x.
+    left.
+    exact Rlt_0_2.
+  }
+  {
+    destruct (Rtotal_order x R2) as [ h2 | [ h2 | h2 ] ].
+    { left. exact h2. }
+    { right. exact h2. }
+    {
+      destruct h as [ h | h ].
+      {
+        exfalso.
+        eapply Rlt_irrefl.
+        eapply Rle_lt_trans.
+        right.
+        exact h.
+        replace R4 with (R2*R2).
+        apply Rmult_gt_0_lt_compat.
+        exact Rlt_0_2.
+        exact hx.
+        exact h2.
+        exact h2.
+        unfold R4.
+        rewrite <- double.
+        reflexivity.
+      }
+      {
+        apply Rmult_integral in h.
+        destruct h as [ h | h ];
+        subst x;apply Rlt_irrefl in hx;contradiction.
+      }
+    }
+  }
+}
+{
+  intros y h.
+  apply h.
+  left.
   unfold R4.
   rewrite <- double.
   reflexivity.
@@ -2124,8 +2216,6 @@ Proof.
   }
 Qed.
 
-Definition is_nice (P:R->R->Prop) := forall x y m, is_lub (P x) m -> is_lub (P y) m -> x = y.
-
 Lemma something : forall (x y:R), x = y -> x <> y -> False.
 Proof.
   intros x y heq hneq.
@@ -2134,27 +2224,77 @@ Proof.
   reflexivity.
 Qed.
 
-Definition R64 := R8 * R8.
-Definition R81 := R9 * R9.
-
-Lemma tada_nice : is_nice tada.
+Lemma something_else : forall (x y:R), not (x<>y) -> x = y.
 Proof.
-  unfold is_nice.
-  unfold is_lub, is_upper_bound, tada.
-  intros x y m [ hxl hxr ] [ hyl hyr ].
+  intros x y h.
+  destruct (Rtotal_order x y) as [ hxy | [ hxy | hxy ] ].
+  { exfalso. apply h. apply Rlt_not_eq. assumption. }
+  { assumption. }
+  { exfalso. apply h. apply Rlt_not_eq'. assumption. }
 Qed.
 
-
-Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
+Lemma xxyy : forall x y, x * x = y * y -> x = y \/ x = - y.
 Proof.
-  intros x m hx hlub.
-  assert (hm := lem_greater_1_m).
-  assert (hs := lub_same).
-  specialize (hs (tada x)).
-  specialize (hs m).
-  specialize (hm m).
-  assert (hm1 : R1 <= m). admit.
-  specialize (hm hm1).
+  intros x y h.
+  destruct (Rtotal_order x R0) as [ hx | [ hx | hx ] ].
+  {
+    destruct (Rtotal_order y R0) as [ hy | [ hy | hy ] ].
+    {
+      admit.
+    }
+    {
+      subst y.
+      left.
+      rewrite Rmult_0_l in h.
+      apply Rmult_integral in h;destruct h;assumption.
+    }
+    { admit. }
+  }
+  {
+    subst x.
+    rewrite Rmult_0_l in h.
+    symmetry in h.
+    left. symmetry.
+    apply Rmult_integral in h;destruct h;assumption.
+  }
+  { admit. }
+
+Lemma lem_mmm : forall m, R0 <= m -> is_lub (tada' (m*m)) m.
+Proof.
+  intros m hm.
+  unfold is_lub.
+  unfold is_upper_bound, tada'.
+  destruct hm as [ hm | hm ].
+  {
+    split.
+    {
+      intros x h.
+      destruct h as [ h | h ].
+      {
+      
+      }
+      {
+        apply Rmult_integral in h;destruct h as [ h | h ];subst x;left;assumption.
+      }
+    }
+    { admit. }
+  }
+  {
+    subst m.
+    split.
+    {
+      intros x h.
+      right.
+      rewrite Rmult_0_r in h.
+      destruct h as [ h | h ];apply Rmult_integral in h;destruct h as [ h | h ];assumption.
+    }
+    {
+      intros b h.
+      apply h.
+      left;reflexivity.
+    }
+  }
+
 
 Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
 Proof.
