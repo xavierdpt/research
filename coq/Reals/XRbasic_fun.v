@@ -1907,7 +1907,7 @@ Proof.
       {
 destruct hm' as [ hm' | hm' ].
 {
-admit.
+
 }
 {
 subst m.
