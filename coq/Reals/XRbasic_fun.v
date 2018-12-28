@@ -1741,6 +1741,7 @@ Lemma xx1 : forall x, x * x = R1 -> x = R1.
 Proof.
   intros x hx.
   destruct (Rtotal_order x (x*x)).
+Admitted.
 
 Lemma tada'_bound : forall x, R0 <= x -> bound (tada' x).
 Proof.
@@ -1841,30 +1842,7 @@ Proof.
         { left. exact hoy'. }
         { subst y. right. reflexivity. }
         {
-
-          right.
-          assert (y = / y).
-          {
-            apply Rmult_eq_reg_r with y. rewrite hy. rewrite Rinv_l. reflexivity.
-            apply Rlt_not_eq'.  assumption. apply Rlt_not_eq'. assumption.
-          }
-          apply Rmult_eq_reg_r with y.
-          
-    
-
-
-          exfalso.
-          eapply Rlt_irrefl.
-          eapply Rle_lt_trans.
-          { apply hy. }
-          {
-            pattern R1;rewrite <- Rmult_1_r.
-            apply Rmult_gt_0_lt_compat.
-            { exact Rlt_0_1. }
-            { exact hoy. }
-            { exact hoy'. }
-            { exact hoy'. }
-          }
+          admit.
         }
       }
     }
@@ -1897,18 +1875,11 @@ Proof.
           exact ho.
         }
         {
-          apply Rmult_le_reg_r with y.
-          exact hoy.
-          apply Rle_trans with x.
-          exact hy.
-          pattern x at 1;rewrite <- Rmult_1_r.
-          apply Rmult_le_compat_l.
-          left. exact hx.
-          left. exact hoy'.
+          admit.
         }
       }
     }
-  }*)
+  }
   {
     subst x.
     exists R0.
@@ -1919,7 +1890,7 @@ Proof.
     exact hx.
     exact hx.
   }
-Qed.
+Admitted.
 
 Lemma tada_exists : forall x, R0 <= x -> (exists y, tada x y).
 Proof.
@@ -2142,7 +2113,7 @@ Proof.
   unfold is_nice.
   unfold is_lub, is_upper_bound, tada.
   intros x y m [ hxl hxr ] [ hyl hyr ].
-Qed.
+Admitted.
 
 
 Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
@@ -2155,6 +2126,7 @@ Proof.
   specialize (hm m).
   assert (hm1 : R1 <= m). admit.
   specialize (hm hm1).
+Abort.
 
 Lemma lem_greater_1 : forall x m, R1 <= x -> is_lub (tada x) m -> x = m * m.
 Proof.
@@ -2184,7 +2156,7 @@ Proof.
       {
 destruct hm' as [ hm' | hm' ].
 {
-
+admit.
 }
 {
 subst m.
@@ -2302,3 +2274,4 @@ admit. admit. admit. admit.
     }
     { subst m. rewrite Rmult_0_l. left. assumption. }
   }
+Admitted.

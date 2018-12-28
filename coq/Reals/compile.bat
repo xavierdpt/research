@@ -1,1 +1,1 @@
-"C:\Program Files (x86)\GnuWin32\bin\make"
+"C:\Program Files (x86)\GnuWin32\bin\make" -i -k
