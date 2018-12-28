@@ -8,10 +8,9 @@ Require Export XCos_rel.
 Require Export XCos_plus.
 Require Import ZArith_base.
 Require Import Zcomplements.
-Require Import Fourier.
 Require Import XRanalysis1.
 Require Import XRsqrt_def. 
 Require Import XPSeries_reg.
-Require Export Rtrigo1.
-Require Export Ratan.
-Require Export Machin.
+Require Export XRtrigo1.
+Require Export XRatan.
+Require Export XMachin.

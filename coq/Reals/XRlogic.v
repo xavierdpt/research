@@ -15,7 +15,7 @@
 - Decidability of negated formulas.
 *)
 
-Require Import RIneq.
+Require Import XRIneq.
 
 (** * Decidability of arithmetical statements *)
 

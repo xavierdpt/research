@@ -12,83 +12,85 @@ Require Import XRbase.
 Require Import XRfunctions.
 Require Import XRanalysis1.
 Require Import XR_sqrt.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (**********)
 Lemma sqrt_var_maj :
-  forall h:R, Rabs h <= 1 -> Rabs (sqrt (1 + h) - 1) <= Rabs h.
+  forall h:R, Rabs h <= R1 -> Rabs (sqrt (R1 + h) - R1) <= Rabs h.
 Proof.
-  intros; cut (0 <= 1 + h).
-  intro; apply Rle_trans with (Rabs (sqrt (Rsqr (1 + h)) - 1)).
-  destruct (total_order_T h 0) as [[Hlt|Heq]|Hgt].
+  intros; cut (R0 <= R1 + h).
+  intro; apply Rle_trans with (Rabs (sqrt (Rsqr (R1 + h)) - R1)).
+  destruct (total_order_T h R0) as [[Hlt|Heq]|Hgt].
   repeat rewrite Rabs_left.
-  unfold Rminus; do 2 rewrite <- (Rplus_comm (-1)).
-  change (-1) with (-(1)).
+  unfold Rminus; do 2 rewrite <- (Rplus_comm (-R1)).
+  change (-R1) with (-(R1)).
   do 2 rewrite Ropp_plus_distr; rewrite Ropp_involutive;
     apply Rplus_le_compat_l.
   apply Ropp_le_contravar; apply sqrt_le_1.
   apply Rle_0_sqr.
   apply H0.
-  pattern (1 + h) at 2; rewrite <- Rmult_1_r; unfold Rsqr;
+  pattern (R1 + h) at 2; rewrite <- Rmult_1_r; unfold Rsqr;
     apply Rmult_le_compat_l.
   apply H0.
-  pattern 1 at 2; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
+  pattern R1 at 2; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
     assumption.
-  apply Rplus_lt_reg_l with 1; rewrite Rplus_0_r; rewrite Rplus_comm;
+  apply Rplus_lt_reg_l with R1; rewrite Rplus_0_r; rewrite Rplus_comm;
     unfold Rminus; rewrite Rplus_assoc; rewrite Rplus_opp_l;
       rewrite Rplus_0_r.
-  pattern 1 at 2; rewrite <- sqrt_1; apply sqrt_lt_1.
+  pattern R1 at 2; rewrite <- sqrt_1; apply sqrt_lt_1.
   apply Rle_0_sqr.
   left; apply Rlt_0_1.
-  pattern 1 at 2; rewrite <- Rsqr_1; apply Rsqr_incrst_1.
-  pattern 1 at 2; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l;
+  pattern R1 at 2; rewrite <- Rsqr_1; apply Rsqr_incrst_1.
+  pattern R1 at 2; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l;
     assumption.
   apply H0.
   left; apply Rlt_0_1.
-  apply Rplus_lt_reg_l with 1; rewrite Rplus_0_r; rewrite Rplus_comm;
+  apply Rplus_lt_reg_l with R1; rewrite Rplus_0_r; rewrite Rplus_comm;
     unfold Rminus; rewrite Rplus_assoc; rewrite Rplus_opp_l;
       rewrite Rplus_0_r.
-  pattern 1 at 2; rewrite <- sqrt_1; apply sqrt_lt_1.
+  pattern R1 at 2; rewrite <- sqrt_1; apply sqrt_lt_1.
   apply H0.
   left; apply Rlt_0_1.
-  pattern 1 at 2; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l;
+  pattern R1 at 2; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l;
     assumption.
   rewrite Heq; rewrite Rplus_0_r; rewrite Rsqr_1; rewrite sqrt_1; right;
     reflexivity.
   repeat rewrite Rabs_right.
-  unfold Rminus; do 2 rewrite <- (Rplus_comm (-1));
+  unfold Rminus; do 2 rewrite <- (Rplus_comm (-R1));
     apply Rplus_le_compat_l.
   apply sqrt_le_1.
   apply H0.
   apply Rle_0_sqr.
-  pattern (1 + h) at 1; rewrite <- Rmult_1_r; unfold Rsqr;
+  pattern (R1 + h) at 1; rewrite <- Rmult_1_r; unfold Rsqr;
     apply Rmult_le_compat_l.
   apply H0.
-  pattern 1 at 1; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
+  pattern R1 at 1; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
     assumption.
-  apply Rle_ge; apply Rplus_le_reg_l with 1.
+  apply Rle_ge; apply Rplus_le_reg_l with R1.
   rewrite Rplus_0_r; rewrite Rplus_comm; unfold Rminus;
     rewrite Rplus_assoc; rewrite Rplus_opp_l; rewrite Rplus_0_r.
-  pattern 1 at 1; rewrite <- sqrt_1; apply sqrt_le_1.
+  pattern R1 at 1; rewrite <- sqrt_1; apply sqrt_le_1.
   left; apply Rlt_0_1.
   apply Rle_0_sqr.
-  pattern 1 at 1; rewrite <- Rsqr_1; apply Rsqr_incr_1.
-  pattern 1 at 1; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
+  pattern R1 at 1; rewrite <- Rsqr_1; apply Rsqr_incr_1.
+  pattern R1 at 1; rewrite <- Rplus_0_r; apply Rplus_le_compat_l; left;
     assumption.
   left; apply Rlt_0_1.
   apply H0.
-  apply Rle_ge; left; apply Rplus_lt_reg_l with 1.
+  apply Rle_ge; left; apply Rplus_lt_reg_l with R1.
   rewrite Rplus_0_r; rewrite Rplus_comm; unfold Rminus;
     rewrite Rplus_assoc; rewrite Rplus_opp_l; rewrite Rplus_0_r.
-  pattern 1 at 1; rewrite <- sqrt_1; apply sqrt_lt_1.
+  pattern R1 at 1; rewrite <- sqrt_1; apply sqrt_lt_1.
   left; apply Rlt_0_1.
   apply H0.
-  pattern 1 at 1; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l;
+  pattern R1 at 1; rewrite <- Rplus_0_r; apply Rplus_lt_compat_l;
     assumption.
   rewrite sqrt_Rsqr.
-  replace (1 + h - 1) with h; [ right; reflexivity | ring ].
+  replace (R1 + h - R1) with h; [ right; reflexivity | idtac ].
+  unfold Rminus.
+  rewrite Rplus_assoc. fold (h-R1). rewrite Rplus_minus. reflexivity.
   apply H0.
-  destruct (total_order_T h 0) as [[Hlt|Heq]|Hgt].
+  destruct (total_order_T h R0) as [[Hlt|Heq]|Hgt].
   rewrite (Rabs_left h Hlt) in H.
   apply Rplus_le_reg_l with (- h).
   rewrite Rplus_0_r; rewrite Rplus_comm; rewrite Rplus_assoc;
@@ -100,50 +102,51 @@ Proof.
 Qed.
 
 (** sqrt is continuous in 1 *)
-Lemma sqrt_continuity_pt_R1 : continuity_pt sqrt 1.
+Lemma sqrt_continuity_pt_R1 : continuity_pt sqrt R1.
 Proof.
   unfold continuity_pt; unfold continue_in;
     unfold limit1_in; unfold limit_in;
       unfold dist; simpl; unfold R_dist;
         intros.
-  set (alpha := Rmin eps 1).
+  set (alpha := Rmin eps R1).
   exists alpha; intros.
   split.
-  unfold alpha; unfold Rmin; case (Rle_dec eps 1); intro.
+  unfold alpha; unfold Rmin; case (Rle_dec eps R1); intro.
   assumption.
   apply Rlt_0_1.
   intros; elim H0; intros.
-  rewrite sqrt_1; replace x with (1 + (x - 1)); [ idtac | ring ];
-    apply Rle_lt_trans with (Rabs (x - 1)).
+  rewrite sqrt_1; replace x with (R1 + (x - R1)); [ idtac | idtac ].
+    apply Rle_lt_trans with (Rabs (x - R1)).
   apply sqrt_var_maj.
   apply Rle_trans with alpha.
   left; apply H2.
   unfold alpha; apply Rmin_r.
   apply Rlt_le_trans with alpha;
     [ apply H2 | unfold alpha; apply Rmin_l ].
+rewrite Rplus_minus. reflexivity.
 Qed.
 
 (** sqrt is continuous forall x>0 *)
-Lemma sqrt_continuity_pt : forall x:R, 0 < x -> continuity_pt sqrt x.
+Lemma sqrt_continuity_pt : forall x:R, R0 < x -> continuity_pt sqrt x.
 Proof.
   intros; generalize sqrt_continuity_pt_R1.
   unfold continuity_pt; unfold continue_in;
     unfold limit1_in; unfold limit_in;
       unfold dist; simpl; unfold R_dist;
         intros.
-  cut (0 < eps / sqrt x).
+  cut (R0 < eps / sqrt x).
   intro; elim (H0 _ H2); intros alp_1 H3.
   elim H3; intros.
   set (alpha := alp_1 * x).
   exists (Rmin alpha x); intros.
   split.
-  change (0 < Rmin alpha x); unfold Rmin;
+  change (R0 < Rmin alpha x); unfold Rmin;
     case (Rle_dec alpha x); intro.
   unfold alpha; apply Rmult_lt_0_compat; assumption.
   apply H.
-  intros; replace x0 with (x + (x0 - x)); [ idtac | ring ];
+  intros; replace x0 with (x + (x0 - x)).
     replace (sqrt (x + (x0 - x)) - sqrt x) with
-    (sqrt x * (sqrt (1 + (x0 - x) / x) - sqrt 1)).
+    (sqrt x * (sqrt (R1 + (x0 - x) / x) - sqrt R1)).
   rewrite Rabs_mult; rewrite (Rabs_right (sqrt x)).
   apply Rmult_lt_reg_l with (/ sqrt x).
   apply Rinv_0_lt_compat; apply sqrt_lt_R0; assumption.
@@ -163,7 +166,7 @@ Proof.
   split.
   trivial.
   red; intro.
-  cut ((x0 - x) * / x = 0).
+  cut ((x0 - x) * / x = R0).
   intro.
   elim (Rmult_integral _ _ H9); intro.
   elim H7.
@@ -172,7 +175,7 @@ Proof.
   rewrite <- Rinv_l_sym in H11.
   elim R1_neq_R0; exact H11.
   red; intro; rewrite H12 in H; elim (Rlt_irrefl _ H).
-  symmetry ; apply Rplus_eq_reg_l with 1; rewrite Rplus_0_r;
+  symmetry ; apply Rplus_eq_reg_l with R1; rewrite Rplus_0_r;
     unfold Rdiv in H8; exact H8.
   unfold Rminus; rewrite Rplus_comm; rewrite <- Rplus_assoc;
     rewrite Rplus_opp_l; rewrite Rplus_0_l; elim H6; intros.
@@ -223,6 +226,7 @@ Proof.
   unfold Rdiv; apply Rmult_le_pos.
   apply Rge_le; exact Hgt.
   left; apply Rinv_0_lt_compat; apply H.
+rewrite Rplus_minus. reflexivity.
   unfold Rdiv; apply Rmult_lt_0_compat.
   apply H1.
   apply Rinv_0_lt_compat; apply sqrt_lt_R0; apply H.
@@ -230,22 +234,22 @@ Qed.
 
 (** sqrt is derivable for all x>0 *)
 Lemma derivable_pt_lim_sqrt :
-  forall x:R, 0 < x -> derivable_pt_lim sqrt x (/ (2 * sqrt x)).
+  forall x:R, R0 < x -> derivable_pt_lim sqrt x (/ (R2 * sqrt x)).
 Proof.
   intros; set (g := fun h:R => sqrt x + sqrt (x + h)).
-  cut (continuity_pt g 0).
-  intro; cut (g 0 <> 0).
-  intro; assert (H2 := continuity_pt_inv g 0 H0 H1).
+  cut (continuity_pt g R0).
+  intro; cut (g R0 <> R0).
+  intro; assert (H2 := continuity_pt_inv g R0 H0 H1).
   unfold derivable_pt_lim; intros; unfold continuity_pt in H2;
     unfold continue_in in H2; unfold limit1_in in H2;
       unfold limit_in in H2; simpl in H2; unfold R_dist in H2.
   elim (H2 eps H3); intros alpha H4.
   elim H4; intros.
   set (alpha1 := Rmin alpha x).
-  cut (0 < alpha1).
+  cut (R0 < alpha1).
   intro; exists (mkposreal alpha1 H7); intros.
   replace ((sqrt (x + h) - sqrt x) / h) with (/ (sqrt x + sqrt (x + h))).
-  unfold inv_fct, g in H6; replace (2 * sqrt x) with (sqrt x + sqrt (x + 0)).
+  unfold inv_fct, g in H6; replace (R2 * sqrt x) with (sqrt x + sqrt (x + R0)).
   apply H6.
   split.
   unfold D_x, no_cond.
@@ -256,9 +260,9 @@ Proof.
     apply Rlt_le_trans with alpha1.
   exact H9.
   unfold alpha1; apply Rmin_l.
-  rewrite Rplus_0_r; ring.
-  cut (0 <= x + h).
-  intro; cut (0 < sqrt x + sqrt (x + h)).
+  rewrite Rplus_0_r. rewrite <- double. reflexivity.
+  cut (R0 <= x + h).
+  intro; cut (R0 < sqrt x + sqrt (x + h)).
   intro; apply Rmult_eq_reg_l with (sqrt x + sqrt (x + h)).
   rewrite <- Rinv_r_sym.
   rewrite Rplus_comm; unfold Rdiv; rewrite <- Rmult_assoc;
@@ -288,7 +292,7 @@ Proof.
   apply H5.
   apply H.
   unfold g; rewrite Rplus_0_r.
-  cut (0 < sqrt x + sqrt x).
+  cut (R0 < sqrt x + sqrt x).
   intro; red; intro; rewrite H2 in H1; elim (Rlt_irrefl _ H1).
   apply Rplus_lt_0_compat; apply sqrt_lt_R0; apply H.
   replace g with (fct_cte (sqrt x) + comp sqrt (fct_cte x + id))%F;
@@ -306,17 +310,17 @@ Proof.
 Qed.
 
 (**********)
-Lemma derivable_pt_sqrt : forall x:R, 0 < x -> derivable_pt sqrt x.
+Lemma derivable_pt_sqrt : forall x:R, R0 < x -> derivable_pt sqrt x.
 Proof.
   unfold derivable_pt; intros.
-  exists (/ (2 * sqrt x)).
+  exists (/ (R2 * sqrt x)).
   apply derivable_pt_lim_sqrt; assumption.
 Qed.
 
 (**********)
 Lemma derive_pt_sqrt :
-  forall (x:R) (pr:0 < x),
-    derive_pt sqrt x (derivable_pt_sqrt _ pr) = / (2 * sqrt x).
+  forall (x:R) (pr:R0 < x),
+    derive_pt sqrt x (derivable_pt_sqrt _ pr) = / (R2 * sqrt x).
 Proof.
   intros.
   apply derive_pt_eq_0.
@@ -326,9 +330,9 @@ Qed.
 (** We show that sqrt is continuous for all x>=0 *)
 (** Remark : by definition of sqrt (as extension of Rsqrt on |R),
    we could also show that sqrt is continuous for all x *)
-Lemma continuity_pt_sqrt : forall x:R, 0 <= x -> continuity_pt sqrt x.
+Lemma continuity_pt_sqrt : forall x:R, R0 <= x -> continuity_pt sqrt x.
 Proof.
-  intros; case (Rtotal_order 0 x); intro.
+  intros; case (Rtotal_order R0 x); intro.
   apply (sqrt_continuity_pt x H0).
   elim H0; intro.
   unfold continuity_pt; unfold continue_in;
@@ -336,7 +340,7 @@ Proof.
       simpl; unfold R_dist; intros.
   exists (Rsqr eps); intros.
   split.
-  change (0 < Rsqr eps); apply Rsqr_pos_lt.
+  change (R0 < Rsqr eps); apply Rsqr_pos_lt.
   red; intro; rewrite H3 in H2; elim (Rlt_irrefl _ H2).
   intros; elim H3; intros.
   rewrite <- H1; rewrite sqrt_0; unfold Rminus; rewrite Ropp_0;

@@ -1,19 +1,7 @@
-Machin.vo Machin.glob Machin.v.beautified: Machin.v Ratan.vo
-Machin.vio: Machin.v Ratan.vio
-Ranalysis5.vo Ranalysis5.glob Ranalysis5.v.beautified: Ranalysis5.v
-Ranalysis5.vio: Ranalysis5.v
-Ratan.vo Ratan.glob Ratan.v.beautified: Ratan.v Ranalysis5.vo
-Ratan.vio: Ratan.v Ranalysis5.vio
-Rlimit.vo Rlimit.glob Rlimit.v.beautified: Rlimit.v
-Rlimit.vio: Rlimit.v
-Rlogic.vo Rlogic.glob Rlogic.v.beautified: Rlogic.v
-Rlogic.vio: Rlogic.v
-Rminmax.vo Rminmax.glob Rminmax.v.beautified: Rminmax.v ROrderedType.vo
-Rminmax.vio: Rminmax.v ROrderedType.vio
-ROrderedType.vo ROrderedType.glob ROrderedType.v.beautified: ROrderedType.v
-ROrderedType.vio: ROrderedType.v
 XAlembert.vo XAlembert.glob XAlembert.v.beautified: XAlembert.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo
 XAlembert.vio: XAlembert.v XRbase.vio XRfunctions.vio XRseries.vio XSeqProp.vio XPartSum.vio
+XAllReals.vo XAllReals.glob XAllReals.v.beautified: XAllReals.v XReals.vo XRlogic.vo XRminmax.vo
+XAllReals.vio: XAllReals.v XReals.vio XRlogic.vio XRminmax.vio
 XAltSeries.vo XAltSeries.glob XAltSeries.v.beautified: XAltSeries.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo
 XAltSeries.vio: XAltSeries.v XRbase.vio XRfunctions.vio XRseries.vio XSeqProp.vio XPartSum.vio
 XArithProp.vo XArithProp.glob XArithProp.v.beautified: XArithProp.v XRbase.vo XRbasic_fun.vo
@@ -32,6 +20,8 @@ XExp_prop.vo XExp_prop.glob XExp_prop.v.beautified: XExp_prop.v XRbase.vo XRfunc
 XExp_prop.vio: XExp_prop.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo1.vio XRanalysis1.vio XPSeries_reg.vio
 XIntegration.vo XIntegration.glob XIntegration.v.beautified: XIntegration.v XNewtonInt.vo XRiemannInt_SF.vo XRiemannInt.vo
 XIntegration.vio: XIntegration.v XNewtonInt.vio XRiemannInt_SF.vio XRiemannInt.vio
+XMachin.vo XMachin.glob XMachin.v.beautified: XMachin.v XRbase.vo XRtrigo1.vo XRanalysis_reg.vo XRfunctions.vo XAltSeries.vo XRseries.vo XSeqProp.vo XPartSum.vo XRatan.vo
+XMachin.vio: XMachin.v XRbase.vio XRtrigo1.vio XRanalysis_reg.vio XRfunctions.vio XAltSeries.vio XRseries.vio XSeqProp.vio XPartSum.vio XRatan.vio
 XMVT.vo XMVT.glob XMVT.v.beautified: XMVT.v XRbase.vo XRfunctions.vo XRanalysis1.vo XRtopology.vo
 XMVT.vio: XMVT.v XRbase.vio XRfunctions.vio XRanalysis1.vio XRtopology.vio
 XNewtonInt.vo XNewtonInt.glob XNewtonInt.v.beautified: XNewtonInt.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis.vo
@@ -50,8 +40,12 @@ XRanalysis3.vo XRanalysis3.glob XRanalysis3.v.beautified: XRanalysis3.v XRbase.v
 XRanalysis3.vio: XRanalysis3.v XRbase.vio XRfunctions.vio XRanalysis1.vio XRanalysis2.vio
 XRanalysis4.vo XRanalysis4.glob XRanalysis4.v.beautified: XRanalysis4.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XRanalysis3.vo XExp_prop.vo XMVT.vo
 XRanalysis4.vio: XRanalysis4.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo1.vio XRanalysis1.vio XRanalysis3.vio XExp_prop.vio XMVT.vio
+XRanalysis5.vo XRanalysis5.glob XRanalysis5.v.beautified: XRanalysis5.v XRbase.vo XRanalysis_reg.vo XRfunctions.vo XRseries.vo XRiemannInt.vo XSeqProp.vo
+XRanalysis5.vio: XRanalysis5.v XRbase.vio XRanalysis_reg.vio XRfunctions.vio XRseries.vio XRiemannInt.vio XSeqProp.vio
 XRanalysis_reg.vo XRanalysis_reg.glob XRanalysis_reg.v.beautified: XRanalysis_reg.v XRbase.vo XRfunctions.vo XRtrigo1.vo XSeqSeries.vo XRanalysis1.vo XRanalysis2.vo XRanalysis3.vo XRtopology.vo XMVT.vo XPSeries_reg.vo XExp_prop.vo XRtrigo_reg.vo XRsqrt_def.vo XR_sqrt.vo XRtrigo_calc.vo XRgeom.vo XRList.vo XSqrt_reg.vo XRanalysis4.vo XRpower.vo
 XRanalysis_reg.vio: XRanalysis_reg.v XRbase.vio XRfunctions.vio XRtrigo1.vio XSeqSeries.vio XRanalysis1.vio XRanalysis2.vio XRanalysis3.vio XRtopology.vio XMVT.vio XPSeries_reg.vio XExp_prop.vio XRtrigo_reg.vio XRsqrt_def.vio XR_sqrt.vio XRtrigo_calc.vio XRgeom.vio XRList.vio XSqrt_reg.vio XRanalysis4.vio XRpower.vio
+XRatan.vo XRatan.glob XRatan.v.beautified: XRatan.v XRbase.vo XPSeries_reg.vo XRtrigo1.vo XRanalysis_reg.vo XRfunctions.vo XAltSeries.vo XRseries.vo XSeqProp.vo XRanalysis5.vo XSeqSeries.vo XPartSum.vo
+XRatan.vio: XRatan.v XRbase.vio XPSeries_reg.vio XRtrigo1.vio XRanalysis_reg.vio XRfunctions.vio XAltSeries.vio XRseries.vio XSeqProp.vio XRanalysis5.vio XSeqSeries.vio XPartSum.vio
 XRaxioms.vo XRaxioms.glob XRaxioms.v.beautified: XRaxioms.v XRdefinitions.vo
 XRaxioms.vio: XRaxioms.v XRdefinitions.vio
 XRbase.vo XRbase.glob XRbase.v.beautified: XRbase.v XRdefinitions.vo XRaxioms.vo XRIneq.vo XDiscrR.vo
@@ -80,6 +74,12 @@ XRlimit.vo XRlimit.glob XRlimit.v.beautified: XRlimit.v XRbase.vo XRfunctions.vo
 XRlimit.vio: XRlimit.v XRbase.vio XRfunctions.vio
 XRList.vo XRList.glob XRList.v.beautified: XRList.v XRbase.vo XRfunctions.vo
 XRList.vio: XRList.v XRbase.vio XRfunctions.vio
+XRlogic.vo XRlogic.glob XRlogic.v.beautified: XRlogic.v XRIneq.vo
+XRlogic.vio: XRlogic.v XRIneq.vio
+XRminmax.vo XRminmax.glob XRminmax.v.beautified: XRminmax.v XRbase.vo XRbasic_fun.vo XROrderedType.vo
+XRminmax.vio: XRminmax.v XRbase.vio XRbasic_fun.vio XROrderedType.vio
+XROrderedType.vo XROrderedType.glob XROrderedType.v.beautified: XROrderedType.v XRbase.vo
+XROrderedType.vio: XROrderedType.v XRbase.vio
 XRpower.vo XRpower.glob XRpower.v.beautified: XRpower.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XExp_prop.vo XRsqrt_def.vo XR_sqrt.vo XSqrt_reg.vo XMVT.vo XRanalysis4.vo
 XRpower.vio: XRpower.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo1.vio XRanalysis1.vio XExp_prop.vio XRsqrt_def.vio XR_sqrt.vio XSqrt_reg.vio XMVT.vio XRanalysis4.vio
 XRpow_def.vo XRpow_def.glob XRpow_def.v.beautified: XRpow_def.v XRdefinitions.vo
@@ -94,8 +94,8 @@ XRsqrt_def.vo XRsqrt_def.glob XRsqrt_def.v.beautified: XRsqrt_def.v XRbase.vo XR
 XRsqrt_def.vio: XRsqrt_def.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRanalysis1.vio
 XRtopology.vo XRtopology.glob XRtopology.v.beautified: XRtopology.v XRbase.vo XRfunctions.vo XRanalysis1.vo XRList.vo
 XRtopology.vio: XRtopology.v XRbase.vio XRfunctions.vio XRanalysis1.vio XRList.vio
-XRtrigo.vo XRtrigo.glob XRtrigo.v.beautified: XRtrigo.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo Ratan.vo Machin.vo
-XRtrigo.vio: XRtrigo.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo_fun.vio XRtrigo_def.vio XRtrigo_alt.vio XCos_rel.vio XCos_plus.vio XRanalysis1.vio XRsqrt_def.vio XPSeries_reg.vio Ratan.vio Machin.vio
+XRtrigo.vo XRtrigo.glob XRtrigo.v.beautified: XRtrigo.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo XRtrigo1.vo XRatan.vo XMachin.vo
+XRtrigo.vio: XRtrigo.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo_fun.vio XRtrigo_def.vio XRtrigo_alt.vio XCos_rel.vio XCos_plus.vio XRanalysis1.vio XRsqrt_def.vio XPSeries_reg.vio XRtrigo1.vio XRatan.vio XMachin.vio
 XRtrigo1.vo XRtrigo1.glob XRtrigo1.v.beautified: XRtrigo1.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo
 XRtrigo1.vio: XRtrigo1.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo_fun.vio XRtrigo_def.vio XRtrigo_alt.vio XCos_rel.vio XCos_plus.vio XRanalysis1.vio XRsqrt_def.vio XPSeries_reg.vio
 XRtrigo_alt.vo XRtrigo_alt.glob XRtrigo_alt.v.beautified: XRtrigo_alt.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_def.vo

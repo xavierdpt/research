@@ -8,16 +8,15 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Fourier.
-Require Import Rbase.
-Require Import Rtrigo1.
-Require Import Ranalysis_reg.
-Require Import Rfunctions.
-Require Import AltSeries.
-Require Import Rseries.
-Require Import SeqProp.
-Require Import PartSum.
-Require Import Ratan.
+Require Import XRbase.
+Require Import XRtrigo1.
+Require Import XRanalysis_reg.
+Require Import XRfunctions.
+Require Import XAltSeries.
+Require Import XRseries.
+Require Import XSeqProp.
+Require Import XPartSum.
+Require Import XRatan.
 Require Import Omega.
 
 Local Open Scope XR_scope.

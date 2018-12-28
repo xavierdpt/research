@@ -1,4 +1,4 @@
-Require Import Orders Rbase Rbasic_fun ROrderedType GenericMinMax.
+Require Import Orders XRbase XRbasic_fun XROrderedType GenericMinMax.
 
 Local Open Scope R_scope.
 

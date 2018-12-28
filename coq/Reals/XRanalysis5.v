@@ -8,13 +8,12 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Ranalysis_reg.
-Require Import Rfunctions.
-Require Import Rseries.
-Require Import Fourier.
-Require Import RiemannInt.
-Require Import SeqProp.
+Require Import XRbase.
+Require Import XRanalysis_reg.
+Require Import XRfunctions.
+Require Import XRseries.
+Require Import XRiemannInt.
+Require Import XSeqProp.
 Require Import Max.
 Require Import Omega.
 Require Import Lra.

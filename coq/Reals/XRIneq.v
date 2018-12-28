@@ -2912,3 +2912,13 @@ Proof.
   apply Ropp_le_contravar.
   assumption.
 Qed.
+
+Lemma Rge_not_lt : forall r1 r2, r2 <= r1 -> ~ r1 < r2.
+Proof.
+  intros.
+  intro h.
+  eapply Rlt_irrefl.
+  eapply Rlt_le_trans.
+  exact h.
+  exact H.
+Qed.
