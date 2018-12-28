@@ -8,10 +8,10 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Ranalysis1.
-Require Import R_sqrt.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRanalysis1.
+Require Import XR_sqrt.
 Local Open Scope R_scope.
 
 (**********)

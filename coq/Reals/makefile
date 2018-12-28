@@ -1,54 +1,15 @@
 .PHONY: ALL
 
-ALL: XRtrigo_def.vo Rtrigo.vo Rpower.vo XRanalysis1.vo ROrderedType.vo XRbasic_fun.vo Ranalysis2.vo XRtrigo_fun.vo XRIneq.vo XRList.vo XRpow_def.vo XSplitAbsolu.vo XPSeries_reg.vo XSeqProp.vo NewtonInt.vo XSeqSeries.vo Ranalysis3.vo XRsigma.vo XRtopology.vo XR_sqr.vo XAltSeries.vo XRcomplete.vo RiemannInt.vo XCos_rel.vo Experiment.vo Rtrigo_calc.vo Exp_prop.vo Rtrigo_reg.vo Ranalysis_reg.vo Rminmax.vo XSplitRmult.vo XRprod.vo Rlimit.vo RiemannInt_SF.vo XRfunctions.vo XDiscrR.vo Machin.vo Ranalysis4.vo XArithProp.vo XRlimit.vo Integration.vo XRderiv.vo XPartSum.vo XR_Ifp.vo XCos_plus.vo XAlembert.vo XRaxioms.vo XRsqrt_def.vo XCauchy_prod.vo Ratan.vo R_sqrt.vo Rlogic.vo XBinomial.vo XRbase.vo Ranalysis.vo Reals.vo Rgeom.vo Ranalysis5.vo XRtrigo_alt.vo XMVT.vo XRdefinitions.vo XRseries.vo Sqrt_reg.vo XRtrigo1.vo
+ALL: XSqrt_reg.vo XRtrigo_def.vo XRgeom.vo XReals.vo XRanalysis1.vo ROrderedType.vo XRbasic_fun.vo XRtrigo_fun.vo XRIneq.vo XRList.vo XRpow_def.vo XSplitAbsolu.vo XSeqProp.vo XPSeries_reg.vo XRiemannInt.vo XSeqSeries.vo XRsigma.vo XRtrigo_reg.vo XRtopology.vo XR_sqr.vo XAltSeries.vo XRcomplete.vo XRanalysis2.vo XCos_rel.vo XExp_prop.vo Rminmax.vo XSplitRmult.vo XRprod.vo Rlimit.vo XRfunctions.vo XDiscrR.vo Machin.vo XArithProp.vo XNewtonInt.vo XRlimit.vo XRderiv.vo XRanalysis3.vo XPartSum.vo XIntegration.vo XR_Ifp.vo XCos_plus.vo XAlembert.vo XRaxioms.vo XRtrigo.vo XRsqrt_def.vo XRpower.vo XCauchy_prod.vo Ratan.vo Rlogic.vo XBinomial.vo XRbase.vo XRanalysis.vo Ranalysis5.vo XR_sqrt.vo XRiemannInt_SF.vo XRanalysis_reg.vo XRtrigo_alt.vo XMVT.vo XRanalysis4.vo XRdefinitions.vo XRseries.vo XRtrigo_calc.vo XRtrigo1.vo
 
-Experiment.vo : Experiment.v  Reals.vo
-	 C:\Coq\bin\coqc Experiment.v
-
-Exp_prop.vo : Exp_prop.v 
-	 C:\Coq\bin\coqc Exp_prop.v
-
-Integration.vo : Integration.v  NewtonInt.vo RiemannInt_SF.vo RiemannInt.vo
-	 C:\Coq\bin\coqc Integration.v
-
-Machin.vo : Machin.v  Ranalysis_reg.vo Ratan.vo
+Machin.vo : Machin.v  Ratan.vo
 	 C:\Coq\bin\coqc Machin.v
 
-NewtonInt.vo : NewtonInt.v  Ranalysis.vo
-	 C:\Coq\bin\coqc NewtonInt.v
-
-Ranalysis.vo : Ranalysis.v  Rtrigo.vo Ranalysis2.vo Ranalysis3.vo Exp_prop.vo Rtrigo_reg.vo R_sqrt.vo Rtrigo_calc.vo Rgeom.vo Sqrt_reg.vo Ranalysis4.vo Rpower.vo Ranalysis_reg.vo
-	 C:\Coq\bin\coqc Ranalysis.v
-
-Ranalysis2.vo : Ranalysis2.v 
-	 C:\Coq\bin\coqc Ranalysis2.v
-
-Ranalysis3.vo : Ranalysis3.v  Ranalysis2.vo
-	 C:\Coq\bin\coqc Ranalysis3.v
-
-Ranalysis4.vo : Ranalysis4.v  Ranalysis3.vo Exp_prop.vo
-	 C:\Coq\bin\coqc Ranalysis4.v
-
-Ranalysis5.vo : Ranalysis5.v  Ranalysis_reg.vo RiemannInt.vo
+Ranalysis5.vo : Ranalysis5.v 
 	 C:\Coq\bin\coqc Ranalysis5.v
 
-Ranalysis_reg.vo : Ranalysis_reg.v  Ranalysis2.vo Ranalysis3.vo Exp_prop.vo Rtrigo_reg.vo R_sqrt.vo Rtrigo_calc.vo Rgeom.vo Sqrt_reg.vo Ranalysis4.vo Rpower.vo
-	 C:\Coq\bin\coqc Ranalysis_reg.v
-
-Ratan.vo : Ratan.v  Ranalysis_reg.vo Ranalysis5.vo
+Ratan.vo : Ratan.v  Ranalysis5.vo
 	 C:\Coq\bin\coqc Ratan.v
-
-Reals.vo : Reals.v  XRbase.vo XRfunctions.vo XSeqSeries.vo Rtrigo.vo Ranalysis.vo Integration.vo
-	 C:\Coq\bin\coqc Reals.v
-
-Rgeom.vo : Rgeom.v  R_sqrt.vo
-	 C:\Coq\bin\coqc Rgeom.v
-
-RiemannInt.vo : RiemannInt.v  Ranalysis_reg.vo RiemannInt_SF.vo
-	 C:\Coq\bin\coqc RiemannInt.v
-
-RiemannInt_SF.vo : RiemannInt_SF.v  Ranalysis_reg.vo
-	 C:\Coq\bin\coqc RiemannInt_SF.v
 
 Rlimit.vo : Rlimit.v 
 	 C:\Coq\bin\coqc Rlimit.v
@@ -61,24 +22,6 @@ Rminmax.vo : Rminmax.v  ROrderedType.vo
 
 ROrderedType.vo : ROrderedType.v 
 	 C:\Coq\bin\coqc ROrderedType.v
-
-Rpower.vo : Rpower.v  Exp_prop.vo R_sqrt.vo Sqrt_reg.vo Ranalysis4.vo
-	 C:\Coq\bin\coqc Rpower.v
-
-Rtrigo.vo : Rtrigo.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo Ratan.vo Machin.vo
-	 C:\Coq\bin\coqc Rtrigo.v
-
-Rtrigo_calc.vo : Rtrigo_calc.v  R_sqrt.vo
-	 C:\Coq\bin\coqc Rtrigo_calc.v
-
-Rtrigo_reg.vo : Rtrigo_reg.v 
-	 C:\Coq\bin\coqc Rtrigo_reg.v
-
-R_sqrt.vo : R_sqrt.v 
-	 C:\Coq\bin\coqc R_sqrt.v
-
-Sqrt_reg.vo : Sqrt_reg.v  R_sqrt.vo
-	 C:\Coq\bin\coqc Sqrt_reg.v
 
 XAlembert.vo : XAlembert.v  XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo
 	 C:\Coq\bin\coqc XAlembert.v
@@ -104,8 +47,17 @@ XCos_rel.vo : XCos_rel.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_def.vo
 XDiscrR.vo : XDiscrR.v  XRIneq.vo
 	 C:\Coq\bin\coqc XDiscrR.v
 
+XExp_prop.vo : XExp_prop.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XPSeries_reg.vo
+	 C:\Coq\bin\coqc XExp_prop.v
+
+XIntegration.vo : XIntegration.v  XNewtonInt.vo XRiemannInt_SF.vo XRiemannInt.vo
+	 C:\Coq\bin\coqc XIntegration.v
+
 XMVT.vo : XMVT.v  XRbase.vo XRfunctions.vo XRanalysis1.vo XRtopology.vo
 	 C:\Coq\bin\coqc XMVT.v
+
+XNewtonInt.vo : XNewtonInt.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis.vo
+	 C:\Coq\bin\coqc XNewtonInt.v
 
 XPartSum.vo : XPartSum.v  XRbase.vo XRfunctions.vo XRseries.vo XRcomplete.vo
 	 C:\Coq\bin\coqc XPartSum.v
@@ -113,8 +65,23 @@ XPartSum.vo : XPartSum.v  XRbase.vo XRfunctions.vo XRseries.vo XRcomplete.vo
 XPSeries_reg.vo : XPSeries_reg.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRanalysis1.vo XMVT.vo
 	 C:\Coq\bin\coqc XPSeries_reg.v
 
+XRanalysis.vo : XRanalysis.v  XRbase.vo XRfunctions.vo XRtrigo.vo XSeqSeries.vo XRanalysis1.vo XRanalysis2.vo XRanalysis3.vo XRtopology.vo XMVT.vo XPSeries_reg.vo XExp_prop.vo XRtrigo_reg.vo XRsqrt_def.vo XR_sqrt.vo XRtrigo_calc.vo XRgeom.vo XRList.vo XSqrt_reg.vo XRanalysis4.vo XRpower.vo XRanalysis_reg.vo
+	 C:\Coq\bin\coqc XRanalysis.v
+
 XRanalysis1.vo : XRanalysis1.v  XRbase.vo XRfunctions.vo XRlimit.vo XRderiv.vo
 	 C:\Coq\bin\coqc XRanalysis1.v
+
+XRanalysis2.vo : XRanalysis2.v  XRbase.vo XRfunctions.vo XRanalysis1.vo
+	 C:\Coq\bin\coqc XRanalysis2.v
+
+XRanalysis3.vo : XRanalysis3.v  XRbase.vo XRfunctions.vo XRanalysis1.vo XRanalysis2.vo
+	 C:\Coq\bin\coqc XRanalysis3.v
+
+XRanalysis4.vo : XRanalysis4.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XRanalysis3.vo XExp_prop.vo XMVT.vo
+	 C:\Coq\bin\coqc XRanalysis4.v
+
+XRanalysis_reg.vo : XRanalysis_reg.v  XRbase.vo XRfunctions.vo XRtrigo1.vo XSeqSeries.vo XRanalysis1.vo XRanalysis2.vo XRanalysis3.vo XRtopology.vo XMVT.vo XPSeries_reg.vo XExp_prop.vo XRtrigo_reg.vo XRsqrt_def.vo XR_sqrt.vo XRtrigo_calc.vo XRgeom.vo XRList.vo XSqrt_reg.vo XRanalysis4.vo XRpower.vo
+	 C:\Coq\bin\coqc XRanalysis_reg.v
 
 XRaxioms.vo : XRaxioms.v  XRdefinitions.vo
 	 C:\Coq\bin\coqc XRaxioms.v
@@ -134,8 +101,20 @@ XRdefinitions.vo : XRdefinitions.v
 XRderiv.vo : XRderiv.v  XRbase.vo XRfunctions.vo XRlimit.vo
 	 C:\Coq\bin\coqc XRderiv.v
 
+XReals.vo : XReals.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo.vo XRanalysis.vo XIntegration.vo
+	 C:\Coq\bin\coqc XReals.v
+
 XRfunctions.vo : XRfunctions.v  XRbase.vo XRpow_def.vo XR_Ifp.vo XRbasic_fun.vo XR_sqr.vo XSplitAbsolu.vo XSplitRmult.vo XArithProp.vo
 	 C:\Coq\bin\coqc XRfunctions.v
+
+XRgeom.vo : XRgeom.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XR_sqrt.vo
+	 C:\Coq\bin\coqc XRgeom.v
+
+XRiemannInt.vo : XRiemannInt.v  XRfunctions.vo XSeqSeries.vo XRanalysis_reg.vo XRbase.vo XRiemannInt_SF.vo
+	 C:\Coq\bin\coqc XRiemannInt.v
+
+XRiemannInt_SF.vo : XRiemannInt_SF.v  XRbase.vo XRfunctions.vo XRanalysis_reg.vo
+	 C:\Coq\bin\coqc XRiemannInt_SF.v
 
 XRIneq.vo : XRIneq.v  XRaxioms.vo XRpow_def.vo
 	 C:\Coq\bin\coqc XRIneq.v
@@ -145,6 +124,9 @@ XRlimit.vo : XRlimit.v  XRbase.vo XRfunctions.vo
 
 XRList.vo : XRList.v  XRbase.vo XRfunctions.vo
 	 C:\Coq\bin\coqc XRList.v
+
+XRpower.vo : XRpower.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XExp_prop.vo XRsqrt_def.vo XR_sqrt.vo XSqrt_reg.vo XMVT.vo XRanalysis4.vo
+	 C:\Coq\bin\coqc XRpower.v
 
 XRpow_def.vo : XRpow_def.v  XRdefinitions.vo
 	 C:\Coq\bin\coqc XRpow_def.v
@@ -164,11 +146,17 @@ XRsqrt_def.vo : XRsqrt_def.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRanalysis1
 XRtopology.vo : XRtopology.v  XRbase.vo XRfunctions.vo XRanalysis1.vo XRList.vo
 	 C:\Coq\bin\coqc XRtopology.v
 
+XRtrigo.vo : XRtrigo.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo Ratan.vo Machin.vo
+	 C:\Coq\bin\coqc XRtrigo.v
+
 XRtrigo1.vo : XRtrigo1.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo
 	 C:\Coq\bin\coqc XRtrigo1.v
 
 XRtrigo_alt.vo : XRtrigo_alt.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_def.vo
 	 C:\Coq\bin\coqc XRtrigo_alt.v
+
+XRtrigo_calc.vo : XRtrigo_calc.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XR_sqrt.vo
+	 C:\Coq\bin\coqc XRtrigo_calc.v
 
 XRtrigo_def.vo : XRtrigo_def.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo
 	 C:\Coq\bin\coqc XRtrigo_def.v
@@ -176,11 +164,17 @@ XRtrigo_def.vo : XRtrigo_def.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_f
 XRtrigo_fun.vo : XRtrigo_fun.v  XRbase.vo XRfunctions.vo XSeqSeries.vo
 	 C:\Coq\bin\coqc XRtrigo_fun.v
 
+XRtrigo_reg.vo : XRtrigo_reg.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XPSeries_reg.vo
+	 C:\Coq\bin\coqc XRtrigo_reg.v
+
 XR_Ifp.vo : XR_Ifp.v  XRbase.vo
 	 C:\Coq\bin\coqc XR_Ifp.v
 
 XR_sqr.vo : XR_sqr.v  XRbase.vo XRbasic_fun.vo
 	 C:\Coq\bin\coqc XR_sqr.v
+
+XR_sqrt.vo : XR_sqrt.v  XRbase.vo XRfunctions.vo XRsqrt_def.vo
+	 C:\Coq\bin\coqc XR_sqrt.v
 
 XSeqProp.vo : XSeqProp.v  XRbase.vo XRfunctions.vo XRseries.vo
 	 C:\Coq\bin\coqc XSeqProp.v
@@ -193,4 +187,7 @@ XSplitAbsolu.vo : XSplitAbsolu.v  XRbasic_fun.vo
 
 XSplitRmult.vo : XSplitRmult.v  XRbase.vo
 	 C:\Coq\bin\coqc XSplitRmult.v
+
+XSqrt_reg.vo : XSqrt_reg.v  XRbase.vo XRfunctions.vo XRanalysis1.vo XR_sqrt.vo
+	 C:\Coq\bin\coqc XSqrt_reg.v
 

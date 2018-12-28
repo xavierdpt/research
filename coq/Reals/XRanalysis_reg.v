@@ -8,26 +8,26 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rtrigo1.
-Require Import SeqSeries.
-Require Export Ranalysis1.
-Require Export Ranalysis2.
-Require Export Ranalysis3.
-Require Export Rtopology.
-Require Export MVT.
-Require Export PSeries_reg.
-Require Export Exp_prop.
-Require Export Rtrigo_reg.
-Require Export Rsqrt_def.
-Require Export R_sqrt.
-Require Export Rtrigo_calc.
-Require Export Rgeom.
-Require Export RList.
-Require Export Sqrt_reg.
-Require Export Ranalysis4.
-Require Export Rpower.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRtrigo1.
+Require Import XSeqSeries.
+Require Export XRanalysis1.
+Require Export XRanalysis2.
+Require Export XRanalysis3.
+Require Export XRtopology.
+Require Export XMVT.
+Require Export XPSeries_reg.
+Require Export XExp_prop.
+Require Export XRtrigo_reg.
+Require Export XRsqrt_def.
+Require Export XR_sqrt.
+Require Export XRtrigo_calc.
+Require Export XRgeom.
+Require Export XRList.
+Require Export XSqrt_reg.
+Require Export XRanalysis4.
+Require Export XRpower.
 Local Open Scope R_scope.
 
 Definition AppVar : R.

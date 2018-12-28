@@ -9,11 +9,11 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Import Ranalysis_reg.
-Require Import Rbase.
-Require Import RiemannInt_SF.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Import XRanalysis_reg.
+Require Import XRbase.
+Require Import XRiemannInt_SF.
 Require Import Max.
 Local Open Scope R_scope.
 

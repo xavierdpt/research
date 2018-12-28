@@ -866,8 +866,6 @@ Proof.
   exact hyz.
 Qed.
 
-Print posreal.
-
 
 Record family : Type := mkfamily {
   ind : R -> Prop;
@@ -1007,7 +1005,6 @@ Proof.
   }
 Qed.
 
-Check cond_fam.
 
 Definition is_family (I:R->Prop) (M:R->R->Prop) := forall x, (exists y, M x y) -> I x.
 
@@ -3742,8 +3739,17 @@ rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r. reflexivity.
         intros; set (D := MinRlist l'); cut (R0 < D / R2).
   intro; exists (mkposreal _ H9); intros; assert (H13 := H4 _ H10); elim H13;
     clear H13; intros xi H13; assert (H14 : In xi l).
-  unfold g in H13; decompose [and] H13; elim (H5 xi); intros; apply H14; split;
-    assumption.
+{
+  unfold RF in H13. decompose [and] H13. elim (H5 xi). intros. clear H5. apply H16. split.
+{
+
+  unfold f' in *.
+  simpl in *.
+  unfold g in H14.
+  apply H14.
+
+} assumption.
+}
   elim (pos_Rl_P2 l xi); intros H15 _; elim (H15 H14); intros i H16; elim H16;
     intros; apply Rle_lt_trans with (Rabs (f0 x - f0 xi) + Rabs (f0 xi - f0 y)).
   replace (f0 x - f0 y) with (f0 x - f0 xi + (f0 xi - f0 y));

@@ -770,7 +770,6 @@ Proof.
 }
 { exact H16. }
 }
-}
 { exact H0. }
 }
 }

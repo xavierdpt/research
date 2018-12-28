@@ -20,7 +20,7 @@ Require Import PartSum.
 Require Import Ratan.
 Require Import Omega.
 
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (* Proving a few formulas in the style of John Machin to compute Pi *)
 

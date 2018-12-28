@@ -8,12 +8,12 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Import Rtrigo1.
-Require Import Ranalysis1.
-Require Import PSeries_reg.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Import XRtrigo1.
+Require Import XRanalysis1.
+Require Import XPSeries_reg.
 Require Import Div2.
 Require Import Even.
 Require Import Max.

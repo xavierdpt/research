@@ -2837,3 +2837,78 @@ rewrite Rinv_r.
 rewrite Rmult_1_r.
 reflexivity.
 Qed.
+
+Lemma Ropp_lt_gt_contravar : forall r1 r2, r1 < r2 -> - r2 < - r1.
+Proof.
+  intros.
+  apply Ropp_lt_contravar.
+  assumption.
+Qed.
+
+Lemma Ropp_ge_le_contravar : forall r1 r2, r2 <= r1 -> - r1 <= - r2.
+Proof.
+  intros.
+  apply Ropp_le_contravar.
+  assumption.
+Qed.
+
+Lemma Rle_ge : forall r1 r2, r1 <= r2 -> r1 <= r2.
+Proof.
+  intros;assumption.
+Qed.
+
+Lemma Rnot_le_gt : forall r1 r2, ~ r1 <= r2 -> r2 < r1.
+Proof.
+  intros.
+  apply Rnot_le_lt.
+  assumption.
+Qed.
+
+Lemma Rlt_Rminus : forall a b:R, a < b -> R0 < b - a.
+Proof.
+  intros a b h.
+  unfold Rminus.
+  apply Rplus_lt_reg_r with a.
+  rewrite Rplus_0_l.
+  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+  assumption.
+Qed.
+
+Lemma Rgt_not_eq : forall r1 r2, r2 < r1 -> r1 <> r2.
+Proof.
+  intros.
+  apply Rlt_not_eq'.
+  assumption.
+Qed.
+
+Lemma Rlt_minus : forall r1 r2, r1 < r2 -> r1 - r2 < R0.
+Proof.
+intros.
+apply Ropp_lt_cancel.
+rewrite Ropp_0.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite Rplus_comm.
+apply Rlt_Rminus.
+assumption.
+Qed.
+
+Lemma Ropp_gt_lt_contravar : forall r1 r2, r2 < r1 -> - r1 < - r2.
+Proof.
+intros.
+apply Ropp_lt_contravar;assumption.
+Qed.
+
+Lemma Rge_le : forall r1 r2, r2 <= r1 -> r2 <= r1.
+Proof.
+intros.
+assumption.
+Qed.
+
+Lemma Ropp_le_ge_contravar : forall r1 r2, r1 <= r2 -> - r2 <= - r1.
+Proof.
+  intros.
+  apply Ropp_le_contravar.
+  assumption.
+Qed.

@@ -8,9 +8,9 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Ranalysis_reg.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRanalysis_reg.
 Require Import Classical_Prop.
 Local Open Scope R_scope.
 

@@ -8,9 +8,9 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import Rsqrt_def.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XRsqrt_def.
 Local Open Scope R_scope.
 
 (** * Continuous extension of Rsqrt on R *)

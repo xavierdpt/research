@@ -8,14 +8,14 @@
 (*         *     (see LICENSE file for the text of the license)         *)
 (************************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Import Rtrigo1.
-Require Import Ranalysis1.
-Require Import Ranalysis3.
-Require Import Exp_prop.
-Require Import MVT.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Import XRtrigo1.
+Require Import XRanalysis1.
+Require Import XRanalysis3.
+Require Import XExp_prop.
+Require Import XMVT.
 Local Open Scope R_scope.
 
 (**********)

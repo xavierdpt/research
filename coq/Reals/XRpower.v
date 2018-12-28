@@ -14,18 +14,17 @@
 (* Definitions of log and Rpower : R->R->R; main properties *)
 (************************************************************)
 
-Require Import Rbase.
-Require Import Rfunctions.
-Require Import SeqSeries.
-Require Import Rtrigo1.
-Require Import Ranalysis1.
-Require Import Exp_prop.
-Require Import Rsqrt_def.
-Require Import R_sqrt.
-Require Import Sqrt_reg.
-Require Import MVT.
-Require Import Ranalysis4.
-Require Import Fourier.
+Require Import XRbase.
+Require Import XRfunctions.
+Require Import XSeqSeries.
+Require Import XRtrigo1.
+Require Import XRanalysis1.
+Require Import XExp_prop.
+Require Import XRsqrt_def.
+Require Import XR_sqrt.
+Require Import XSqrt_reg.
+Require Import XMVT.
+Require Import XRanalysis4.
 Local Open Scope R_scope.
 
 Lemma P_Rmin : forall (P:R -> Prop) (x y:R), P x -> P y -> P (Rmin x y).
