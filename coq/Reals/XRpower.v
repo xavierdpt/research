@@ -25,7 +25,7 @@ Require Import XR_sqrt.
 Require Import XSqrt_reg.
 Require Import XMVT.
 Require Import XRanalysis4.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Lemma P_Rmin : forall (P:R -> Prop) (x y:R), P x -> P y -> P (Rmin x y).
 Proof.
@@ -33,20 +33,20 @@ Proof.
     assumption.
 Qed.
 
-Lemma exp_le_3 : exp 1 <= 3.
+Lemma exp_le_3 : exp R1 <= R3.
 Proof.
-  assert (exp_1 : exp 1 <> 0).
-  assert (H0 := exp_pos 1); red; intro; rewrite H in H0;
+  assert (exp_1 : exp R1 <> R0).
+  assert (H0 := exp_pos R1); red; intro; rewrite H in H0;
     elim (Rlt_irrefl _ H0).
-  apply Rmult_le_reg_l with (/ exp 1).
+  apply Rmult_le_reg_l with (/ exp R1).
   apply Rinv_0_lt_compat; apply exp_pos.
   rewrite <- Rinv_l_sym.
-  apply Rmult_le_reg_l with (/ 3).
-  apply Rinv_0_lt_compat; prove_sup0.
-  rewrite Rmult_1_r; rewrite <- (Rmult_comm 3); rewrite <- Rmult_assoc;
+  apply Rmult_le_reg_l with (/ R3).
+  apply Rinv_0_lt_compat; exact Rlt_0_3.
+  rewrite Rmult_1_r; rewrite <- (Rmult_comm R3); rewrite <- Rmult_assoc;
     rewrite <- Rinv_l_sym.
-  rewrite Rmult_1_l; replace (/ exp 1) with (exp (-1)).
-  unfold exp; case (exist_exp (-1)) as (?,e); simpl in |- *;
+  rewrite Rmult_1_l; replace (/ exp R1) with (exp (-R1)).
+  unfold exp; case (exist_exp (-R1)) as (?,e); simpl in |- *;
     unfold exp_in in e;
       assert (H := alternated_series_ineq (fun i:nat => / INR (fact i)) x 1).
   cut
@@ -54,10 +54,48 @@ Proof.
       sum_f_R0 (tg_alt (fun i:nat => / INR (fact i))) (2 * 1)).
   intro; elim H0; clear H0; intros H0 _; simpl in H0; unfold tg_alt in H0;
     simpl in H0.
-  replace (/ 3) with
-  (1 * / 1 + -1 * 1 * / 1 + -1 * (-1 * 1) * / 2 +
-    -1 * (-1 * (-1 * 1)) * / (2 + 1 + 1 + 1 + 1)) by field.
+  replace (/ R3) with
+  (R1 * / R1 + -R1 * R1 * / R1 + -R1 * (-R1 * R1) * / R2 +
+    -R1 * (-R1 * (-R1 * R1)) * / (R2 + R1 + R1 + R1 + R1)).
   apply H0.
+{
+  repeat rewrite Rmult_1_l.
+  repeat rewrite Rmult_1_r.
+  repeat rewrite Rinv_1.
+  repeat rewrite Rmult_1_r.
+  repeat rewrite <- Ropp_mult_distr_l.
+  repeat rewrite <- Ropp_mult_distr_r.
+  repeat rewrite <- Ropp_mult_distr_l.
+  repeat rewrite Ropp_involutive.
+  repeat rewrite Rmult_1_l.
+  repeat rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_r, Rplus_0_l.
+  eapply Rplus_eq_reg_r.
+  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+  repeat rewrite <- Rplus_assoc.
+  fold R3.
+  repeat rewrite Rplus_assoc.
+  fold R2.
+  rewrite (Rplus_comm R1).
+  fold R3.
+  rewrite <- double.
+  rewrite Rinv_mult_distr.
+  pattern (/R3) at 1;rewrite <- Rmult_1_l.
+  rewrite <- Rmult_plus_distr_r.
+  pattern R1;rewrite double_var.
+  unfold Rdiv.
+  pattern (/ IZR 2) at 3;rewrite <- Rmult_1_l.
+  rewrite <- Rmult_plus_distr_r.
+  rewrite <- Rmult_plus_distr_r.
+  fold R2.
+  fold R3.
+  rewrite Rmult_comm.
+  rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
+  reflexivity.
+  exact Neq_3_0.
+  exact Neq_2_0.
+  exact Neq_3_0.
+}
   apply H.
   unfold Un_decreasing; intros;
     apply Rmult_le_reg_l with (INR (fact n)).
@@ -70,25 +108,25 @@ Proof.
   rewrite Rmult_1_r; apply le_INR; apply fact_le; apply le_n_Sn.
   apply INR_fact_neq_0.
   apply INR_fact_neq_0.
-  assert (H0 := cv_speed_pow_fact 1); unfold Un_cv; unfold Un_cv in H0;
+  assert (H0 := cv_speed_pow_fact R1); unfold Un_cv; unfold Un_cv in H0;
     intros; elim (H0 _ H1); intros; exists x0; intros;
       unfold R_dist in H2; unfold R_dist;
-        replace (/ INR (fact n)) with (1 ^ n / INR (fact n)).
+        replace (/ INR (fact n)) with (R1 ^ n / INR (fact n)).
   apply (H2 _ H3).
   unfold Rdiv; rewrite pow1; rewrite Rmult_1_l; reflexivity.
   unfold infinite_sum in e; unfold Un_cv, tg_alt; intros; elim (e _ H0);
     intros; exists x0; intros;
-      replace (sum_f_R0 (fun i:nat => (-1) ^ i * / INR (fact i)) n) with
-      (sum_f_R0 (fun i:nat => / INR (fact i) * (-1) ^ i) n).
+      replace (sum_f_R0 (fun i:nat => (-R1) ^ i * / INR (fact i)) n) with
+      (sum_f_R0 (fun i:nat => / INR (fact i) * (-R1) ^ i) n).
   apply (H1 _ H2).
   apply sum_eq; intros; apply Rmult_comm.
-  apply Rmult_eq_reg_l with (exp 1).
+  apply Rmult_eq_reg_l with (exp R1).
   rewrite <- exp_plus; rewrite Rplus_opp_r; rewrite exp_0;
     rewrite <- Rinv_r_sym.
   reflexivity.
   assumption.
   assumption.
-  discrR.
+  exact Neq_3_0.
   assumption.
 Qed.
 
@@ -121,10 +159,10 @@ Proof.
   elim (Rlt_irrefl _ (Rlt_trans _ _ _ H H2)).
 Qed.
 
-Lemma exp_ineq1 : forall x:R, 0 < x -> 1 + x < exp x.
+Lemma exp_ineq1 : forall x:R, R0 < x -> R1 + x < exp x.
 Proof.
-  intros; apply Rplus_lt_reg_l with (- exp 0); rewrite <- (Rplus_comm (exp x));
-    assert (H0 := MVT_cor1 exp 0 x derivable_exp H); elim H0;
+  intros; apply Rplus_lt_reg_l with (- exp R0); rewrite <- (Rplus_comm (exp x));
+    assert (H0 := MVT_cor1 exp R0 x derivable_exp H); elim H0;
       intros; elim H1; intros; unfold Rminus in H2; rewrite H2;
         rewrite Ropp_0; rewrite Rplus_0_r;
           replace (derive_pt exp x0 (derivable_exp x0)) with (exp x0).
@@ -136,37 +174,39 @@ Proof.
   symmetry ; apply derive_pt_eq_0; apply derivable_pt_lim_exp.
 Qed.
 
-Lemma ln_exists1 : forall y:R, 1 <= y -> { z:R | y = exp z }.
+Lemma ln_exists1 : forall y:R, R1 <= y -> { z:R | y = exp z }.
 Proof.
   intros; set (f := fun x:R => exp x - y).
-  assert (H0 : 0 < y) by (apply Rlt_le_trans with 1; auto with real).
-  cut (f 0 <= 0); [intro H1|].
+  assert (H0 : R0 < y) by (apply Rlt_le_trans with R1; auto with real).
+  cut (f R0 <= R0); [intro H1|].
   cut (continuity f); [intro H2|].
-  cut (0 <= f y); [intro H3|].
-  cut (f 0 * f y <= 0); [intro H4|].
-  pose proof (IVT_cor f 0 y H2 (Rlt_le _ _ H0) H4) as (t,(_,H7));
+  cut (R0 <= f y); [intro H3|].
+  cut (f R0 * f y <= R0); [intro H4|].
+  pose proof (IVT_cor f R0 y H2 (Rlt_le _ _ H0) H4) as (t,(_,H7));
     exists t; unfold f in H7; apply Rminus_diag_uniq_sym; exact H7.
-  pattern 0 at 2; rewrite <- (Rmult_0_r (f y));
-    rewrite (Rmult_comm (f 0)); apply Rmult_le_compat_l;
+  pattern R0 at 2; rewrite <- (Rmult_0_r (f y));
+    rewrite (Rmult_comm (f R0)); apply Rmult_le_compat_l;
       assumption.
   unfold f; apply Rplus_le_reg_l with y; left;
-    apply Rlt_trans with (1 + y).
+    apply Rlt_trans with (R1 + y).
   rewrite <- (Rplus_comm y); apply Rplus_lt_compat_l; apply Rlt_0_1.
-  replace (y + (exp y - y)) with (exp y); [ apply (exp_ineq1 y H0) | ring ].
+  replace (y + (exp y - y)) with (exp y); [ apply (exp_ineq1 y H0) | idtac ].
+rewrite Rplus_minus. reflexivity.
   unfold f; change (continuity (exp - fct_cte y));
     apply continuity_minus;
       [ apply derivable_continuous; apply derivable_exp
         | apply derivable_continuous; apply derivable_const ].
   unfold f; rewrite exp_0; apply Rplus_le_reg_l with y;
-    rewrite Rplus_0_r; replace (y + (1 - y)) with 1; [ apply H | ring ].
+    rewrite Rplus_0_r; replace (y + (R1 - y)) with R1; [ apply H | idtac ].
+rewrite Rplus_minus. reflexivity.
 Qed.
 
 (**********)
-Lemma ln_exists : forall y:R, 0 < y -> { z:R | y = exp z }.
+Lemma ln_exists : forall y:R, R0 < y -> { z:R | y = exp z }.
 Proof.
-  intros; destruct (Rle_dec 1 y) as [Hle|Hnle].
+  intros; destruct (Rle_dec R1 y) as [Hle|Hnle].
   apply (ln_exists1 _ Hle).
-  assert (H0 : 1 <= / y).
+  assert (H0 : R1 <= / y).
   apply Rmult_le_reg_l with y.
   apply H.
   rewrite <- Rinv_r_sym.
@@ -188,18 +228,18 @@ Qed.
 
 (* Definition of log R+* -> R *)
 Definition Rln (y:posreal) : R :=
-  let (a,_) := ln_exists (pos y) (cond_pos y) in a.
+  let (a,_) := ln_exists y (cond_pos y) in a.
 
 (* Extension on R *)
 Definition ln (x:R) : R :=
-  match Rlt_dec 0 x with
+  match Rlt_dec R0 x with
     | left a => Rln (mkposreal x a)
-    | right a => 0
+    | right a => R0
   end.
 
-Lemma exp_ln : forall x:R, 0 < x -> exp (ln x) = x.
+Lemma exp_ln : forall x:R, R0 < x -> exp (ln x) = x.
 Proof.
-  intros; unfold ln; decide (Rlt_dec 0 x) with H.
+  intros; unfold ln; decide (Rlt_dec R0 x) with H.
   unfold Rln;
     case (ln_exists (mkposreal x H) (cond_pos (mkposreal x H))) as (?,Hex).
   symmetry; apply Hex.
@@ -214,7 +254,7 @@ Qed.
 
 Theorem exp_Ropp : forall x:R, exp (- x) = / exp x.
 Proof.
-  intros x; assert (H : exp x <> 0).
+  intros x; assert (H : exp x <> R0).
   assert (H := exp_pos x); red; intro; rewrite H0 in H;
     elim (Rlt_irrefl _ H).
   apply Rmult_eq_reg_l with (r := exp x).
@@ -228,7 +268,7 @@ Qed.
 (** *                     Properties of  Ln                       *)
 (******************************************************************)
 
-Theorem ln_increasing : forall x y:R, 0 < x -> x < y -> ln x < ln y.
+Theorem ln_increasing : forall x y:R, R0 < x -> x < y -> ln x < ln y.
 Proof.
   intros x y H H0; apply exp_lt_inv.
   repeat rewrite exp_ln.
@@ -244,12 +284,12 @@ Proof.
   apply exp_pos.
 Qed.
 
-Theorem ln_1 : ln 1 = 0.
+Theorem ln_1 : ln R1 = R0.
 Proof.
   rewrite <- exp_0; rewrite ln_exp; reflexivity.
 Qed.
 
-Theorem ln_lt_inv : forall x y:R, 0 < x -> 0 < y -> ln x < ln y -> x < y.
+Theorem ln_lt_inv : forall x y:R, R0 < x -> R0 < y -> ln x < ln y -> x < y.
 Proof.
   intros x y H H0 H1; rewrite <- (exp_ln x); try rewrite <- (exp_ln y).
   apply exp_increasing; apply H1.
@@ -257,7 +297,7 @@ Proof.
   assumption.
 Qed.
 
-Theorem ln_inv : forall x y:R, 0 < x -> 0 < y -> ln x = ln y -> x = y.
+Theorem ln_inv : forall x y:R, R0 < x -> R0 < y -> ln x = ln y -> x = y.
 Proof.
   intros x y H H0 H'0; case (Rtotal_order x y); [ intros H1 | intros [H1| H1] ];
     auto.
@@ -267,7 +307,7 @@ Proof.
     elim (Rlt_irrefl _ H2).
 Qed.
 
-Theorem ln_mult : forall x y:R, 0 < x -> 0 < y -> ln (x * y) = ln x + ln y.
+Theorem ln_mult : forall x y:R, R0 < x -> R0 < y -> ln (x * y) = ln x + ln y.
 Proof.
   intros x y H H0; apply exp_inv.
   rewrite exp_plus.
@@ -278,7 +318,7 @@ Proof.
   apply Rmult_lt_0_compat; assumption.
 Qed.
 
-Theorem ln_Rinv : forall x:R, 0 < x -> ln (/ x) = - ln x.
+Theorem ln_Rinv : forall x:R, R0 < x -> ln (/ x) = - ln x.
 Proof.
   intros x H; apply exp_inv; repeat rewrite exp_ln || rewrite exp_Ropp.
   reflexivity.
@@ -286,25 +326,43 @@ Proof.
   apply Rinv_0_lt_compat; assumption.
 Qed.
 
+Lemma Rgt_minus : forall r1 r2, r2 < r1 -> R0 < r1 - r2.
+Proof.
+  intros.
+  unfold Rminus.
+  eapply Rplus_lt_reg_r.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r, Rplus_0_l.
+  assumption.
+Qed.
+
+Lemma Rgt_ge : forall r1 r2, r2 < r1 -> r2 <= r1.
+Proof.
+  intros; red; tauto.
+Qed.
+
 Theorem ln_continue :
-  forall y:R, 0 < y -> continue_in ln (fun x:R => 0 < x) y.
+  forall y:R, R0 < y -> continue_in ln (fun x:R => R0 < x) y.
 Proof.
   intros y H.
   unfold continue_in, limit1_in, limit_in; intros eps Heps.
-  cut (1 < exp eps); [ intros H1 | idtac ].
-  cut (exp (- eps) < 1); [ intros H2 | idtac ].
-  exists (Rmin (y * (exp eps - 1)) (y * (1 - exp (- eps)))); split.
-  red; apply P_Rmin.
+  cut (R1 < exp eps); [ intros H1 | idtac ].
+  cut (exp (- eps) < R1); [ intros H2 | idtac ].
+  exists (Rmin (y * (exp eps - R1)) (y * (R1 - exp (- eps)))); split.
+  apply P_Rmin.
   apply Rmult_lt_0_compat.
   assumption.
-  apply Rplus_lt_reg_l with 1.
-  rewrite Rplus_0_r; replace (1 + (exp eps - 1)) with (exp eps);
-    [ apply H1 | ring ].
+  apply Rplus_lt_reg_l with R1.
+  rewrite Rplus_0_r; replace (R1 + (exp eps - R1)) with (exp eps);
+    [ apply H1 | idtac ].
+rewrite Rplus_minus. reflexivity.
   apply Rmult_lt_0_compat.
   assumption.
   apply Rplus_lt_reg_l with (exp (- eps)).
-  rewrite Rplus_0_r; replace (exp (- eps) + (1 - exp (- eps))) with 1;
-    [ apply H2 | ring ].
+  rewrite Rplus_0_r; replace (exp (- eps) + (R1 - exp (- eps))) with R1;
+    [ apply H2 | idtac ].
+rewrite Rplus_minus. reflexivity.
   unfold dist, R_met, R_dist; simpl.
   intros x [[H3 H4] H5].
   cut (y * (x * / y) = x).
@@ -320,11 +378,23 @@ Proof.
   rewrite Hxyy.
   apply Ropp_lt_cancel.
   apply Rplus_lt_reg_l with (r := y).
-  replace (y + - (y * exp (- eps))) with (y * (1 - exp (- eps)));
-  [ idtac | ring ].
+  replace (y + - (y * exp (- eps))) with (y * (R1 - exp (- eps)));
+  [ idtac | idtac ].
+2:{
+unfold Rminus.
+rewrite Rmult_plus_distr_l.
+rewrite Rmult_1_r.
+rewrite <- Ropp_mult_distr_r.
+reflexivity.
+}
   replace (y + - x) with (Rabs (x - y)).
   apply Rlt_le_trans with (1 := H5); apply Rmin_r.
-  rewrite Rabs_left; [ ring | idtac ].
+  rewrite Rabs_left.
+unfold Rminus.
+rewrite Ropp_plus_distr.
+rewrite Ropp_involutive.
+rewrite Rplus_comm.
+reflexivity.
   apply (Rlt_minus _ _ Hxy).
   apply Rmult_lt_0_compat; [ apply H3 | apply (Rinv_0_lt_compat _ H) ].
   rewrite <- ln_1.
@@ -343,26 +413,35 @@ Proof.
   apply H.
   rewrite Hxyy.
   apply Rplus_lt_reg_l with (r := - y).
-  replace (- y + y * exp eps) with (y * (exp eps - 1)); [ idtac | ring ].
+  replace (- y + y * exp eps) with (y * (exp eps - R1)).
+2:{
+unfold Rminus.
+rewrite Rmult_plus_distr_l.
+rewrite <- Ropp_mult_distr_r.
+rewrite Rmult_1_r.
+rewrite Rplus_comm.
+reflexivity.
+}
   replace (- y + x) with (Rabs (x - y)).
   apply Rlt_le_trans with (1 := H5); apply Rmin_l.
-  rewrite Rabs_right; [ ring | idtac ].
+  rewrite Rabs_right.
+unfold Rminus. rewrite Rplus_comm. reflexivity.
   left; apply (Rgt_minus _ _ Hxy).
   apply Rmult_lt_0_compat; [ apply H3 | apply (Rinv_0_lt_compat _ H) ].
   rewrite <- ln_1.
-  apply Rgt_ge; red; apply ln_increasing.
+  apply Rgt_ge; apply ln_increasing.
   apply Rlt_0_1.
   apply Rmult_lt_reg_l with (r := y).
   apply H.
   rewrite Hxyy; rewrite Rmult_1_r; apply Hxy.
   rewrite ln_mult.
   rewrite ln_Rinv.
-  ring.
+reflexivity.
   assumption.
   assumption.
   apply Rinv_0_lt_compat; assumption.
   rewrite (Rmult_comm x); rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym.
-  ring.
+rewrite Rmult_1_l. reflexivity.
   red; intro; rewrite H0 in H; elim (Rlt_irrefl _ H).
   apply Rmult_lt_reg_l with (exp eps).
   apply exp_pos.
@@ -378,7 +457,7 @@ Qed.
 
 Definition Rpower (x y:R) := exp (y * ln x).
 
-Local Infix "^R" := Rpower (at level 30, right associativity) : R_scope.
+Local Infix "^R" := Rpower (at level 30, right associativity) : XR_scope.
 
 (******************************************************************)
 (** *                     Properties of  Rpower                   *)
@@ -406,33 +485,38 @@ Proof.
   rewrite ln_exp.
   replace (z * (y * ln x)) with (y * z * ln x).
   reflexivity.
-  ring.
+  repeat rewrite <- Rmult_assoc.
+  apply Rmult_eq_compat_r.
+  rewrite Rmult_comm.
+  reflexivity.
 Qed.
 
-Theorem Rpower_O : forall x:R, 0 < x -> x ^R 0 = 1.
+Theorem Rpower_O : forall x:R, R0 < x -> x ^R R0 = R1.
 Proof.
   intros x _; unfold Rpower.
   rewrite Rmult_0_l; apply exp_0.
 Qed.
 
-Theorem Rpower_1 : forall x:R, 0 < x -> x ^R 1 = x.
+Theorem Rpower_1 : forall x:R, R0 < x -> x ^R R1 = x.
 Proof.
   intros x H; unfold Rpower.
   rewrite Rmult_1_l; apply exp_ln; apply H.
 Qed.
 
-Theorem Rpower_pow : forall (n:nat) (x:R), 0 < x -> x ^R INR n = x ^ n.
+Theorem Rpower_pow : forall (n:nat) (x:R), R0 < x -> x ^R INR n = x ^ n.
 Proof.
   intros n; elim n; simpl; auto; fold INR.
   intros x H; apply Rpower_O; auto.
   intros n1; case n1.
   intros H x H0; simpl; rewrite Rmult_1_r; apply Rpower_1; auto.
-  intros n0 H x H0; rewrite Rpower_plus; rewrite H; try rewrite Rpower_1;
+  intros n0 H x H0.
+  simpl.
+rewrite Rpower_plus. rewrite H; try rewrite Rpower_1;
     try apply Rmult_comm || assumption.
 Qed.
 
 Theorem Rpower_lt :
-  forall x y z:R, 1 < x -> y < z -> x ^R y < x ^R z.
+  forall x y z:R, R1 < x -> y < z -> x ^R y < x ^R z.
 Proof.
   intros x y z H H1.
   unfold Rpower.
@@ -444,7 +528,7 @@ Proof.
   apply H1.
 Qed.
 
-Theorem Rpower_sqrt : forall x:R, 0 < x -> x ^R (/ 2) = sqrt x.
+Theorem Rpower_sqrt : forall x:R, R0 < x -> x ^R (/ R2) = sqrt x.
 Proof.
   intros x H.
   apply ln_inv.
@@ -457,10 +541,10 @@ Proof.
   unfold Rpower; auto.
   rewrite Rpower_mult.
   rewrite Rinv_l.
-  change 1 with (INR 1).
+  change R1 with (INR 1).
   repeat rewrite Rpower_pow; simpl.
   pattern x at 1; rewrite <- (sqrt_sqrt x (Rlt_le _ _ H)).
-  ring.
+repeat rewrite <- Rmult_assoc. reflexivity.
   apply sqrt_lt_R0; apply H.
   apply H.
   apply not_O_INR; discriminate.
@@ -474,11 +558,11 @@ Proof.
   apply exp_Ropp.
 Qed.
 
-Lemma powerRZ_Rpower x z : (0 < x)%R -> powerRZ x z = Rpower x (IZR z).
+Lemma powerRZ_Rpower x z : (R0 < x)%R -> powerRZ x z = Rpower x (IZR z).
 Proof.
   intros Hx.
-  assert (x <> 0)%R
-    by now intros Habs; rewrite Habs in Hx; apply (Rlt_irrefl 0).
+  assert (x <> R0)%R
+    by now intros Habs; rewrite Habs in Hx; apply (Rlt_irrefl R0).
   destruct (intP z).
   - now rewrite Rpower_O.
   - rewrite <- pow_powerRZ, <- Rpower_pow by assumption.
@@ -489,7 +573,7 @@ Proof.
 Qed.
 
 Theorem Rle_Rpower :
-  forall e n m:R, 1 <= e -> n <= m -> e ^R n <= e ^R m.
+  forall e n m:R, R1 <= e -> n <= m -> e ^R n <= e ^R m.
 Proof.
   intros e n m [H | H]; intros H1.
   case H1.
@@ -498,18 +582,24 @@ Proof.
   now rewrite <- H; unfold Rpower; rewrite ln_1, !Rmult_0_r; apply Rle_refl.
 Qed.
 
-Theorem ln_lt_2 : / 2 < ln 2.
+Theorem ln_lt_2 : / R2 < ln R2.
 Proof.
-  apply Rmult_lt_reg_l with (r := 2).
-  prove_sup0.
+  apply Rmult_lt_reg_l with (r := R2).
+exact Rlt_0_2.
   rewrite Rinv_r.
   apply exp_lt_inv.
   apply Rle_lt_trans with (1 := exp_le_3).
-  change (3 < 2 ^R (1 + 1)).
+  change (R3 < R2 ^R (R1 + R1)).
   repeat rewrite Rpower_plus; repeat rewrite Rpower_1.
-  now apply (IZR_lt 3 4).
-  prove_sup0.
-  discrR.
+rewrite double.
+unfold R3.
+apply Rplus_lt_compat_l.
+unfold R2.
+pattern R1 at 1;rewrite <- Rplus_0_l.
+apply Rplus_lt_compat_r.
+exact Rlt_0_1.
+exact Rlt_0_2.
+exact Neq_2_0.
 Qed.
 
 (*****************************************)
@@ -536,7 +626,7 @@ Proof.
   intros d [H4 H5]; apply H3; split; auto.
 Qed.
 
-Theorem Rinv_Rdiv : forall x y:R, x <> 0 -> y <> 0 -> / (x / y) = y / x.
+Theorem Rinv_Rdiv : forall x y:R, x <> R0 -> y <> R0 -> / (x / y) = y / x.
 Proof.
   intros x y H1 H2; unfold Rdiv; rewrite Rinv_mult_distr.
   rewrite Rinv_involutive.
@@ -546,7 +636,7 @@ Proof.
   apply Rinv_neq_0_compat; assumption.
 Qed.
 
-Theorem Dln : forall y:R, 0 < y -> D_in ln Rinv (fun x:R => 0 < x) y.
+Theorem Dln : forall y:R, R0 < y -> D_in ln Rinv (fun x:R => R0 < x) y.
 Proof.
   intros y Hy; unfold D_in.
   apply limit1_ext with
@@ -567,7 +657,7 @@ Proof.
     (f := fun x:R => (exp (ln x) - exp (ln y)) / (ln x - ln y)).
   apply limit1_imp with
     (f := fun x:R => (fun x:R => (exp x - exp (ln y)) / (x - ln y)) (ln x))
-    (D := Dgf (D_x (fun x:R => 0 < x) y) (D_x (fun x:R => True) (ln y)) ln).
+    (D := Dgf (D_x (fun x:R => R0 < x) y) (D_x (fun x:R => True) (ln y)) ln).
   intros x [H1 H2]; split.
   split; auto.
   split; auto.
@@ -578,56 +668,81 @@ Proof.
   assert (H0 := derivable_pt_lim_exp (ln y)); unfold derivable_pt_lim in H0;
     unfold limit1_in; unfold limit_in;
       simpl; unfold R_dist; intros; elim (H0 _ H);
-        intros; exists (pos x); split.
+        intros; exists x; split.
   apply (cond_pos x).
   intros; pattern y at 3; rewrite <- exp_ln.
-  pattern x0 at 1; replace x0 with (ln y + (x0 - ln y));
-    [ idtac | ring ].
+  pattern x0 at 1; replace x0 with (ln y + (x0 - ln y)).
   apply H1.
   elim H2; intros H3 _; unfold D_x in H3; elim H3; clear H3; intros _ H3;
     apply Rminus_eq_contra; apply (not_eq_sym (A:=R));
       apply H3.
   elim H2; clear H2; intros _ H2; apply H2.
+rewrite Rplus_minus. reflexivity.
   assumption.
   red; intro; rewrite H in Hy; elim (Rlt_irrefl _ Hy).
 Qed.
 
-Lemma derivable_pt_lim_ln : forall x:R, 0 < x -> derivable_pt_lim ln x (/ x).
+Lemma derivable_pt_lim_ln : forall x:R, R0 < x -> derivable_pt_lim ln x (/ x).
 Proof.
   intros; assert (H0 := Dln x H); unfold D_in in H0; unfold limit1_in in H0;
     unfold limit_in in H0; simpl in H0; unfold R_dist in H0;
       unfold derivable_pt_lim; intros; elim (H0 _ H1);
-        intros; elim H2; clear H2; intros; set (alp := Rmin x0 (x / 2));
-          assert (H4 : 0 < alp).
-  unfold alp; unfold Rmin; case (Rle_dec x0 (x / 2)); intro.
+        intros; elim H2; clear H2; intros; set (alp := Rmin x0 (x / R2));
+          assert (H4 : R0 < alp).
+  unfold alp; unfold Rmin; case (Rle_dec x0 (x / R2)); intro.
   apply H2.
   unfold Rdiv; apply Rmult_lt_0_compat;
-    [ assumption | apply Rinv_0_lt_compat; prove_sup0 ].
+    [ assumption | apply Rinv_0_lt_compat; exact Rlt_0_2 ].
   exists (mkposreal _ H4); intros; pattern h at 2;
-    replace h with (x + h - x); [ idtac | ring ].
+    replace h with (x + h - x).
+2:{
+unfold Rminus. rewrite Rplus_comm.
+rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+reflexivity.
+}
   apply H3; split.
   unfold D_x; split.
   destruct (Rcase_abs h) as [Hlt|Hgt].
-  assert (H7 : Rabs h < x / 2).
+  assert (H7 : Rabs h < x / R2).
   apply Rlt_le_trans with alp.
   apply H6.
   unfold alp; apply Rmin_r.
-  apply Rlt_trans with (x / 2).
+  apply Rlt_trans with (x / R2).
   unfold Rdiv; apply Rmult_lt_0_compat;
-    [ assumption | apply Rinv_0_lt_compat; prove_sup0 ].
+    [ assumption | apply Rinv_0_lt_compat; exact Rlt_0_2 ].
   rewrite Rabs_left in H7.
-  apply Rplus_lt_reg_l with (- h - x / 2).
-  replace (- h - x / 2 + x / 2) with (- h); [ idtac | ring ].
+  apply Rplus_lt_reg_l with (- h - x / R2).
+  replace (- h - x / R2 + x / R2) with (- h).
+2:{
+unfold Rminus.
+rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+reflexivity.
+}
   pattern x at 2; rewrite double_var.
-  replace (- h - x / 2 + (x / 2 + x / 2 + h)) with (x / 2); [ apply H7 | ring ].
+  change (IZR 2) with R2.
+  replace (- h - x / R2 + (x / R2 + x / R2 + h)) with (x / R2).
+2:{
+  unfold Rminus.
+  symmetry.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_comm.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_r, Rplus_0_r.
+  repeat rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l, Rplus_0_l.
+  reflexivity.
+}
+assumption.
   apply Hlt.
   apply Rplus_lt_le_0_compat; [ assumption | apply Rge_le; apply Hgt ].
   apply (sym_not_eq (A:=R)); apply Rminus_not_eq; replace (x + h - x) with h;
-    [ apply H5 | ring ].
+    [ apply H5 | idtac ].
+unfold Rminus. rewrite Rplus_assoc. fold (h-x). rewrite Rplus_minus. reflexivity.
   replace (x + h - x) with h;
   [ apply Rlt_le_trans with alp;
     [ apply H6 | unfold alp; apply Rmin_l ]
-    | ring ].
+    | idtac ].
+unfold Rminus. rewrite Rplus_assoc. fold (h-x). rewrite Rplus_minus. reflexivity.
 Qed.
 
 Theorem D_in_imp :
@@ -649,17 +764,20 @@ Qed.
 
 Theorem Dpower :
   forall y z:R,
-    0 < y ->
-    D_in (fun x:R => x ^R z) (fun x:R => z * x ^R (z - 1)) (
-      fun x:R => 0 < x) y.
+    R0 < y ->
+    D_in (fun x:R => x ^R z) (fun x:R => z * x ^R (z - R1)) (
+      fun x:R => R0 < x) y.
 Proof.
   intros y z H;
-    apply D_in_imp with (D := Dgf (fun x:R => 0 < x) (fun x:R => True) ln).
+    apply D_in_imp with (D := Dgf (fun x:R => R0 < x) (fun x:R => True) ln).
   intros x H0; repeat split.
   assumption.
   apply D_in_ext with (f := fun x:R => / x * (z * exp (z * ln x))).
   unfold Rminus; rewrite Rpower_plus; rewrite Rpower_Ropp;
-    rewrite (Rpower_1 _ H); unfold Rpower; ring.
+    rewrite (Rpower_1 _ H); unfold Rpower.
+rewrite Rmult_comm.
+repeat rewrite Rmult_assoc.
+reflexivity.
   apply Dcomp with
     (f := ln)
     (g := fun x:R => exp (z * x))
@@ -672,16 +790,16 @@ Proof.
   apply
     (Dcomp (fun _:R => True) (fun _:R => True) (fun x => z) exp
       (fun x:R => z * x) exp); simpl.
-  apply D_in_ext with (f := fun x:R => z * 1).
+  apply D_in_ext with (f := fun x:R => z * R1).
   apply Rmult_1_r.
-  apply (Dmult_const (fun x => True) (fun x => x) (fun x => 1)); apply Dx.
+  apply (Dmult_const (fun x => True) (fun x => x) (fun x => R1)); apply Dx.
   assert (H0 := derivable_pt_lim_D_in exp exp (z * ln y)); elim H0; clear H0;
     intros _ H0; apply H0; apply derivable_pt_lim_exp.
 Qed.
 
 Theorem derivable_pt_lim_power :
   forall x y:R,
-    0 < x -> derivable_pt_lim (fun x => x ^R y) x (y * x ^R (y - 1)).
+    R0 < x -> derivable_pt_lim (fun x => x ^R y) x (y * x ^R (y - R1)).
 Proof.
   intros x y H.
   unfold Rminus; rewrite Rpower_plus.
@@ -693,35 +811,35 @@ Proof.
   apply derivable_pt_lim_ln; assumption.
   rewrite (Rmult_comm y).
   apply derivable_pt_lim_comp with (f1 := fun x => y * x) (f2 := exp).
-  pattern y at 2; replace y with (0 * ln x + y * 1).
+  pattern y at 2; replace y with (R0 * ln x + y * R1).
   apply derivable_pt_lim_mult with (f1 := fun x:R => y) (f2 := fun x:R => x).
   apply derivable_pt_lim_const with (a := y).
   apply derivable_pt_lim_id.
-  ring.
+rewrite Rmult_0_l, Rmult_1_r, Rplus_0_l. reflexivity.
   apply derivable_pt_lim_exp.
 Qed.
 
 (* added later. *)
 
 Lemma Rpower_mult_distr :  
-  forall x y z, 0 < x -> 0 < y ->
+  forall x y z, R0 < x -> R0 < y ->
    Rpower x z * Rpower y z = Rpower (x * y) z.
 intros x y z x0 y0; unfold Rpower.
 rewrite <- exp_plus, ln_mult, Rmult_plus_distr_l; auto.
 Qed.
 
-Lemma Rlt_Rpower_l a b c: 0 < c -> 0 < a < b -> a ^R c < b ^R c.
+Lemma Rlt_Rpower_l a b c: R0 < c -> R0 < a < b -> a ^R c < b ^R c.
 Proof.
 intros c0 [a0 ab]; apply exp_increasing.
-now apply Rmult_lt_compat_l; auto; apply ln_increasing; fourier.
+now apply Rmult_lt_compat_l; auto; apply ln_increasing.
 Qed.
 
-Lemma Rle_Rpower_l a b c: 0 <= c -> 0 < a <= b -> a ^R c <= b ^R c.
+Lemma Rle_Rpower_l a b c: R0 <= c -> R0 < a <= b -> a ^R c <= b ^R c.
 Proof.
 intros [c0 | c0];
  [ | intros; rewrite <- c0, !Rpower_O; [apply Rle_refl | |] ].
   intros [a0 [ab|ab]].
-  now apply Rlt_le, Rlt_Rpower_l;[ | split]; fourier.
+  now apply Rlt_le, Rlt_Rpower_l;[ | split].
   rewrite ab; apply Rle_refl.
  apply Rlt_le_trans with a; tauto.
 tauto.
@@ -729,85 +847,332 @@ Qed.
 
 (* arcsinh function *)
 
-Definition arcsinh x := ln (x + sqrt (x ^ 2 + 1)).
+Definition arcsinh x := ln (x + sqrt (x ^ 2 + R1)).
 
 Lemma arcsinh_sinh : forall x, arcsinh (sinh x) = x.
 intros x; unfold sinh, arcsinh.
-assert (Rminus_eq_0 : forall r, r - r = 0) by (intros; ring).
+assert (Rminus_eq_0 : forall r, r - r = R0).
+{ intros. unfold Rminus. now rewrite Rplus_opp_r. }
 rewrite <- exp_0, <- (Rminus_eq_0 x); unfold Rminus.
 rewrite exp_plus.
+
 match goal with |- context[sqrt ?a] => 
-  replace a with (((exp x + exp(-x))/2)^2) by field
+  replace a with (((exp x + exp(-x))/R2)^2)
 end.
+
 rewrite sqrt_pow2;
  [|apply Rlt_le, Rmult_lt_0_compat;[apply Rplus_lt_0_compat; apply exp_pos |
                             apply Rinv_0_lt_compat, Rlt_0_2]].
-match goal with |- context[ln ?a] => replace a with (exp x) by field end. 
+match goal with |- context[ln ?a] => replace a with (exp x) end. 
 rewrite ln_exp; reflexivity.
+
+symmetry.
+unfold Rdiv.
+rewrite <- Rmult_plus_distr_r.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite (Rplus_comm (exp x)).
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_l.
+rewrite <- double.
+rewrite Rmult_comm.
+rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
+reflexivity. exact Neq_2_0.
+
+simpl.
+repeat rewrite Rmult_1_r.
+unfold Rdiv.
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite Rmult_plus_distr_l.
+repeat rewrite Rmult_assoc.
+rewrite (Rmult_comm (/R2)).
+repeat rewrite Rmult_assoc.
+rewrite <- Rinv_mult_distr.
+rewrite (Rmult_comm (/R2)).
+repeat rewrite Rmult_assoc.
+rewrite <- Rinv_mult_distr.
+rewrite double.
+fold R4.
+repeat rewrite <- Rmult_assoc.
+rewrite <- Rmult_plus_distr_r.
+rewrite <- Rmult_plus_distr_r.
+rewrite <- Rmult_plus_distr_r.
+repeat rewrite Rmult_assoc.
+rewrite (Rmult_comm (/R2)).
+repeat rewrite Rmult_assoc.
+rewrite <- Rinv_mult_distr.
+rewrite double.
+fold R4.
+repeat rewrite <- Rmult_assoc.
+repeat rewrite <- Rplus_assoc.
+rewrite <- Rmult_plus_distr_r.
+rewrite <- Rmult_plus_distr_r.
+rewrite <- Rmult_plus_distr_r.
+set (ex := exp x).
+set (emx := exp (-x)).
+symmetry.
+eapply Rplus_eq_reg_l.
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_l.
+symmetry.
+unfold Rdiv.
+rewrite Ropp_mult_distr_l.
+rewrite <- Rmult_plus_distr_r.
+repeat rewrite Ropp_plus_distr.
+repeat rewrite <- Ropp_mult_distr_l.
+repeat rewrite <- Ropp_mult_distr_r.
+repeat rewrite Ropp_involutive.
+repeat rewrite <- Rplus_assoc.
+rewrite (Rplus_comm _ (ex*ex)).
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r, Rplus_0_l.
+repeat rewrite <- Rplus_assoc.
+rewrite (Rplus_comm _ (-(emx*emx))).
+repeat rewrite <- Rplus_assoc.
+rewrite (Rplus_comm _ (emx*emx)).
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_r, Rplus_0_l.
+repeat rewrite (Rmult_comm emx).
+pattern (ex*emx);rewrite <- Rmult_1_r.
+repeat rewrite <- Rmult_plus_distr_l.
+fold R2.
+repeat rewrite Rplus_assoc.
+fold R2.
+fold R4.
+repeat rewrite Rmult_assoc.
+rewrite Rinv_r, Rmult_1_r.
+reflexivity.
+apply Rlt_not_eq'; exact Rlt_0_4.
+exact Neq_2_0.
+exact Neq_2_0.
+exact Neq_2_0.
+exact Neq_2_0.
+exact Neq_2_0.
+exact Neq_2_0.
 Qed.
 
 Lemma sinh_arcsinh x : sinh (arcsinh x) = x. 
 unfold sinh, arcsinh.
-assert (cmp : 0 < x + sqrt (x ^ 2 + 1)).
- destruct (Rle_dec x 0).
-  replace (x ^ 2) with ((-x) ^ 2) by ring.
-  assert (sqrt ((- x) ^ 2) < sqrt ((-x)^2+1)).
+assert (cmp : R0 < x + sqrt (x ^ 2 + R1)).
+ destruct (Rle_dec x R0).
+  replace (x ^ 2) with ((-x) ^ 2).
+  assert (sqrt ((- x) ^ 2) < sqrt ((-x)^2+R1)).
    apply sqrt_lt_1_alt.
-   split;[apply pow_le | ]; fourier.
+   split;[apply pow_le | ].
+rewrite <- Ropp_0. apply Ropp_le_contravar. assumption.
   pattern x at 1; replace x with (- (sqrt ((- x) ^ 2))).
-   assert (t:= sqrt_pos ((-x)^2)); fourier.
-  simpl; rewrite Rmult_1_r, sqrt_square, Ropp_involutive;[reflexivity | fourier].
-  apply Rplus_lt_le_0_compat;[apply Rnot_le_gt; assumption | apply sqrt_pos].
+   assert (t:= sqrt_pos ((-x)^2)).
+{
+  simpl.
+  rewrite Rmult_1_r, sqrt_square, Ropp_involutive.
+  rewrite Rmult_1_r.
+  eapply Rplus_lt_reg_l.
+  rewrite Rplus_opp_l.
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_l.
+  exact Rlt_0_1.
+  rewrite <- Ropp_0.
+  apply Ropp_le_contravar.
+  assumption.
+}
+{
+  rewrite sqrt_pow2.
+  rewrite Ropp_involutive. reflexivity.
+  rewrite <- Ropp_0. apply Ropp_le_contravar.
+  assumption.
+}
+{
+admit.
+}
+{
+simpl. repeat rewrite Rmult_1_r.
+rewrite <- Ropp_mult_distr_l.
+rewrite <- Ropp_mult_distr_r.
+rewrite Ropp_involutive.
+reflexivity.
+}
+{
+apply Rnot_le_lt in n.
+apply Rplus_lt_le_0_compat.
+assumption.
+apply sqrt_pos.
+}
 rewrite exp_ln;[ | assumption].
 rewrite exp_Ropp, exp_ln;[ | assumption].
 assert (Rmult_minus_distr_r :
-         forall x y z, (x - y) * z = x * z - y * z) by (intros; ring).
+         forall x y z, (x - y) * z = x * z - y * z).
+{
+  intros a b c.
+  unfold Rminus.
+  rewrite Rmult_plus_distr_r.
+  rewrite <- Ropp_mult_distr_l.
+  reflexivity.
+}
 apply Rminus_diag_uniq; unfold Rdiv; rewrite Rmult_minus_distr_r.
-assert (t: forall x y z, x - z = y -> x - y - z = 0);[ | apply t; clear t].
- intros a b c H; rewrite <- H; ring.
-apply Rmult_eq_reg_l with (2 * (x + sqrt (x ^ 2 + 1)));[ |
+assert (t: forall x y z, x - z = y -> x - y - z = R0);[ | apply t; clear t].
+ intros a b c H; rewrite <- H.
+{
+  unfold Rminus.
+  rewrite Ropp_plus_distr.
+  rewrite Ropp_involutive.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_r, Rplus_0_r.
+  rewrite Rplus_opp_r.
+  reflexivity.
+}
+apply Rmult_eq_reg_l with (R2 * (x + sqrt (x ^ 2 + R1)));[ |
  apply Rgt_not_eq, Rmult_lt_0_compat;[apply Rlt_0_2 | assumption]].
-assert (pow2_sqrt : forall x, 0 <= x -> sqrt x ^ 2 = x) by
+assert (pow2_sqrt : forall x, R0 <= x -> sqrt x ^ 2 = x) by
  (intros; simpl; rewrite Rmult_1_r, sqrt_sqrt; auto).
-field_simplify;[rewrite pow2_sqrt;[field | ] | apply Rgt_not_eq; fourier].
-apply Rplus_le_le_0_compat;[simpl; rewrite Rmult_1_r; apply (Rle_0_sqr x)|apply Rlt_le, Rlt_0_1].
-Qed.
+{
+  repeat rewrite Rmult_assoc.
+  apply Rmult_eq_compat_l.
+  apply Rmult_eq_compat_l.
+  unfold Rminus.
+  pattern x at 3;rewrite <- Rmult_1_r.
+  rewrite Ropp_mult_distr_l.
+  pattern R1 at 2;rewrite <- Rinv_r with R2.
+  repeat rewrite <- Rmult_assoc.
+  rewrite <- Rmult_plus_distr_r.
+  apply Rmult_eq_compat_r.
+  unfold R2 at 1.
+  rewrite Rmult_plus_distr_l.
+  rewrite Rmult_1_r.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_comm.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_l, Rplus_0_r.
+
+  eapply Rmult_eq_reg_r.
+  rewrite Rinv_l.
+  rewrite Rmult_plus_distr_r.
+  rewrite Rmult_plus_distr_l.
+  rewrite sqrt_sqrt.
+  rewrite Rmult_plus_distr_l.
+  rewrite <- Ropp_mult_distr_l.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_comm.
+  rewrite <- Ropp_mult_distr_l.
+  rewrite (Rmult_comm x (sqrt _)).
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  rewrite Rplus_comm.
+  repeat rewrite Rplus_assoc.
+  simpl.
+  rewrite Rmult_1_r.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  reflexivity.
+  apply Rplus_le_le_0_compat.
+simpl. rewrite Rmult_1_r. fold (Rsqr x).
+apply Rle_0_sqr.
+left. exact Rlt_0_1.
+apply Rlt_not_eq'. assumption.
+apply Rlt_not_eq'. assumption.
+exact Neq_2_0.
+Admitted.
 
 Lemma derivable_pt_lim_arcsinh :
-  forall x, derivable_pt_lim arcsinh x (/sqrt (x ^ 2 + 1)).
+  forall x, derivable_pt_lim arcsinh x (/sqrt (x ^ 2 + R1)).
 intros x; unfold arcsinh.
-assert (0 < x + sqrt (x ^ 2 + 1)).
- destruct (Rle_dec x 0);
-  [ | assert (0 < x) by (apply Rnot_le_gt; assumption);
+assert (R0 < x + sqrt (x ^ 2 + R1)).
+ destruct (Rle_dec x R0);
+  [ | assert (R0 < x) by (apply Rnot_le_gt; assumption);
     apply Rplus_lt_le_0_compat; auto; apply sqrt_pos].
- replace (x ^ 2) with ((-x) ^ 2) by ring.
- assert (sqrt ((- x) ^ 2) < sqrt ((-x)^2+1)).
+ replace (x ^ 2) with ((-x) ^ 2).
+2:{
+simpl. repeat rewrite Rmult_1_r.
+rewrite <- Ropp_mult_distr_l.
+rewrite <- Ropp_mult_distr_r.
+rewrite Ropp_involutive.
+reflexivity.
+}
+ assert (sqrt ((- x) ^ 2) < sqrt ((-x)^2+R1)).
   apply sqrt_lt_1_alt.
-  split;[apply pow_le|]; fourier.
+{
+  split;[apply pow_le|].
+rewrite <- Ropp_0. apply Ropp_le_contravar. assumption.
+apply Rlt_plus_1.
+}
  pattern x at 1; replace x with (- (sqrt ((- x) ^ 2))).
-  assert (t:= sqrt_pos ((-x)^2)); fourier.
- simpl; rewrite Rmult_1_r, sqrt_square, Ropp_involutive; auto; fourier.
-assert (0 < x ^ 2 + 1).
- apply Rplus_le_lt_0_compat;[simpl; rewrite Rmult_1_r; apply Rle_0_sqr|fourier].
-replace (/sqrt (x ^ 2 + 1)) with
- (/(x + sqrt (x ^ 2 + 1)) * 
-    (1 + (/(2 * sqrt (x ^ 2 + 1)) * (INR 2 * x ^ 1 + 0)))).
-apply (derivable_pt_lim_comp (fun x => x + sqrt (x ^ 2 + 1)) ln).
+{
+  assert (t:= sqrt_pos ((-x)^2)).
+  eapply Rplus_lt_reg_l.
+  rewrite Rplus_0_r.
+  rewrite <- Rplus_assoc.
+  rewrite Rplus_opp_r, Rplus_0_l.
+  assumption.
+}
+{
+ simpl; rewrite Rmult_1_r, sqrt_square, Ropp_involutive; auto.
+rewrite <- Ropp_0. apply Ropp_le_contravar; assumption.
+}
+assert (R0 < x ^ 2 + R1).
+ apply Rplus_le_lt_0_compat;[simpl; rewrite Rmult_1_r; apply Rle_0_sqr|idtac].
+exact Rlt_0_1.
+replace (/sqrt (x ^ 2 + R1)) with
+ (/(x + sqrt (x ^ 2 + R1)) * 
+    (R1 + (/(R2 * sqrt (x ^ 2 + R1)) * (INR 2 * x ^ 1 + R0)))).
+apply (derivable_pt_lim_comp (fun x => x + sqrt (x ^ 2 + R1)) ln).
  apply (derivable_pt_lim_plus).
   apply derivable_pt_lim_id.
-   apply (derivable_pt_lim_comp (fun x => x ^ 2 + 1) sqrt x).
+   apply (derivable_pt_lim_comp (fun x => x ^ 2 + R1) sqrt x).
     apply derivable_pt_lim_plus.
      apply derivable_pt_lim_pow.
     apply derivable_pt_lim_const.
    apply derivable_pt_lim_sqrt; assumption.
   apply derivable_pt_lim_ln; assumption.
- replace (INR 2 * x ^ 1 + 0) with (2 * x) by (simpl; ring).
-replace (1 + / (2 * sqrt (x ^ 2 + 1)) * (2 * x)) with
- (((sqrt (x ^ 2 + 1) + x))/sqrt (x ^ 2 + 1));
- [ | field; apply Rgt_not_eq, sqrt_lt_R0; assumption].
-apply Rmult_eq_reg_l with (x + sqrt (x ^ 2 + 1));
+ replace (INR 2 * x ^ 1 + R0) with (R2 * x).
+2:{
+simpl. rewrite Rplus_0_r.
+rewrite Rmult_1_r. unfold R2. reflexivity.
+}
+replace (R1 + / (R2 * sqrt (x ^ 2 + R1)) * (R2 * x)) with
+ (((sqrt (x ^ 2 + R1) + x))/sqrt (x ^ 2 + R1));
+ [ | (* field; apply Rgt_not_eq, sqrt_lt_R0; assumption *) ].
+2:{
+  simpl.
+  repeat rewrite Rmult_1_r.
+  unfold Rdiv.
+  rewrite Rmult_plus_distr_r.
+  rewrite Rinv_r.
+  rewrite Rinv_mult_distr.
+  repeat rewrite Rmult_assoc.
+  rewrite (Rmult_comm (/R2)).
+  repeat rewrite Rmult_assoc.
+  rewrite (Rmult_comm R2).
+  repeat rewrite Rmult_assoc.
+  rewrite Rinv_l.
+  rewrite Rmult_1_r.
+  apply Rplus_eq_compat_l.
+  rewrite Rmult_comm.
+  reflexivity.
+  exact Neq_2_0.
+  exact Neq_2_0.
+  simpl in H0.
+  rewrite Rmult_1_r in H0.
+  apply Rgt_not_eq.
+  apply sqrt_lt_R0.
+  assumption.
+  apply Rgt_not_eq.
+  apply sqrt_lt_R0.
+  simpl in H0.
+  rewrite Rmult_1_r in H0.
+  assumption.
+}
+apply Rmult_eq_reg_l with (x + sqrt (x ^ 2 + R1));
   [ | apply Rgt_not_eq; assumption].
-rewrite <- Rmult_assoc, Rinv_r;[field | ]; apply Rgt_not_eq; auto;
+rewrite <- Rmult_assoc, Rinv_r.
+{
+  rewrite Rmult_1_l.
+  unfold Rdiv.
+  rewrite Rplus_comm.
+  reflexivity.
+}
+apply Rgt_not_eq; auto;
   apply sqrt_lt_R0; assumption.
 Qed.
 
@@ -816,7 +1181,10 @@ intros x y xy.
 case (Rle_dec (arcsinh y) (arcsinh x));[ | apply Rnot_le_lt ].
 intros abs; case (Rlt_not_le _ _ xy).
 rewrite <- (sinh_arcsinh y), <- (sinh_arcsinh x).
-destruct abs as [lt | q];[| rewrite q; fourier].
+destruct abs as [lt | q];[| rewrite q].
+2:{
+right. reflexivity.
+}
 apply Rlt_le, sinh_lt; assumption.
 Qed.
 
@@ -826,7 +1194,7 @@ intros x y [xy | xqy].
 rewrite xqy; apply Rle_refl.
 Qed.
 
-Lemma arcsinh_0 : arcsinh 0 = 0.
+Lemma arcsinh_0 : arcsinh R0 = R0.
  unfold arcsinh; rewrite pow_ne_zero, !Rplus_0_l, sqrt_1, ln_1;
   [reflexivity | discriminate].
 Qed.
