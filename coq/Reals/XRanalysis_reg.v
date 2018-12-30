@@ -28,7 +28,7 @@ Require Export XRList.
 Require Export XSqrt_reg.
 Require Export XRanalysis4.
 Require Export XRpower.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Definition AppVar : R.
 Proof.

@@ -12,7 +12,7 @@ Require Import XRbase.
 Require Import XRfunctions.
 Require Import XRanalysis_reg.
 Require Import Classical_Prop.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Set Implicit Arguments.
 
@@ -49,7 +49,7 @@ Proof.
 }
 {
   destruct (completeness E H1 H2) as (x,(H4,H5)); unfold is_upper_bound in H4, H5;
-      assert (H6 : 0 <= x).
+      assert (H6 : R0 <= x).
 {
   destruct H2 as (x0,H6). remember H6 as H7. destruct H7 as (x1,(H8,H9)).
     apply Rle_trans with x0;
@@ -59,13 +59,19 @@ Proof.
 }
 {
   assert (H7 := archimed x); elim H7; clear H7; intros;
-    assert (H9 : x <= IZR (up x) - 1).
+    assert (H9 : x <= IZR (up x) - R1).
 {
   apply H5; intros x0 H9. assert (H10 := H4 _ H9); unfold E in H9; elim H9; intros x1 (H12,<-).
-    apply Rplus_le_reg_l with 1;
-      replace (1 + (IZR (up x) - 1)) with (IZR (up x));
-      [ idtac | ring ]; replace (1 + INR x1) with (INR (S x1));
-      [ idtac | rewrite S_INR; ring ].
+    apply Rplus_le_reg_l with R1;
+      replace (R1 + (IZR (up x) - R1)) with (IZR (up x)).
+2:{
+now rewrite Rplus_minus.
+}
+ replace (R1 + INR x1) with (INR (S x1));
+      [ idtac | rewrite S_INR ].
+2:{
+  now rewrite Rplus_comm.
+}
   assert (H14 : (0 <= up x)%Z).
 {
   apply le_IZR; apply Rle_trans with x; [ apply H6 | left; assumption ].
@@ -78,14 +84,23 @@ Proof.
 }
 }
 {
-  assert (H10 : x = IZR (up x) - 1).
+  assert (H10 : x = IZR (up x) - R1).
 {
-  apply Rle_antisym;
-    [ assumption
-      | apply Rplus_le_reg_l with (- x + 1);
-        replace (- x + 1 + (IZR (up x) - 1)) with (IZR (up x) - x);
-        [ idtac | ring ]; replace (- x + 1 + x) with 1;
-        [ assumption | ring ] ].
+  apply Rle_antisym.
+     assumption.
+       apply Rplus_le_reg_l with (- x + R1).
+        replace (- x + R1 + (IZR (up x) - R1)) with (IZR (up x) - x).
+replace (- x + R1 + x) with R1.
+assumption.
+unfold Rminus.
+rewrite Rplus_comm.
+now rewrite <- Rplus_assoc, Rplus_opp_r, Rplus_0_l.
+unfold Rminus.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
 }
 {
   assert (H11 : (0 <= up x)%Z).
@@ -96,23 +111,32 @@ Proof.
   assert (H12 := IZN_var H11); elim H12; clear H12; intros x0 H8; assert (H13 : E x).
 {
   elim (classic (E x)); intro; try assumption.
-  cut (forall y:R, E y -> y <= x - 1).
+  cut (forall y:R, E y -> y <= x - R1).
 {
-  intro H13; assert (H14 := H5 _ H13); cut (x - 1 < x).
+  intro H13; assert (H14 := H5 _ H13); cut (x - R1 < x).
 {
   intro H15; elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ H14 H15)).
 }
 {
-  apply Rminus_lt; replace (x - 1 - x) with (-1); [ idtac | ring ];
+  apply Rminus_lt; replace (x - R1 - x) with (-R1).
     rewrite <- Ropp_0; apply Ropp_lt_gt_contravar; apply Rlt_0_1.
+unfold Rminus.
+rewrite Rplus_comm.
+now rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
 }
 }
 {
   intros y H13; assert (H14 := H4 _ H13); elim H14; intro H15; unfold E in H13; elim H13;
-    intros x1 H16; elim H16; intros H17 H18; apply Rplus_le_reg_l with 1.
+    intros x1 H16; elim H16; intros H17 H18; apply Rplus_le_reg_l with R1.
 {
-  replace (1 + (x - 1)) with x; [ idtac | ring ]; rewrite <- H18;
-    replace (1 + INR x1) with (INR (S x1)); [ idtac | rewrite S_INR; ring ].
+  replace (R1 + (x - R1)) with x. rewrite <- H18;
+    replace (R1 + INR x1) with (INR (S x1)); [ idtac | rewrite S_INR ].
+2:{
+now rewrite Rplus_comm.
+}
+2:{
+ now rewrite Rplus_minus.
+}
   cut (x = INR (pred x0)).
 {
   intro H19; rewrite H19; apply le_INR; apply lt_le_S; apply INR_lt; rewrite H18;
@@ -145,9 +169,11 @@ Proof.
 {
   split with (pred x0); unfold E in H13; elim H13; intros; elim H12; intros;
     rewrite H10 in H15; rewrite H8 in H15; rewrite <- INR_IZR_INZ in H15;
-      assert (H16 : INR x0 = INR x1 + 1).
+      assert (H16 : INR x0 = INR x1 + R1).
 {
-  rewrite H15; ring.
+  rewrite H15.
+unfold Rminus.
+now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
 }
 {
   rewrite <- S_INR in H16; assert (H17 := INR_eq _ _ H16); rewrite H17;
@@ -213,11 +239,11 @@ Definition subdivision_val (a b:R) (f:StepFun a b) : Rlist :=
 
 Fixpoint Int_SF (l k:Rlist) : R :=
   match l with
-    | nil => 0
+    | nil => R0
     | cons a l' =>
       match k with
-        | nil => 0
-        | cons x nil => 0
+        | nil => R0
+        | cons x nil => R0
         | cons x (cons y k') => a * (y - x) + Int_SF l' (cons y k')
       end
   end.
@@ -356,8 +382,8 @@ Proof.
     rewrite H5 in H2; rewrite <- H2; reflexivity.
 }
 {
-  simpl in H4; simpl; apply INR_eq; apply Rplus_eq_reg_l with 1;
-    do 2 rewrite (Rplus_comm 1); do 2 rewrite <- S_INR;
+  simpl in H4; simpl; apply INR_eq; apply Rplus_eq_reg_l with R1;
+    do 2 rewrite (Rplus_comm R1); do 2 rewrite <- S_INR;
       rewrite H4; reflexivity.
 }
 {
@@ -377,7 +403,7 @@ Qed.
 
 Lemma StepFun_P8 :
   forall (f:R -> R) (l1 lf1:Rlist) (a b:R),
-    adapted_couple f a b l1 lf1 -> a = b -> Int_SF lf1 l1 = 0.
+    adapted_couple f a b l1 lf1 -> a = b -> Int_SF lf1 l1 = R0.
 Proof.
   simple induction l1.
 {
@@ -405,7 +431,8 @@ Proof.
 {
   intro; rewrite H3; rewrite (H0 lf1 r b).
 {
-  ring.
+  unfold Rminus.
+  now rewrite Rplus_opp_r, Rmult_0_r, Rplus_0_r.
 }
 {
   rewrite H3; apply StepFun_P7 with a r r3; [ right; assumption | assumption ].
@@ -906,7 +933,7 @@ Proof.
 {
   clear Hreclf2; assert (H17 : r3 = r4).
 {
-  set (x := (r + s2) / 2); assert (H17 := H8 0%nat (lt_O_Sn _));
+  set (x := (r + s2) / R2); assert (H17 := H8 0%nat (lt_O_Sn _));
     assert (H18 := H13 0%nat (lt_O_Sn _));
       unfold constant_D_eq, open_interval in H17, H18; simpl in H17;
         simpl in H18; rewrite <- (H17 x).
@@ -918,44 +945,52 @@ Proof.
 {
   rewrite <- H12; unfold x; split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite (Rplus_comm r); rewrite double;
             apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
 {
   unfold x; split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 {
   apply Rlt_trans with s2;
-    [ apply Rmult_lt_reg_l with 2;
-      [ prove_sup0
-        | unfold Rdiv; rewrite <- (Rmult_comm (/ 2));
+    [ apply Rmult_lt_reg_l with R2;
+      [ idtac
+        | unfold Rdiv; rewrite <- (Rmult_comm (/ R2));
           rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym;
             [ rewrite Rmult_1_l; rewrite (Rplus_comm r); rewrite double;
               apply Rplus_lt_compat_l; assumption
               | discrR ] ]
       | assumption ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
@@ -973,7 +1008,7 @@ Proof.
     assert (H20 := H19 (lt_n_S _ _ (lt_O_Sn _))); elim H20;
       intro.
 {
-  set (x := (s2 + Rmin r1 r0) / 2); assert (H22 := H8 0%nat);
+  set (x := (s2 + Rmin r1 r0) / R2); assert (H22 := H8 0%nat);
     assert (H23 := H13 1%nat); simpl in H22; simpl in H23;
       rewrite <- (H22 (lt_O_Sn _) x).
 {
@@ -984,19 +1019,21 @@ Proof.
 {
   unfold open_interval; simpl; unfold x; split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l;
             unfold Rmin; case (Rle_dec r1 r0); intro;
               assumption
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double;
             apply Rlt_le_trans with (r0 + Rmin r1 r0);
@@ -1004,6 +1041,8 @@ Proof.
                 assumption
                 | apply Rplus_le_compat_l; apply Rmin_r ]
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
@@ -1012,19 +1051,21 @@ Proof.
 {
   apply Rlt_trans with s2;
     [ assumption
-      | apply Rmult_lt_reg_l with 2;
-        [ prove_sup0
-          | unfold Rdiv; rewrite <- (Rmult_comm (/ 2));
+      | apply Rmult_lt_reg_l with R2;
+        [ idtac
+          | unfold Rdiv; rewrite <- (Rmult_comm (/ R2));
             rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym;
               [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l;
                 unfold Rmin; case (Rle_dec r1 r0);
                   intro; assumption
                 | discrR ] ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double;
             apply Rlt_le_trans with (r1 + Rmin r1 r0);
@@ -1032,6 +1073,8 @@ Proof.
                 assumption
                 | apply Rplus_le_compat_l; apply Rmin_l ]
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
@@ -1182,7 +1225,7 @@ Proof.
   left; cut (r1 <= s2).
 {
   intro; unfold adapted_couple in H2, H; decompose [and] H; decompose [and] H2;
-    clear H H2; set (x := (r + r1) / 2); assert (H18 := H14 0%nat);
+    clear H H2; set (x := (r + r1) / R2); assert (H18 := H14 0%nat);
       assert (H20 := H19 0%nat); unfold constant_D_eq, open_interval in H18, H20;
         simpl in H18; simpl in H20; rewrite <- (H18 (lt_O_Sn _) x).
 {
@@ -1195,21 +1238,25 @@ Proof.
     [ idtac | elim H7; assumption ]; unfold x;
       split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; apply H
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite <- (Rplus_comm r1); rewrite double;
             apply Rplus_lt_compat_l; apply H
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
@@ -1218,23 +1265,27 @@ Proof.
     intro; [ idtac | elim H7; assumption ]; unfold x;
       split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; apply H
             | discrR ] ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 {
   apply Rlt_le_trans with r1;
-    [ apply Rmult_lt_reg_l with 2;
-      [ prove_sup0
-        | unfold Rdiv; rewrite <- (Rmult_comm (/ 2));
+    [ apply Rmult_lt_reg_l with R2;
+      [ idtac
+        | unfold Rdiv; rewrite <- (Rmult_comm (/ R2));
           rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym;
             [ rewrite Rmult_1_l; rewrite <- (Rplus_comm r1); rewrite double;
               apply Rplus_lt_compat_l; apply H
               | discrR ] ]
       | assumption ].
+exact Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
@@ -1284,7 +1335,16 @@ Proof.
   simpl; elim H8; intro.
 {
   replace (r4 * (s2 - s1)) with (r3 * (r1 - r) + r3 * (s2 - r1));
-  [ idtac | rewrite H9; rewrite H6; ring ].
+  [ idtac | rewrite H9; rewrite H6; idtac ].
+2:{
+rewrite <- Rmult_plus_distr_l.
+apply Rmult_eq_compat_l.
+unfold Rminus.
+rewrite Rplus_assoc, Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_r.
+now rewrite Rplus_comm.
+}
 {
   rewrite Rplus_assoc; apply Rplus_eq_compat_l;
     change
@@ -1595,20 +1655,24 @@ Proof.
   (Int_SF (subdivision_val (mkStepFun (StepFun_P4 a b c)))
     (subdivision (mkStepFun (StepFun_P4 a b c)))) with
   (Int_SF (cons c nil) (cons a (cons b nil)));
-  [ simpl; ring
+  [ simpl; idtac
     | apply StepFun_P17 with (fct_cte c) a b;
       [ apply StepFun_P3; assumption
         | apply (StepFun_P1 (mkStepFun (StepFun_P4 a b c))) ] ].
+now rewrite Rplus_0_r.
 }
 {
   replace
   (Int_SF (subdivision_val (mkStepFun (StepFun_P4 a b c)))
     (subdivision (mkStepFun (StepFun_P4 a b c)))) with
   (Int_SF (cons c nil) (cons b (cons a nil)));
-  [ simpl; ring
+  [ simpl; idtac
     | apply StepFun_P17 with (fct_cte c) a b;
       [ apply StepFun_P2; apply StepFun_P3; auto with real
         | apply (StepFun_P1 (mkStepFun (StepFun_P4 a b c))) ] ].
+rewrite Rplus_0_r.
+rewrite Ropp_mult_distr_r.
+now rewrite Ropp_minus_distr.
 }
 Qed.
 
@@ -1618,10 +1682,46 @@ Lemma StepFun_P19 :
     Int_SF (FF l1 f) l1 + l * Int_SF (FF l1 g) l1.
 Proof.
   intros; induction  l1 as [| r l1 Hrecl1];
-    [ simpl; ring
+    [ simpl; idtac
       | induction  l1 as [| r0 l1 Hrecl0]; simpl;
-        [ ring | simpl in Hrecl1; rewrite Hrecl1; ring ] ].
+        [ idtac | simpl in Hrecl1; rewrite Hrecl1; idtac ] ].
+now rewrite Rmult_0_r, Rplus_0_r.
+now rewrite Rmult_0_r, Rplus_0_r.
+unfold Rminus, Rdiv.
+symmetry.
+rewrite Rmult_plus_distr_l.
+rewrite <- Ropp_mult_distr_r.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+symmetry.
+set (a:=Int_SF (app_Rlist (mid_Rlist l1 r0) f) (cons r0 l1)).
+set (b:=Int_SF (app_Rlist (mid_Rlist l1 r0) g) (cons r0 l1)).
+set (c:=f ((r + r0) * / R2)).
+set (d:=g ((r + r0) * / R2)).
+repeat rewrite Rmult_plus_distr_l.
+repeat rewrite Rmult_plus_distr_r.
+repeat rewrite <- Ropp_mult_distr_r.
+repeat rewrite Rplus_assoc. rewrite Rplus_comm.
+repeat rewrite Rplus_assoc. rewrite Rplus_comm.
+repeat rewrite Rplus_assoc. rewrite Rplus_comm.
+repeat rewrite Rplus_assoc. rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc. 
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc. 
+repeat rewrite <- Rmult_assoc.
+apply Rplus_eq_compat_l.
+rewrite Rplus_comm.
+repeat rewrite Rplus_assoc. 
+reflexivity.
 Qed.
+
+
 
 Lemma StepFun_P20 :
   forall (l:Rlist) (f:R -> R),
@@ -1661,24 +1761,28 @@ Proof.
 {
   split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; elim H6;
             intros; apply Rlt_trans with x0; assumption
             | discrR ] ].
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double;
             rewrite (Rplus_comm (pos_Rl (cons r l) i));
               apply Rplus_lt_compat_l; elim H6; intros; apply Rlt_trans with x0;
                 assumption
             | discrR ] ].
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 }
 }
@@ -1885,27 +1989,31 @@ Proof.
     assert
       (H15 :
         pos_Rl (cons_ORlist lf lg) i <
-        (pos_Rl (cons_ORlist lf lg) i + pos_Rl (cons_ORlist lf lg) (S i)) / 2 <
+        (pos_Rl (cons_ORlist lf lg) i + pos_Rl (cons_ORlist lf lg) (S i)) / R2 <
         pos_Rl (cons_ORlist lf lg) (S i)).
 {
   split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double;
             rewrite (Rplus_comm (pos_Rl (cons_ORlist lf lg) i));
               apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 }
 {
@@ -2352,27 +2460,31 @@ Proof.
     assert
       (H15 :
         pos_Rl (cons_ORlist lf lg) i <
-        (pos_Rl (cons_ORlist lf lg) i + pos_Rl (cons_ORlist lf lg) (S i)) / 2 <
+        (pos_Rl (cons_ORlist lf lg) i + pos_Rl (cons_ORlist lf lg) (S i)) / R2 <
         pos_Rl (cons_ORlist lf lg) (S i)).
 {
   split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double;
             rewrite (Rplus_comm (pos_Rl (cons_ORlist lf lg) i));
               apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 }
 {
@@ -2637,21 +2749,29 @@ Proof.
   rewrite <- H12; rewrite (H9 _ H8); try rewrite (H4 _ H8);
     reflexivity ||
       (elim H10; clear H10; intros; split;
-        [ apply Rmult_lt_reg_l with 2;
-          [ prove_sup0
-            | unfold Rdiv; rewrite <- (Rmult_comm (/ 2));
+        [ apply Rmult_lt_reg_l with R2;
+          [ idtac
+            | unfold Rdiv; rewrite <- (Rmult_comm (/ R2));
               rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym;
                 [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l;
                   apply Rlt_trans with x1; assumption
                   | discrR ] ]
-          | apply Rmult_lt_reg_l with 2;
-            [ prove_sup0
-              | unfold Rdiv; rewrite <- (Rmult_comm (/ 2));
+          | apply Rmult_lt_reg_l with R2;
+            [ idtac
+              | unfold Rdiv; rewrite <- (Rmult_comm (/ R2));
                 rewrite <- Rmult_assoc; rewrite <- Rinv_r_sym;
                   [ rewrite Rmult_1_l; rewrite double;
                     rewrite (Rplus_comm (pos_Rl l1 i)); apply Rplus_lt_compat_l;
                       apply Rlt_trans with x1; assumption
                     | discrR ] ] ]).
+apply Rlt_0_2.
+exact Neq_2_0.
+apply Rlt_0_2.
+exact Neq_2_0.
+apply Rlt_0_2.
+exact Neq_2_0.
+apply Rlt_0_2.
+exact Neq_2_0.
 }
 {
   rewrite <- H12; assumption.
@@ -2716,7 +2836,7 @@ Proof.
           (Int_SF (FF (cons_ORlist (subdivision f) (subdivision g)) g)
             (cons_ORlist (subdivision f) (subdivision g))) with
           (Int_SF (subdivision_val g) (subdivision g));
-          [ ring
+          [ idtac
             | apply StepFun_P17 with (fe g) a b;
               [ apply StepFun_P1
                 | apply StepFun_P21; apply StepFun_P25 with (fe f);
@@ -2728,6 +2848,10 @@ Proof.
         | apply StepFun_P17 with (fun x:R => f x + l * g x) a b;
           [ apply StepFun_P21; apply StepFun_P27; apply StepFun_P29
             | apply (StepFun_P1 (mkStepFun (StepFun_P28 l f g))) ] ]).
+reflexivity.
+rewrite Ropp_plus_distr.
+rewrite <- Ropp_mult_distr_r.
+reflexivity.
 Qed.
 
 Lemma StepFun_P31 :
@@ -2755,6 +2879,15 @@ Proof.
     unfold is_subdivision;
       apply existT with (app_Rlist (subdivision_val f) Rabs);
         apply StepFun_P31; apply StepFun_P1.
+Qed.
+
+Lemma Rge_minus : forall r1 r2, r2 <= r1 -> R0 <= r1 - r2.
+Proof.
+  intros.
+  unfold Rminus.
+  apply Rplus_le_reg_r with r2.
+  rewrite Rplus_0_l, Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+  assumption.
 Qed.
 
 Lemma StepFun_P33 :
@@ -2835,7 +2968,11 @@ Proof.
 {
   case (Req_dec r r0); intro.
 {
-  rewrite H4; right; ring.
+  rewrite H4; right.
+  unfold Rminus.
+  rewrite Rplus_opp_r.
+  repeat rewrite Rmult_0_r.
+  reflexivity.
 }
 {
   do 2 rewrite <- (Rmult_comm (r0 - r)); apply Rmult_le_compat_l.
@@ -2846,12 +2983,12 @@ Proof.
 {
   apply H3; split.
 {
-  apply Rmult_lt_reg_l with 2.
+  apply Rmult_lt_reg_l with R2.
 {
-  prove_sup0.
+  exact Rlt_0_2.
 }
 {
-  unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
     rewrite <- Rinv_r_sym.
 {
   assert (H5 : r = a).
@@ -2872,17 +3009,17 @@ Proof.
 }
 }
 {
-  discrR.
+  exact Neq_2_0.
 }
 }
 }
 {
-  apply Rmult_lt_reg_l with 2.
+  apply Rmult_lt_reg_l with R2.
 {
-  prove_sup0.
+  exact Rlt_0_2.
 }
 {
-  unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
     rewrite <- Rinv_r_sym.
 {
   rewrite Rmult_1_l; rewrite double; assert (H5 : r0 <= b).
@@ -2933,7 +3070,7 @@ Proof.
 }
 }
 {
-  discrR.
+  exact Neq_2_0.
 }
 }
 }
@@ -3288,7 +3425,8 @@ Proof.
           | assert (H1 : a = b);
             [ apply Rle_antisym; assumption
               | rewrite (StepFun_P8 H H1); assert (H2 : b = a);
-                [ symmetry ; apply H1 | rewrite (StepFun_P8 H0 H2); ring ] ] ] ].
+                [ symmetry ; apply H1 | rewrite (StepFun_P8 H0 H2); idtac ] ] ] ].
+now rewrite Ropp_0.
 }
 {
   rewrite Ropp_involutive; eapply StepFun_P17;
@@ -3418,21 +3556,25 @@ Proof.
 {
   split.
 {
-  rewrite H17; simpl; apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  rewrite H17; simpl; apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+  exact Rlt_0_2.
+  exact Neq_2_0.
 }
 {
-  rewrite H17; simpl; apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  rewrite H17; simpl; apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite (Rplus_comm r1); rewrite double;
             apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+  exact Rlt_0_2.
+  exact Neq_2_0.
 }
 }
 {
@@ -3478,21 +3620,25 @@ Proof.
 {
   split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+  exact Rlt_0_2.
+  exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite (Rplus_comm (pos_Rl l1 (S i)));
             rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+  exact Rlt_0_2.
+  exact Neq_2_0.
 }
 }
 {
@@ -3694,21 +3840,25 @@ Proof.
 {
   split.
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+  exact Rlt_0_2.
+  exact Neq_2_0.
 }
 {
-  apply Rmult_lt_reg_l with 2;
-    [ prove_sup0
-      | unfold Rdiv; rewrite <- (Rmult_comm (/ 2)); rewrite <- Rmult_assoc;
+  apply Rmult_lt_reg_l with R2;
+    [ idtac
+      | unfold Rdiv; rewrite <- (Rmult_comm (/ R2)); rewrite <- Rmult_assoc;
         rewrite <- Rinv_r_sym;
           [ rewrite Rmult_1_l; rewrite (Rplus_comm (pos_Rl l2 (S i - Rlength l1)));
             rewrite double; apply Rplus_lt_compat_l; assumption
             | discrR ] ].
+  exact Rlt_0_2.
+  exact Neq_2_0.
 }
 }
 {
@@ -3789,12 +3939,17 @@ Lemma StepFun_P42 :
     Int_SF (FF l1 f) l1 + Int_SF (FF l2 f) l2.
 Proof.
   intros l1 l2 f; induction l1 as [| r l1 IHl1]; intros H;
-    [ simpl; ring
+    [ simpl; idtac
       | destruct l1 as [| r0 r1];
         [ simpl in H; simpl; destruct l2 as [| r0 r1];
-          [ simpl; ring | simpl; simpl in H; rewrite H; ring ]
+          [ simpl; idtac | simpl; simpl in H; rewrite H; idtac ]
           | simpl; rewrite Rplus_assoc; apply Rplus_eq_compat_l; apply IHl1;
             rewrite <- H; reflexivity ] ].
+rewrite Rplus_0_l. reflexivity.
+rewrite Rplus_0_l. reflexivity.
+unfold Rminus.
+rewrite Rplus_opp_r, Rmult_0_r.
+reflexivity.
 Qed.
 
 Lemma StepFun_P43 :
@@ -3861,7 +4016,7 @@ Proof.
 }
 }
 {
-  replace (Int_SF lf2 l2) with 0.
+  replace (Int_SF lf2 l2) with R0.
 {
   rewrite Rplus_0_r; eapply StepFun_P17;
     [ apply H1 | rewrite <- H0 in H3; apply H3 ].
@@ -3872,7 +4027,7 @@ Proof.
 }
 }
 {
-  replace (Int_SF lf1 l1) with 0.
+  replace (Int_SF lf1 l1) with R0.
 {
   rewrite Rplus_0_l; eapply StepFun_P17;
     [ apply H2 | rewrite H in H3; apply H3 ].
@@ -3888,7 +4043,11 @@ Proof.
 {
   apply Rplus_eq_reg_l with (Int_SF lf2 l2);
     replace (Int_SF lf2 l2 + (Int_SF lf1 l1 + - Int_SF lf2 l2)) with
-    (Int_SF lf1 l1); [ idtac | ring ].
+    (Int_SF lf1 l1).
+2:{
+ rewrite Rplus_comm.
+  now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+}
   assert (H : c < b).
 {
   auto with real.
@@ -3928,7 +4087,7 @@ Proof.
 }
 }
 {
-  replace (Int_SF lf3 l3) with 0.
+  replace (Int_SF lf3 l3) with R0.
 {
   rewrite Rplus_0_r; eapply StepFun_P17;
     [ apply H1 | apply StepFun_P2; rewrite <- H0 in H2; apply H2 ].
@@ -3942,7 +4101,9 @@ Proof.
 {
   replace (Int_SF lf2 l2) with (Int_SF lf3 l3 + Int_SF lf1 l1).
 {
-  ring.
+ rewrite Ropp_plus_distr.
+  rewrite Rplus_comm.
+  now rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
 }
 {
   elim Hle; intro.
@@ -3988,7 +4149,7 @@ Proof.
 }
 }
 {
-  replace (Int_SF lf1 l1) with 0.
+  replace (Int_SF lf1 l1) with R0.
 {
   rewrite Rplus_0_r; eapply StepFun_P17;
     [ apply H3 | rewrite <- H in H2; apply H2 ].
@@ -4007,7 +4168,8 @@ Proof.
 {
   replace (Int_SF lf2 l2) with (Int_SF lf3 l3 + Int_SF lf1 l1).
 {
-  ring.
+  rewrite Rplus_comm.
+  now rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
 }
 {
   rewrite Rplus_comm; elim Hle''; intro.
@@ -4048,7 +4210,7 @@ Proof.
 }
 }
 {
-  replace (Int_SF lf3 l3) with 0.
+  replace (Int_SF lf3 l3) with R0.
 {
   rewrite Rplus_0_r; eapply StepFun_P17;
     [ apply H1 | rewrite <- H0 in H2; apply StepFun_P2; apply H2 ].
@@ -4068,7 +4230,9 @@ Proof.
 {
   replace (Int_SF lf1 l1) with (Int_SF lf2 l2 + Int_SF lf3 l3).
 {
-  ring.
+  rewrite Ropp_plus_distr.
+  rewrite Rplus_comm.
+  now rewrite <- Rplus_assoc, Rplus_opp_r, Rplus_0_l.
 }
 {
   elim Hle'; intro.
@@ -4109,7 +4273,7 @@ Proof.
 }
 }
 {
-  replace (Int_SF lf2 l2) with 0.
+  replace (Int_SF lf2 l2) with R0.
 {
   rewrite Rplus_0_l; eapply StepFun_P17;
     [ apply H3 | rewrite H0 in H1; apply H1 ].
@@ -4138,7 +4302,8 @@ Proof.
 {
   replace (Int_SF lf3 l3) with (Int_SF lf2 l2 + Int_SF lf1 l1).
 {
-  ring.
+  rewrite Ropp_plus_distr.
+  now rewrite Rplus_comm.
 }
 {
   replace (Int_SF lf3 l3) with
