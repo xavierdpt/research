@@ -1046,7 +1046,13 @@ Proof.
   intros fn fn' f g x c' r xinb Dfn_eq_fn' fn_CV_f fn'_CVU_g g_cont eps eps_pos.
   assert (eps_8_pos : 0 < eps / 8).
   {
-    admit.
+    unfold Rdiv.
+    apply Rmult_lt_0_compat.
+    { assumption. }
+    {
+      apply Rinv_0_lt_compat.
+      prove_sup0.
+    }
   }
   elim (g_cont x xinb _ eps_8_pos).
   clear g_cont.
@@ -1055,1163 +1061,1190 @@ Proof.
   exists delta.
   intros h hpos hinbdelta.
   assert (eps'_pos : 0 < (Rabs h) * eps / 4).
-{
-  unfold Rdiv.
-  rewrite Rmult_assoc.
-  apply Rmult_lt_0_compat.
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-{
-  admit.
-}
-}
-{
-  destruct (fn_CV_f x xinb ((Rabs h) * eps / 4) eps'_pos) as [N2 fnx_CV_fx].
-  assert (xhinbxdelta : Boule x delta (x + h)).
-{
-  clear -hinbdelta.
-  apply Rabs_def2 in hinbdelta.
-  unfold Boule.
-  destruct hinbdelta.
-  apply Rabs_def1.
-  { admit. }
-  { admit. }
-}
-{
-assert (t : Boule c' r (x + h)).
-{
-  apply Pdelta in xhinbxdelta.
-  apply xhinbxdelta.
-}
-{
-destruct (fn_CV_f (x+h) t ((Rabs h) * eps / 4) eps'_pos) as [N1 fnxh_CV_fxh].
-clear fn_CV_f t.
-destruct (fn'_CVU_g (eps/8) eps_8_pos) as [N3 fn'c_CVU_gc].
-pose (N := ((N1 + N2) + N3)%nat).
-assert (Main : Rabs ((f (x+h) - fn N (x+h)) - (f x - fn N x) + (fn N (x+h) - fn N x - h * (g x))) < (Rabs h)*eps).
-{
-  apply Rle_lt_trans with (Rabs (f (x + h) - fn N (x + h) - (f x - fn N x)) +  Rabs ((fn N (x + h) - fn N x - h * g x))).
-{
-  apply Rabs_triang.
-}
-{
-  apply Rle_lt_trans with (Rabs (f (x + h) - fn N (x + h)) + Rabs (- (f x - fn N x)) + Rabs (fn N (x + h) - fn N x - h * g x)).
-{
-  apply Rplus_le_compat_r.
-  apply Rabs_triang.
-}
-{
-  rewrite Rabs_Ropp.
-  case (Rlt_le_dec h 0).
-  intro sgn_h.
-{
-  assert (pr1 : forall c : R, x + h < c < x -> derivable_pt (fn N) c).
-{
-  intros c c_encad.
-  unfold derivable_pt.
-  exists (fn' N c).
-  apply Dfn_eq_fn'.
-  assert (t : Boule x delta c).
-{
-  apply Rabs_def2 in xhinbxdelta.
-  destruct xhinbxdelta.
-  destruct c_encad.
-  apply Rabs_def2 in xinb.
-  apply Rabs_def1.
-  { admit. }
-  { admit. }
-}
-{
-  apply Pdelta in t.
-  apply t.
-}
-}
-{
-  assert (pr2 : forall c : R, x + h < c < x -> derivable_pt id c).
-{
-  intros.
-  apply derivable_id.
-}
-{
-  assert (xh_x : x+h < x).
   {
-    pattern x at 2;rewrite <- Rplus_0_r.
-    apply Rplus_lt_compat_l.
-    assumption.
-  }
-  assert (pr3 : forall c : R, x + h <= c <= x -> continuity_pt (fn N) c).
-{
-  intros c c_encad.
-  apply derivable_continuous_pt.
-  exists (fn' N c).
-  apply Dfn_eq_fn'.
-  destruct c_encad.
-  assert (t : Boule x delta c).
-{
-  apply Rabs_def2 in xhinbxdelta.
-  destruct xhinbxdelta.
-  apply Rabs_def2 in xinb.
-  apply Rabs_def1.
-  {
-    apply Rplus_lt_reg_r with x.
-    unfold Rminus.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
-    apply Rplus_lt_le_compat.
-    { apply cond_pos. }
-    { assumption. }
-  }
-  {
-    rewrite Rplus_comm in H2.
-    unfold Rminus in H2.
-    rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r in H2.
-    apply Rplus_lt_reg_r with h.
-    unfold Rminus.
-    rewrite Rplus_comm.
-    apply Rplus_le_lt_compat.
-    {
-      apply Rplus_le_reg_r with x.
-      rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
-      assumption.
-    }
-    { assumption. }
-  }
-}
-{
-  apply Pdelta in t.
-  apply t.
-}
-}
-{
-  assert (pr4 : forall c : R, x + h <= c <= x -> continuity_pt id c).
-{
-  intros.
-  apply derivable_continuous.
-  apply derivable_id.
-}
-{
-  destruct (MVT (fn N) id (x+h) x pr1 pr2 xh_x pr3 pr4) as [c [P Hc]].
-  assert (Hc' : h * derive_pt (fn N) c (pr1 c P) = (fn N (x+h) - fn N x)).
-{
-   apply Rmult_eq_reg_l with (-1).
-{
-  replace (-1 * (h * derive_pt (fn N) c (pr1 c P))) with (-h * derive_pt (fn N) c (pr1 c P)).
-  2:{
-    change (-1) with (-R1).
-    repeat rewrite <- Ropp_mult_distr_l.
-    rewrite Rmult_1_l.
-    reflexivity.
-  }
-  replace (-1 * (fn N (x + h) - fn N x)) with (- (fn N (x + h) - fn N x)).
-  2:{
-    change (-1) with (-R1).
-    repeat rewrite <- Ropp_mult_distr_l.
-    rewrite Rmult_1_l.
-    reflexivity.
-  }
-  replace (-h) with (id x - id (x + h)).
-  2:{
-    unfold id.
-    unfold Rminus.
-    rewrite Ropp_plus_distr.
-    rewrite <- Rplus_assoc, Rplus_opp_r, Rplus_0_l.
-    reflexivity.
-  }
-  rewrite <- Rmult_1_r.
-  replace 1 with (derive_pt id c (pr2 c P)).
-  2:{
-    clear.
-    unfold derive_pt.
-    unfold derivable_pt in pr2.
-    unfold derivable_pt_abs in pr2.
-    destruct (pr2 c P) as [ l hl ].
-    simpl.
-    eapply uniqueness_limite.
-    apply hl.
-    apply derivable_pt_lim_id.
-  }
-  replace (- (fn N (x + h) - fn N x)) with (fn N x - fn N (x + h)).
-  2:{
-    unfold Rminus.
-    rewrite Ropp_plus_distr, Ropp_involutive, Rplus_comm.
-    reflexivity.
-  }
-  assumption.
-}
-{
-  apply Rlt_not_eq.
-  apply IZR_lt.
-}
-}
-{
-  rewrite <- Hc'.
-  clear Hc Hc'.
-  replace (derive_pt (fn N) c (pr1 c P)) with (fn' N c).
-{
-  replace (h * fn' N c - h * g x) with (h * (fn' N c - g x)).
-  2:{
-    unfold Rminus.
-    rewrite Ropp_mult_distr_r.
-    rewrite <- Rmult_plus_distr_l.
-    reflexivity.
-  }
-  rewrite Rabs_mult.
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs (f x - fn N x) + Rabs h * Rabs (fn' N c - g x)).
-{
-  apply Rplus_lt_compat_r.
-  apply Rplus_lt_compat_r.
-  unfold R_dist in fnxh_CV_fxh.
-  rewrite Rabs_minus_sym.
-  apply fnxh_CV_fxh.
-  unfold N.
-  unfold ge.
-  rewrite <- plus_assoc.
-  apply le_plus_l.
-}
-{
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g x)).
-{
-  apply Rplus_lt_compat_r.
-  apply Rplus_lt_compat_l.
-  unfold R_dist in fnx_CV_fx.
-  rewrite Rabs_minus_sym.
-  apply fnx_CV_fx.
-  unfold N.
-  unfold ge.
-  rewrite plus_comm.
-  rewrite plus_assoc.
-  apply le_plus_r.
-}
-{
-  replace (fn' N c - g x)  with ((fn' N c - g c) +  (g c - g x)).
-  2:{
-    unfold Rminus.
-    repeat rewrite <- Rplus_assoc.
-    apply Rplus_eq_compat_r.
-    repeat rewrite Rplus_assoc.
-    rewrite Rplus_opp_l, Rplus_0_r.
-    reflexivity.
-  }
-  apply Rle_lt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g c) + Rabs h * Rabs (g c - g x)).
-{
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  apply Rplus_le_compat_l.
-  apply Rplus_le_compat_l.
-  rewrite <- Rmult_plus_distr_l.
-  apply Rmult_le_compat_l.
-{
-  apply Rabs_pos.
-}
-{
-  apply Rabs_triang.
-}
-}
-{
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * Rabs (g c - g x)).
-{
-  apply Rplus_lt_compat_r.
-  apply Rplus_lt_compat_l.
-  apply Rmult_lt_compat_l.
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-{
-  rewrite Rabs_minus_sym.
-  apply fn'c_CVU_gc.
-{
-  unfold N.
-  rewrite plus_comm.
-  apply Nat.le_add_r.
-}
-{
-  assert (t : Boule x delta c).
-{
-  destruct P.
-  apply Rabs_def2 in xhinbxdelta.
-  destruct xhinbxdelta.
-  apply Rabs_def2 in xinb.
-  apply Rabs_def1.
-  {
-    unfold Rminus.
-    apply Rplus_lt_reg_r with x.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
-    apply Rplus_lt_compat.
-    { apply cond_pos. }
-    { assumption. }
-  }
-  {
-    unfold Rminus.
-    unfold Rminus in H2.
-    rewrite Rplus_comm in H2.
-    rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l in H2.
-    apply Rplus_lt_reg_r with h.
-    rewrite Rplus_comm.
-    apply Rplus_lt_compat.
-    {
-      apply Rplus_lt_reg_r with x.
-      rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
-      assumption.
-    }
-    { assumption. }
-  }
-}
-{
-  apply Pdelta in t.
-  apply t.
-}
-}
-}
-}
-{
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * (eps / 8)).
-{
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  apply Rplus_lt_compat_l.
-  apply Rplus_lt_compat_l.
-  rewrite <- Rmult_plus_distr_l.
-  rewrite <- Rmult_plus_distr_l.
-  apply Rmult_lt_compat_l.
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-{
-  apply Rplus_lt_compat_l.
-  simpl in g_cont.
-  apply g_cont.
-  split.
-{
-  unfold D_x.
-  split.
-  {
-  unfold no_cond.
-  exact I.
-}
-{
-  apply Rgt_not_eq.
-  exact (proj2 P).
-}
-}
-{
-  apply Rlt_trans with (Rabs h).
-{
-  apply Rabs_def1.
-{
-  apply Rlt_trans with 0.
-{
-  destruct P.
-  unfold Rminus.
-  apply Rplus_lt_reg_r with x.
-  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
-  assumption.
-}
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-}
-{
-  rewrite <- Rabs_Ropp, Rabs_pos_eq, Ropp_involutive.
-  2:{
-    apply Ropp_le_cancel.
-    rewrite Ropp_0, Ropp_involutive.
-    left.
-    assumption.
-  }
-  destruct P.
-  {
-    unfold Rminus.
-    apply Rplus_lt_reg_r with x.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
-    assumption.
-  }
-}
-}
-{
-  clear -Pdelta xhinbxdelta.
-  apply Pdelta in xhinbxdelta.
-  destruct xhinbxdelta as [_ P'].
-  apply Rabs_def2 in P'.
-  simpl in P'.
-  destruct P'.
-  apply Rabs_def1.
-  {
-    rewrite Rplus_comm in H.
-    unfold Rminus in H.
-    rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r in H.
-    assumption.
-  }
-  {
-    rewrite Rplus_comm in H0.
-    unfold Rminus in H0.
-    rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r in H0.
-    assumption.
-  }
-}
-}
-}
-}
-{
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite <- Rmult_plus_distr_l.
-  replace (
-    Rabs h * eps / 4 + (Rabs h * eps / 4 + Rabs h * (eps / 8 + eps / 8))
-  ) with (
-    Rabs h * (eps / 4 + eps / 4 + eps / 8 + eps / 8)
-  ).
-  2:{
     unfold Rdiv.
-    repeat rewrite Rmult_assoc.
-    repeat rewrite <- Rmult_plus_distr_l.
-    repeat rewrite <- Rplus_assoc.
-    reflexivity.
-  }
-  apply Rmult_lt_compat_l.
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-{
-  unfold Rdiv.
-  repeat rewrite Rplus_assoc.
-  repeat rewrite <- Rmult_plus_distr_l.
-  pattern eps at 2;rewrite <- Rmult_1_r.
-  apply Rmult_lt_compat_l.
-  { assumption. }
-  {
-    apply Rmult_lt_reg_r with 8.
-    { prove_sup0. }
+    rewrite Rmult_assoc.
+    apply Rmult_lt_0_compat.
     {
-      repeat rewrite Rmult_plus_distr_r.
-      rewrite Rinv_l.
-      2:discrR.
-      replace 8 with (4*2).
-      2:{ rewrite <- mult_IZR. simpl. reflexivity. }
-      repeat rewrite <- Rmult_assoc.
-      rewrite Rinv_l.
-      2:discrR.
-      repeat rewrite Rmult_1_l.
-      rewrite <- mult_IZR.
-      simpl.
-      rewrite <- plus_IZR.
-      rewrite <- plus_IZR.
-      rewrite <- plus_IZR.
-      simpl.
-      apply Rplus_lt_reg_r with (-6).
-      rewrite Rplus_opp_r.
-      rewrite <- plus_IZR.
-      simpl.
-      prove_sup0.
-    }
-}
-}
-}
-}
-}
-}
-}
-}
-{
-  assert (H := pr1 c P).
-  elim H.
-  clear H.
-  intros l Hl.
-  assert (Temp : l = fn' N c).
-{
-   assert (bc'rc : Boule c' r c).
-{
-  assert (t : Boule x delta c).
-{
-  clear - xhinbxdelta P.
-  destruct P.
-  apply Rabs_def2 in xhinbxdelta.
-  destruct xhinbxdelta.
-  apply Rabs_def1.
-  {
-    unfold Rminus.
-    apply Rplus_lt_reg_r with x.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
-    apply Rplus_lt_compat.
-    { apply cond_pos. }
-    { assumption. }
-  }
-  {
-    unfold Rminus.
-    apply Rplus_lt_reg_r with (x+h).
-    repeat rewrite Rplus_assoc.
-    rewrite (Rplus_comm c).
-    apply Rplus_lt_compat.
-    {
-      rewrite Rplus_comm.
+      apply Rabs_pos_lt.
       assumption.
     }
-    { assumption. }
-  }
-}
-{
-  apply Pdelta in t.
-  apply t.
-}
-}
-{
-  assert (Hl' := Dfn_eq_fn' c N bc'rc).
-  unfold derivable_pt_abs in Hl.
-  clear -Hl Hl'.
-  apply uniqueness_limite with (f:= fn N) (x:=c).
-{ assumption. }
-{ assumption. }
-}
-}
-{
-  rewrite <- Temp.
-  assert (Hl' : derivable_pt (fn N) c).
-{
-  exists l.
-  apply Hl.
-}
-{
-  rewrite pr_nu_var with (g:= fn N) (pr2:=Hl').
-{
-  elim Hl'.
-  clear Hl'.
-  intros l' Hl'.
-  assert (Main : l = l').
-{
-  apply uniqueness_limite with (f:= fn N) (x:=c).
-  { assumption. }
-  { assumption. }
-}
-{
-  rewrite Main.
-  reflexivity.
-}
-}
-{
-  reflexivity.
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-{
-  assert (h_pos : h > 0).
-{
-  case sgn_h.
-{
-  intro Hyp.
-  assumption.
-}
-{
-  intro Hyp.
-  apply False_ind.
-  apply hpos.
-  symmetry.
-  assumption.
-}
-}
-{
-  clear sgn_h.
-  assert (pr1 : forall c : R, x < c < x + h -> derivable_pt (fn N) c).
-{
-  intros c c_encad.
-  unfold derivable_pt.
-  exists (fn' N c).
-  apply Dfn_eq_fn'.
-  assert (t : Boule x delta c).
-{
-  apply Rabs_def2 in xhinbxdelta.
-  destruct xhinbxdelta.
-  destruct c_encad.
-  apply Rabs_def2 in xinb.
-  apply Rabs_def1.
-  {
-    unfold Rminus.
-    apply Rplus_lt_reg_r with (x+h).
-    rewrite Rplus_assoc.
-    rewrite (Rplus_comm (-x)).
-    rewrite Rplus_assoc.
-    rewrite (Rplus_comm x).
-    rewrite Rplus_assoc.
-    rewrite Rplus_opp_l, Rplus_0_r.
-    rewrite (Rplus_comm delta).
-    apply Rplus_lt_compat.
-    { assumption. }
     {
-      pattern h;rewrite <- Rplus_0_r.
-      rewrite <- (Rplus_opp_l x).
-      rewrite <- Rplus_assoc.
-      rewrite Rplus_comm.
-      rewrite <- Rplus_assoc.
-      assumption.
-     }
-  }
-  {
-    apply Ropp_lt_cancel.
-    rewrite Ropp_minus_distr, Ropp_involutive.
-    apply Rplus_lt_reg_r with c.
-    unfold Rminus.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
-    apply Rplus_lt_compat.
-    { apply cond_pos. }
-    { assumption. }
-  }
-}
-{
-  apply Pdelta in t.
-  apply t.
-}
-}
-{
-  assert (pr2 : forall c : R, x < c < x + h -> derivable_pt id c).
-{
-  intros.
-  apply derivable_id.
-}
-{
-  assert (xh_x : x < x + h).
-  {
-    pattern x at 1;rewrite <- Rplus_0_r.
-    apply Rplus_lt_compat_l.
-    assumption.
-  }
-  assert (pr3 : forall c : R, x <= c <= x + h -> continuity_pt (fn N) c).
-{
-  intros c c_encad.
-  apply derivable_continuous_pt.
-  exists (fn' N c).
-  apply Dfn_eq_fn'.
-  destruct c_encad.
-  assert (t : Boule x delta c).
-{
-  apply Rabs_def2 in xhinbxdelta.
-  destruct xhinbxdelta.
-  apply Rabs_def2 in xinb.
-  apply Rabs_def1.
-{
-  unfold Rminus.
-  apply Rplus_lt_reg_r with (x+h).
-  rewrite Rplus_assoc.
-  rewrite (Rplus_comm (-x)).
-  rewrite Rplus_assoc.
-  rewrite (Rplus_comm x).
-  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-  rewrite (Rplus_comm delta).
-  apply Rplus_le_lt_compat.
-  { assumption. }
-  {
-    pattern h;rewrite <- Rplus_0_r.
-    rewrite <- (Rplus_opp_l x).
-    rewrite <- Rplus_assoc.
-    rewrite Rplus_comm.
-    rewrite <- Rplus_assoc.
-    assumption.
-  }
-}
-{
-  apply Ropp_lt_cancel.
-  rewrite Ropp_minus_distr, Ropp_involutive.
-  unfold Rminus.
-  apply Rplus_lt_reg_r with c.
-  rewrite Rplus_assoc, Rplus_opp_l.
-  rewrite Rplus_comm.
-  apply Rplus_lt_le_compat.
-  { apply cond_pos. }
-  { assumption. }
-}
-}
-{
-   apply Pdelta in t.
-  apply t.
-}
-}
-{
-  assert (pr4 : forall c : R, x <= c <= x + h -> continuity_pt id c).
-{
-  intros.
-  apply derivable_continuous.
-  apply derivable_id.
-}
-{
-  destruct (MVT (fn N) id x (x+h) pr1 pr2 xh_x pr3 pr4) as [c [P Hc]].
-  assert (Hc' : h * derive_pt (fn N) c (pr1 c P) = fn N (x+h) - fn N x).
-{
-  pattern h at 1; replace h with (id (x + h) - id x).
-  2:{
-    unfold id.
-    unfold Rminus.
-    rewrite Rplus_comm.
-    rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
-    reflexivity.
-  }
-  rewrite <- Rmult_1_r.
-  replace 1 with (derive_pt id c (pr2 c P)).
-  2:{
-    clear.
-    unfold derivable_pt in pr2.
-    unfold derivable_pt_abs in pr2.
-    eapply uniqueness_limite.
-    2:apply derivable_pt_lim_id.
-    destruct (pr2 c P) as [l hl].
-    simpl.
-    apply hl.
-  }
-  { assumption. }
-}
-{
-  rewrite <- Hc'.
-  clear Hc Hc'.
-  replace (derive_pt (fn N) c (pr1 c P)) with (fn' N c).
-{
-  replace (h * fn' N c - h * g x) with (h * (fn' N c - g x)).
-  2:{
-    unfold Rminus.
-    rewrite Ropp_mult_distr_r.
-    rewrite <- Rmult_plus_distr_l.
-    reflexivity.
-  }
-  rewrite Rabs_mult.
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs (f x - fn N x) + Rabs h * Rabs (fn' N c - g x)).
-{
-  apply Rplus_lt_compat_r.
-  apply Rplus_lt_compat_r.
-  unfold R_dist in fnxh_CV_fxh.
-  rewrite Rabs_minus_sym.
-  apply fnxh_CV_fxh.
-  unfold N.
-  unfold ge.
-  rewrite <- plus_assoc.
-  apply Nat.le_add_r.
-}
-{
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g x)).
-{
-  apply Rplus_lt_compat_r.
-  apply Rplus_lt_compat_l.
-  unfold R_dist in fnx_CV_fx.
-  rewrite Rabs_minus_sym.
-  apply fnx_CV_fx.
-  unfold N.
-  unfold ge.
-  rewrite (plus_comm _ N2).
-  rewrite <- plus_assoc.
-  apply Nat.le_add_r.
-}
-{
-  replace (fn' N c - g x)  with ((fn' N c - g c) +  (g c - g x)).
-  2:{
-    unfold Rminus.
-    repeat rewrite <- Rplus_assoc.
-    apply Rplus_eq_compat_r.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-    reflexivity.
-  }
-   apply Rle_lt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 +
-          Rabs h * Rabs (fn' N c - g c) + Rabs h * Rabs (g c - g x)).
-{
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  apply Rplus_le_compat_l.
-  apply Rplus_le_compat_l.
-  rewrite <- Rmult_plus_distr_l.
-  apply Rmult_le_compat_l.
-{
-  apply Rabs_pos.
-}
-{
-  apply Rabs_triang.
-}
-}
-{
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * Rabs (g c - g x)).
-{
-  apply Rplus_lt_compat_r.
-  apply Rplus_lt_compat_l.
-  apply Rmult_lt_compat_l.
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-{
-  rewrite Rabs_minus_sym.
-  apply fn'c_CVU_gc.
-{
-  unfold N.
-  rewrite plus_comm.
-  apply Nat.le_add_r.
-}
-{
-  assert (t : Boule x delta c).
-  {
-    destruct P.
-    apply Rabs_def2 in xhinbxdelta.
-    destruct xhinbxdelta.
-    apply Rabs_def2 in xinb.
-    apply Rabs_def1.
-    {
-      unfold Rminus.
-      apply Rplus_lt_reg_r with (x+h).
-      rewrite Rplus_assoc.
-      rewrite (Rplus_comm delta).
-      apply Rplus_lt_compat.
+      apply Rmult_lt_0_compat.
       { assumption. }
       {
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
+  }
+  {
+    destruct (fn_CV_f x xinb ((Rabs h) * eps / 4) eps'_pos) as [N2 fnx_CV_fx].
+    assert (xhinbxdelta : Boule x delta (x + h)).
+    {
+      clear -hinbdelta.
+      apply Rabs_def2 in hinbdelta.
+      unfold Boule.
+      destruct hinbdelta.
+      apply Rabs_def1.
+      {
+        unfold Rminus.
         rewrite Rplus_comm.
+        rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+        assumption.
+      }
+      {
+        unfold Rminus.
+        rewrite Rplus_comm.
+        rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
         assumption.
       }
     }
     {
-      unfold Rminus.
-      apply Rplus_lt_reg_r with x.
-      rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-      rewrite Rplus_comm.
-      apply Rplus_lt_reg_r with delta.
-      rewrite Rplus_assoc, Rplus_opp_l.
-      apply Rplus_lt_compat.
-      { assumption. }
-      { apply cond_pos. }
+      assert (t : Boule c' r (x + h)).
+      {
+        apply Pdelta in xhinbxdelta.
+        apply xhinbxdelta.
+      }
+      {
+        destruct (fn_CV_f (x+h) t ((Rabs h) * eps / 4) eps'_pos) as [N1 fnxh_CV_fxh].
+        clear fn_CV_f t.
+        destruct (fn'_CVU_g (eps/8) eps_8_pos) as [N3 fn'c_CVU_gc].
+        pose (N := ((N1 + N2) + N3)%nat).
+        assert (Main : Rabs ((f (x+h) - fn N (x+h)) - (f x - fn N x) + (fn N (x+h) - fn N x - h * (g x))) < (Rabs h)*eps).
+        {
+          apply Rle_lt_trans with (Rabs (f (x + h) - fn N (x + h) - (f x - fn N x)) +  Rabs ((fn N (x + h) - fn N x - h * g x))).
+          { apply Rabs_triang. }
+          {
+            apply Rle_lt_trans with (Rabs (f (x + h) - fn N (x + h)) + Rabs (- (f x - fn N x)) + Rabs (fn N (x + h) - fn N x - h * g x)).
+            {
+              apply Rplus_le_compat_r.
+              apply Rabs_triang.
+            }
+            {
+            rewrite Rabs_Ropp.
+            case (Rlt_le_dec h 0).
+            {
+              intro sgn_h.
+              assert (pr1 : forall c : R, x + h < c < x -> derivable_pt (fn N) c).
+              {
+                intros c c_encad.
+                unfold derivable_pt.
+                exists (fn' N c).
+                apply Dfn_eq_fn'.
+                assert (t : Boule x delta c).
+                {
+                  apply Rabs_def2 in xhinbxdelta.
+                  destruct xhinbxdelta.
+                  destruct c_encad.
+                  apply Rabs_def2 in xinb.
+                  apply Rabs_def1.
+                  {
+                    unfold Rminus.
+                    apply Rplus_lt_reg_r with x.
+                    rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
+                    apply Rplus_lt_compat.
+                    { apply cond_pos. }
+                    { assumption. }
+                  }
+                  {
+                    unfold Rminus in H0.
+                    rewrite Rplus_comm in H0.
+                    rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l in H0.
+                    unfold Rminus.
+                    apply Rplus_lt_reg_l with h.
+                    rewrite Rplus_comm.
+                    apply Rplus_lt_compat.
+                    { assumption. }
+                    {
+                      apply Rplus_lt_reg_r with x.
+                      rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
+                      assumption.
+                    }
+                  }
+                }
+                {
+                  apply Pdelta in t.
+                  apply t.
+                }
+              }
+              {
+                assert (pr2 : forall c : R, x + h < c < x -> derivable_pt id c).
+                {
+                  intros.
+                  apply derivable_id.
+                }
+                {
+                  assert (xh_x : x+h < x).
+                  {
+                    pattern x at 2;rewrite <- Rplus_0_r.
+                    apply Rplus_lt_compat_l.
+                    assumption.
+                  }
+                  assert (pr3 : forall c : R, x + h <= c <= x -> continuity_pt (fn N) c).
+                  {
+                    intros c c_encad.
+                    apply derivable_continuous_pt.
+                    exists (fn' N c).
+                    apply Dfn_eq_fn'.
+                    destruct c_encad.
+                    assert (t : Boule x delta c).
+                    {
+                      apply Rabs_def2 in xhinbxdelta.
+                      destruct xhinbxdelta.
+                      apply Rabs_def2 in xinb.
+                      apply Rabs_def1.
+                      {
+                        apply Rplus_lt_reg_r with x.
+                        unfold Rminus.
+                        rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
+                        apply Rplus_lt_le_compat.
+                        { apply cond_pos. }
+                        { assumption. }
+                      }
+                      {
+                        rewrite Rplus_comm in H2.
+                        unfold Rminus in H2.
+                        rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r in H2.
+                        apply Rplus_lt_reg_r with h.
+                        unfold Rminus.
+                        rewrite Rplus_comm.
+                        apply Rplus_le_lt_compat.
+                        {
+                          apply Rplus_le_reg_r with x.
+                          rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
+                          assumption.
+                        }
+                        { assumption. }
+                      }
+                    }
+                    {
+                      apply Pdelta in t.
+                      apply t.
+                    }
+                  }
+                  {
+                    assert (pr4 : forall c : R, x + h <= c <= x -> continuity_pt id c).
+                    {
+                      intros.
+                      apply derivable_continuous.
+                      apply derivable_id.
+                    }
+                    {
+                      destruct (MVT (fn N) id (x+h) x pr1 pr2 xh_x pr3 pr4) as [c [P Hc]].
+                      assert (Hc' : h * derive_pt (fn N) c (pr1 c P) = (fn N (x+h) - fn N x)).
+                      {
+                         apply Rmult_eq_reg_l with (-1).
+                          {
+                            replace (-1 * (h * derive_pt (fn N) c (pr1 c P))) with (-h * derive_pt (fn N) c (pr1 c P)).
+                            2:{
+                              change (-1) with (-R1).
+                              repeat rewrite <- Ropp_mult_distr_l.
+                              rewrite Rmult_1_l.
+                              reflexivity.
+                            }
+                            replace (-1 * (fn N (x + h) - fn N x)) with (- (fn N (x + h) - fn N x)).
+                            2:{
+                              change (-1) with (-R1).
+                              repeat rewrite <- Ropp_mult_distr_l.
+                              rewrite Rmult_1_l.
+                              reflexivity.
+                            }
+                            replace (-h) with (id x - id (x + h)).
+                            2:{
+                              unfold id.
+                              unfold Rminus.
+                              rewrite Ropp_plus_distr.
+                              rewrite <- Rplus_assoc, Rplus_opp_r, Rplus_0_l.
+                              reflexivity.
+                            }
+                            rewrite <- Rmult_1_r.
+                            replace 1 with (derive_pt id c (pr2 c P)).
+                            2:{
+                              clear.
+                              unfold derive_pt.
+                              unfold derivable_pt in pr2.
+                              unfold derivable_pt_abs in pr2.
+                              destruct (pr2 c P) as [ l hl ].
+                              simpl.
+                              eapply uniqueness_limite.
+                              apply hl.
+                              apply derivable_pt_lim_id.
+                            }
+                            replace (- (fn N (x + h) - fn N x)) with (fn N x - fn N (x + h)).
+                            2:{
+                              unfold Rminus.
+                              rewrite Ropp_plus_distr, Ropp_involutive, Rplus_comm.
+                              reflexivity.
+                            }
+                            assumption.
+                          }
+                          {
+                            apply Rlt_not_eq.
+                            apply Ropp_lt_cancel.
+                            change (-1) with (-R1).
+                            rewrite Ropp_involutive, Ropp_0.
+                            exact Rlt_0_1.
+                          }
+                        }
+                        {
+                          rewrite <- Hc'.
+                          clear Hc Hc'.
+                          replace (derive_pt (fn N) c (pr1 c P)) with (fn' N c).
+                          {
+                            replace (h * fn' N c - h * g x) with (h * (fn' N c - g x)).
+                            2:{
+                              unfold Rminus.
+                              rewrite Ropp_mult_distr_r.
+                              rewrite <- Rmult_plus_distr_l.
+                              reflexivity.
+                            }
+                            rewrite Rabs_mult.
+                            apply Rlt_trans with (Rabs h * eps / 4 + Rabs (f x - fn N x) + Rabs h * Rabs (fn' N c - g x)).
+                            {
+                              apply Rplus_lt_compat_r.
+                              apply Rplus_lt_compat_r.
+                              unfold R_dist in fnxh_CV_fxh.
+                              rewrite Rabs_minus_sym.
+                              apply fnxh_CV_fxh.
+                              unfold N.
+                              unfold ge.
+                              rewrite <- plus_assoc.
+                              apply le_plus_l.
+                            }
+                            {
+                              apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g x)).
+                              {
+                                apply Rplus_lt_compat_r.
+                                apply Rplus_lt_compat_l.
+                                unfold R_dist in fnx_CV_fx.
+                                rewrite Rabs_minus_sym.
+                                apply fnx_CV_fx.
+                                unfold N.
+                                unfold ge.
+                                rewrite plus_comm.
+                                rewrite plus_assoc.
+                                apply le_plus_r.
+                              }
+                              {
+                                replace (fn' N c - g x)  with ((fn' N c - g c) +  (g c - g x)).
+                                2:{
+                                  unfold Rminus.
+                                  repeat rewrite <- Rplus_assoc.
+                                  apply Rplus_eq_compat_r.
+                                  repeat rewrite Rplus_assoc.
+                                  rewrite Rplus_opp_l, Rplus_0_r.
+                                  reflexivity.
+                                }
+                                apply Rle_lt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g c) + Rabs h * Rabs (g c - g x)).
+                                {
+                                  rewrite Rplus_assoc.
+                                  rewrite Rplus_assoc.
+                                  rewrite Rplus_assoc.
+                                  apply Rplus_le_compat_l.
+                                  apply Rplus_le_compat_l.
+                                  rewrite <- Rmult_plus_distr_l.
+                                  apply Rmult_le_compat_l.
+                                  { apply Rabs_pos. }
+                                  { apply Rabs_triang. }
+                                }
+                                {
+                                  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * Rabs (g c - g x)).
+                                  {
+                                    apply Rplus_lt_compat_r.
+                                    apply Rplus_lt_compat_l.
+                                    apply Rmult_lt_compat_l.
+                                    {
+                                      apply Rabs_pos_lt.
+                                      assumption.
+                                    }
+                                    {
+                                      rewrite Rabs_minus_sym.
+                                      apply fn'c_CVU_gc.
+                                      {
+                                        unfold N.
+                                        rewrite plus_comm.
+                                        apply Nat.le_add_r.
+                                      }
+                                      {
+                                        assert (t : Boule x delta c).
+                                        {
+                                          destruct P.
+                                          apply Rabs_def2 in xhinbxdelta.
+                                          destruct xhinbxdelta.
+                                          apply Rabs_def2 in xinb.
+                                          apply Rabs_def1.
+                                          {
+                                            unfold Rminus.
+                                            apply Rplus_lt_reg_r with x.
+                                            rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
+                                            apply Rplus_lt_compat.
+                                            { apply cond_pos. }
+                                            { assumption. }
+                                          }
+                                          {
+                                            unfold Rminus.
+                                            unfold Rminus in H2.
+                                            rewrite Rplus_comm in H2.
+                                            rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l in H2.
+                                            apply Rplus_lt_reg_r with h.
+                                            rewrite Rplus_comm.
+                                            apply Rplus_lt_compat.
+                                            {
+                                              apply Rplus_lt_reg_r with x.
+                                              rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
+                                              assumption.
+                                            }
+                                            { assumption. }
+                                          }
+                                        }
+                                        {
+                                          apply Pdelta in t.
+                                          apply t.
+                                        }
+                                      }
+                                    }
+                                  }
+                                  {
+                                    apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * (eps / 8)).
+                                    {
+                                      rewrite Rplus_assoc.
+                                      rewrite Rplus_assoc.
+                                      rewrite Rplus_assoc.
+                                      rewrite Rplus_assoc.
+                                      apply Rplus_lt_compat_l.
+                                      apply Rplus_lt_compat_l.
+                                      rewrite <- Rmult_plus_distr_l.
+                                      rewrite <- Rmult_plus_distr_l.
+                                      apply Rmult_lt_compat_l.
+                                      {
+                                        apply Rabs_pos_lt.
+                                        assumption.
+                                      }
+                                      {
+                                        apply Rplus_lt_compat_l.
+                                        simpl in g_cont.
+                                        apply g_cont.
+                                        split.
+                                        {
+                                          unfold D_x.
+                                          split.
+                                          {
+                                            unfold no_cond.
+                                            exact I.
+                                          }
+                                          {
+                                            apply Rgt_not_eq.
+                                            exact (proj2 P).
+                                          }
+                                        }
+                                        {
+                                          apply Rlt_trans with (Rabs h).
+                                          {
+                                            apply Rabs_def1.
+                                            {
+                                              apply Rlt_trans with 0.
+                                              {
+                                                destruct P.
+                                                unfold Rminus.
+                                                apply Rplus_lt_reg_r with x.
+                                                rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+                                                assumption.
+                                              }
+                                              {
+                                                apply Rabs_pos_lt.
+                                                assumption.
+                                              }
+                                            }
+                                            {
+                                              rewrite <- Rabs_Ropp, Rabs_pos_eq, Ropp_involutive.
+                                              2:{
+                                                apply Ropp_le_cancel.
+                                                rewrite Ropp_0, Ropp_involutive.
+                                                left.
+                                                assumption.
+                                              }
+                                              destruct P.
+                                              {
+                                                unfold Rminus.
+                                                apply Rplus_lt_reg_r with x.
+                                                rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
+                                                assumption.
+                                              }
+                                            }
+                                          }
+                                          {
+                                            clear -Pdelta xhinbxdelta.
+                                            apply Pdelta in xhinbxdelta.
+                                            destruct xhinbxdelta as [_ P'].
+                                            apply Rabs_def2 in P'.
+                                            simpl in P'.
+                                            destruct P'.
+                                            apply Rabs_def1.
+                                            {
+                                              rewrite Rplus_comm in H.
+                                              unfold Rminus in H.
+                                              rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r in H.
+                                              assumption.
+                                            }
+                                            {
+                                              rewrite Rplus_comm in H0.
+                                              unfold Rminus in H0.
+                                              rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r in H0.
+                                              assumption.
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    {
+                                      rewrite Rplus_assoc.
+                                      rewrite Rplus_assoc.
+                                      rewrite <- Rmult_plus_distr_l.
+                                      replace (
+                                        Rabs h * eps / 4 + (Rabs h * eps / 4 + Rabs h * (eps / 8 + eps / 8))
+                                      ) with (
+                                        Rabs h * (eps / 4 + eps / 4 + eps / 8 + eps / 8)
+                                      ).
+                                      2:{
+                                        unfold Rdiv.
+                                        repeat rewrite Rmult_assoc.
+                                        repeat rewrite <- Rmult_plus_distr_l.
+                                        repeat rewrite <- Rplus_assoc.
+                                        reflexivity.
+                                      }
+                                      apply Rmult_lt_compat_l.
+                                      {
+                                        apply Rabs_pos_lt.
+                                        assumption.
+                                      }
+                                      {
+                                        unfold Rdiv.
+                                        repeat rewrite Rplus_assoc.
+                                        repeat rewrite <- Rmult_plus_distr_l.
+                                        pattern eps at 2;rewrite <- Rmult_1_r.
+                                        apply Rmult_lt_compat_l.
+                                        { assumption. }
+                                        {
+                                          apply Rmult_lt_reg_r with 8.
+                                          { prove_sup0. }
+                                          {
+                                            repeat rewrite Rmult_plus_distr_r.
+                                            rewrite Rinv_l.
+                                            2:discrR.
+                                            replace 8 with (4*2).
+                                            2:{ rewrite <- mult_IZR. simpl. reflexivity. }
+                                            repeat rewrite <- Rmult_assoc.
+                                            rewrite Rinv_l.
+                                            2:discrR.
+                                            repeat rewrite Rmult_1_l.
+                                            rewrite <- mult_IZR.
+                                            simpl.
+                                            rewrite <- plus_IZR.
+                                            rewrite <- plus_IZR.
+                                            rewrite <- plus_IZR.
+                                            simpl.
+                                            apply Rplus_lt_reg_r with (-6).
+                                            rewrite Rplus_opp_r.
+                                            rewrite <- plus_IZR.
+                                            simpl.
+                                            prove_sup0.
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          {
+                            assert (H := pr1 c P).
+                            elim H.
+                            clear H.
+                            intros l Hl.
+                            assert (Temp : l = fn' N c).
+                            {
+                               assert (bc'rc : Boule c' r c).
+                              {
+                                assert (t : Boule x delta c).
+                                {
+                                  clear - xhinbxdelta P.
+                                  destruct P.
+                                  apply Rabs_def2 in xhinbxdelta.
+                                  destruct xhinbxdelta.
+                                  apply Rabs_def1.
+                                  {
+                                    unfold Rminus.
+                                    apply Rplus_lt_reg_r with x.
+                                    rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
+                                    apply Rplus_lt_compat.
+                                    { apply cond_pos. }
+                                    { assumption. }
+                                  }
+                                  {
+                                    unfold Rminus.
+                                    apply Rplus_lt_reg_r with (x+h).
+                                    repeat rewrite Rplus_assoc.
+                                    rewrite (Rplus_comm c).
+                                    apply Rplus_lt_compat.
+                                    {
+                                      rewrite Rplus_comm.
+                                      assumption.
+                                    }
+                                    { assumption. }
+                                  }
+                                }
+                                {
+                                  apply Pdelta in t.
+                                  apply t.
+                                }
+                              }
+                              {
+                                assert (Hl' := Dfn_eq_fn' c N bc'rc).
+                                unfold derivable_pt_abs in Hl.
+                                clear -Hl Hl'.
+                                apply uniqueness_limite with (f:= fn N) (x:=c).
+                                { assumption. }
+                                { assumption. }
+                              }
+                            }
+                            {
+                              rewrite <- Temp.
+                              assert (Hl' : derivable_pt (fn N) c).
+                              {
+                                exists l.
+                                apply Hl.
+                              }
+                              {
+                                rewrite pr_nu_var with (g:= fn N) (pr2:=Hl').
+                                {
+                                  elim Hl'.
+                                  clear Hl'.
+                                  intros l' Hl'.
+                                  assert (Main : l = l').
+                                  {
+                                    apply uniqueness_limite with (f:= fn N) (x:=c).
+                                    { assumption. }
+                                    { assumption. }
+                                  }
+                                  {
+                                    rewrite Main.
+                                    reflexivity.
+                                  }
+                                }
+                                { reflexivity. }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              {
+                intro sgn_h.
+                assert (h_pos : h > 0).
+                {
+                  case sgn_h.
+                  {
+                    intro Hyp.
+                    assumption.
+                  }
+                  {
+                    intro Hyp.
+                    apply False_ind.
+                    apply hpos.
+                    symmetry.
+                    assumption.
+                  }
+                }
+                {
+                  clear sgn_h.
+                  assert (pr1 : forall c : R, x < c < x + h -> derivable_pt (fn N) c).
+                  {
+                    intros c c_encad.
+                    unfold derivable_pt.
+                    exists (fn' N c).
+                    apply Dfn_eq_fn'.
+                    assert (t : Boule x delta c).
+                    {
+                      apply Rabs_def2 in xhinbxdelta.
+                      destruct xhinbxdelta.
+                      destruct c_encad.
+                      apply Rabs_def2 in xinb.
+                      apply Rabs_def1.
+                      {
+                        unfold Rminus.
+                        apply Rplus_lt_reg_r with (x+h).
+                        rewrite Rplus_assoc.
+                        rewrite (Rplus_comm (-x)).
+                        rewrite Rplus_assoc.
+                        rewrite (Rplus_comm x).
+                        rewrite Rplus_assoc.
+                        rewrite Rplus_opp_l, Rplus_0_r.
+                        rewrite (Rplus_comm delta).
+                        apply Rplus_lt_compat.
+                        { assumption. }
+                        {
+                          pattern h;rewrite <- Rplus_0_r.
+                          rewrite <- (Rplus_opp_l x).
+                          rewrite <- Rplus_assoc.
+                          rewrite Rplus_comm.
+                          rewrite <- Rplus_assoc.
+                          assumption.
+                         }
+                      }
+                      {
+                        apply Ropp_lt_cancel.
+                        rewrite Ropp_minus_distr, Ropp_involutive.
+                        apply Rplus_lt_reg_r with c.
+                        unfold Rminus.
+                        rewrite Rplus_assoc, Rplus_opp_l, Rplus_comm.
+                        apply Rplus_lt_compat.
+                        { apply cond_pos. }
+                        { assumption. }
+                      }
+                    }
+                    {
+                      apply Pdelta in t.
+                      apply t.
+                    }
+                  }
+                  {
+                    assert (pr2 : forall c : R, x < c < x + h -> derivable_pt id c).
+                    {
+                      intros.
+                      apply derivable_id.
+                    }
+                    {
+                      assert (xh_x : x < x + h).
+                      {
+                        pattern x at 1;rewrite <- Rplus_0_r.
+                        apply Rplus_lt_compat_l.
+                        assumption.
+                      }
+                      assert (pr3 : forall c : R, x <= c <= x + h -> continuity_pt (fn N) c).
+                      {
+                        intros c c_encad.
+                        apply derivable_continuous_pt.
+                        exists (fn' N c).
+                        apply Dfn_eq_fn'.
+                        destruct c_encad.
+                        assert (t : Boule x delta c).
+                        {
+                          apply Rabs_def2 in xhinbxdelta.
+                          destruct xhinbxdelta.
+                          apply Rabs_def2 in xinb.
+                          apply Rabs_def1.
+                          {
+                            unfold Rminus.
+                            apply Rplus_lt_reg_r with (x+h).
+                            rewrite Rplus_assoc.
+                            rewrite (Rplus_comm (-x)).
+                            rewrite Rplus_assoc.
+                            rewrite (Rplus_comm x).
+                            rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+                            rewrite (Rplus_comm delta).
+                            apply Rplus_le_lt_compat.
+                            { assumption. }
+                            {
+                              pattern h;rewrite <- Rplus_0_r.
+                              rewrite <- (Rplus_opp_l x).
+                              rewrite <- Rplus_assoc.
+                              rewrite Rplus_comm.
+                              rewrite <- Rplus_assoc.
+                              assumption.
+                            }
+                          }
+                          {
+                            apply Ropp_lt_cancel.
+                            rewrite Ropp_minus_distr, Ropp_involutive.
+                            unfold Rminus.
+                            apply Rplus_lt_reg_r with c.
+                            rewrite Rplus_assoc, Rplus_opp_l.
+                            rewrite Rplus_comm.
+                            apply Rplus_lt_le_compat.
+                            { apply cond_pos. }
+                            { assumption. }
+                          }
+                        }
+                        {
+                          apply Pdelta in t.
+                          apply t.
+                        }
+                      }
+                      {
+                        assert (pr4 : forall c : R, x <= c <= x + h -> continuity_pt id c).
+                        {
+                          intros.
+                          apply derivable_continuous.
+                          apply derivable_id.
+                        }
+                        {
+                          destruct (MVT (fn N) id x (x+h) pr1 pr2 xh_x pr3 pr4) as [c [P Hc]].
+                          assert (Hc' : h * derive_pt (fn N) c (pr1 c P) = fn N (x+h) - fn N x).
+                          {
+                            pattern h at 1; replace h with (id (x + h) - id x).
+                            2:{
+                              unfold id.
+                              unfold Rminus.
+                              rewrite Rplus_comm.
+                              rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+                              reflexivity.
+                            }
+                            rewrite <- Rmult_1_r.
+                            replace 1 with (derive_pt id c (pr2 c P)).
+                            2:{
+                              clear.
+                              unfold derivable_pt in pr2.
+                              unfold derivable_pt_abs in pr2.
+                              eapply uniqueness_limite.
+                              2:apply derivable_pt_lim_id.
+                              destruct (pr2 c P) as [l hl].
+                              simpl.
+                              apply hl.
+                            }
+                            { assumption. }
+                          }
+                          {
+                            rewrite <- Hc'.
+                            clear Hc Hc'.
+                            replace (derive_pt (fn N) c (pr1 c P)) with (fn' N c).
+                            {
+                              replace (h * fn' N c - h * g x) with (h * (fn' N c - g x)).
+                              2:{
+                                unfold Rminus.
+                                rewrite Ropp_mult_distr_r.
+                                rewrite <- Rmult_plus_distr_l.
+                                reflexivity.
+                              }
+                              rewrite Rabs_mult.
+                              apply Rlt_trans with (Rabs h * eps / 4 + Rabs (f x - fn N x) + Rabs h * Rabs (fn' N c - g x)).
+                              {
+                                apply Rplus_lt_compat_r.
+                                apply Rplus_lt_compat_r.
+                                unfold R_dist in fnxh_CV_fxh.
+                                rewrite Rabs_minus_sym.
+                                apply fnxh_CV_fxh.
+                                unfold N.
+                                unfold ge.
+                                rewrite <- plus_assoc.
+                                apply Nat.le_add_r.
+                              }
+                              {
+                                apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g x)).
+                                {
+                                  apply Rplus_lt_compat_r.
+                                  apply Rplus_lt_compat_l.
+                                  unfold R_dist in fnx_CV_fx.
+                                  rewrite Rabs_minus_sym.
+                                  apply fnx_CV_fx.
+                                  unfold N.
+                                  unfold ge.
+                                  rewrite (plus_comm _ N2).
+                                  rewrite <- plus_assoc.
+                                  apply Nat.le_add_r.
+                                }
+                                {
+                                  replace (fn' N c - g x)  with ((fn' N c - g c) +  (g c - g x)).
+                                  2:{
+                                    unfold Rminus.
+                                    repeat rewrite <- Rplus_assoc.
+                                    apply Rplus_eq_compat_r.
+                                    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+                                    reflexivity.
+                                  }
+                                  apply Rle_lt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * Rabs (fn' N c - g c) + Rabs h * Rabs (g c - g x)).
+                                  {
+                                    rewrite Rplus_assoc.
+                                    rewrite Rplus_assoc.
+                                    rewrite Rplus_assoc.
+                                    apply Rplus_le_compat_l.
+                                    apply Rplus_le_compat_l.
+                                    rewrite <- Rmult_plus_distr_l.
+                                    apply Rmult_le_compat_l.
+                                    { apply Rabs_pos. }
+                                    { apply Rabs_triang. }
+                                  }
+                                  {
+                                    apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * Rabs (g c - g x)).
+                                    {
+                                      apply Rplus_lt_compat_r.
+                                      apply Rplus_lt_compat_l.
+                                      apply Rmult_lt_compat_l.
+                                      {
+                                        apply Rabs_pos_lt.
+                                        assumption.
+                                      }
+                                      {
+                                        rewrite Rabs_minus_sym.
+                                        apply fn'c_CVU_gc.
+                                        {
+                                          unfold N.
+                                          rewrite plus_comm.
+                                          apply Nat.le_add_r.
+                                        }
+                                        {
+                                          assert (t : Boule x delta c).
+                                          {
+                                            destruct P.
+                                            apply Rabs_def2 in xhinbxdelta.
+                                            destruct xhinbxdelta.
+                                            apply Rabs_def2 in xinb.
+                                            apply Rabs_def1.
+                                            {
+                                              unfold Rminus.
+                                              apply Rplus_lt_reg_r with (x+h).
+                                              rewrite Rplus_assoc.
+                                              rewrite (Rplus_comm delta).
+                                              apply Rplus_lt_compat.
+                                              { assumption. }
+                                              {
+                                                rewrite Rplus_comm.
+                                                assumption.
+                                              }
+                                            }
+                                            {
+                                              unfold Rminus.
+                                              apply Rplus_lt_reg_r with x.
+                                              rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+                                              rewrite Rplus_comm.
+                                              apply Rplus_lt_reg_r with delta.
+                                              rewrite Rplus_assoc, Rplus_opp_l.
+                                              apply Rplus_lt_compat.
+                                              { assumption. }
+                                              { apply cond_pos. }
+                                            }
+                                          }
+                                          {
+                                            apply Pdelta in t.
+                                            apply t.
+                                          }
+                                        }
+                                      }
+                                    }
+                                    {
+                                      apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * (eps / 8)).
+                                      {
+                                        rewrite Rplus_assoc.
+                                        rewrite Rplus_assoc.
+                                        rewrite Rplus_assoc.
+                                        rewrite Rplus_assoc.
+                                        apply Rplus_lt_compat_l.
+                                        apply Rplus_lt_compat_l.
+                                        rewrite <- Rmult_plus_distr_l.
+                                        rewrite <- Rmult_plus_distr_l.
+                                        apply Rmult_lt_compat_l.
+                                        {
+                                          apply Rabs_pos_lt.
+                                          assumption.
+                                        }
+                                        {
+                                          apply Rplus_lt_compat_l.
+                                          simpl in g_cont.
+                                          apply g_cont.
+                                          split.
+                                          {
+                                            unfold D_x.
+                                            split.
+                                            {
+                                              unfold no_cond.
+                                              exact I.
+                                            }
+                                            {
+                                              apply Rlt_not_eq.
+                                              exact (proj1 P).
+                                            }
+                                          }
+                                          {
+                                            apply Rlt_trans with (Rabs h).
+                                            {
+                                              apply Rabs_def1.
+                                              {
+                                                destruct P.
+                                                rewrite Rabs_pos_eq.
+                                                {
+                                                  unfold Rminus.
+                                                  apply Rplus_lt_reg_r with x.
+                                                  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
+                                                  assumption.
+                                                }
+                                                {
+                                                  left.
+                                                  assumption.
+                                                }
+                                              }
+                                              {
+                                              apply Rle_lt_trans with 0.
+                                              {
+                                                assert (t := Rabs_pos h).
+                                                clear -t.
+                                                apply Ropp_le_cancel.
+                                                rewrite Ropp_0, Ropp_involutive.
+                                                assumption.
+                                              }
+                                              {
+                                                clear -P.
+                                                destruct P.
+                                                unfold Rminus.
+                                                apply Rplus_lt_reg_r with x.
+                                                rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
+                                                assumption.
+                                              }
+                                            }
+                                          }
+                                          {
+                                            clear -Pdelta xhinbxdelta.
+                                            apply Pdelta in xhinbxdelta.
+                                            destruct xhinbxdelta as [_ P'].
+                                            apply Rabs_def2 in P'.
+                                            simpl in P'.
+                                            destruct P'.
+                                            apply Rabs_def1.
+                                            {
+                                              pattern h;rewrite <- Rplus_0_r.
+                                              rewrite <- (Rplus_opp_l x).
+                                              rewrite <- Rplus_assoc.
+                                              rewrite Rplus_comm.
+                                              rewrite <- Rplus_assoc.
+                                              assumption.
+                                            }
+                                            {
+                                              pattern h;rewrite <- Rplus_0_r.
+                                              rewrite <- (Rplus_opp_l x).
+                                              rewrite <- Rplus_assoc.
+                                              rewrite Rplus_comm.
+                                              rewrite <- Rplus_assoc.
+                                              assumption.
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    {
+                                      rewrite Rplus_assoc.
+                                      rewrite Rplus_assoc.
+                                      rewrite <- Rmult_plus_distr_l.
+                                      replace (
+                                        Rabs h * eps / 4 + (Rabs h * eps / 4 + Rabs h * (eps / 8 + eps / 8))
+                                      ) with (
+                                        Rabs h * (eps / 4 + eps / 4 + eps / 8 + eps / 8)
+                                      ).
+                                      2:{
+                                        unfold Rdiv.
+                                        repeat rewrite Rmult_assoc.
+                                        repeat rewrite <- Rmult_plus_distr_l.
+                                        repeat rewrite Rplus_assoc.
+                                        reflexivity.
+                                      }
+                                      apply Rmult_lt_compat_l.
+                                      {
+                                         apply Rabs_pos_lt ; assumption.
+                                      }
+                                      {
+                                        unfold Rdiv.
+                                        replace 8 with (2*4).
+                                        {
+                                          rewrite Rinv_mult_distr.
+                                          {
+                                            repeat rewrite <- Rmult_assoc.
+                                            repeat rewrite <- Rmult_plus_distr_r.
+                                            pattern eps at 1;rewrite <- Rmult_1_r.
+                                            pattern eps at 2;rewrite <- Rmult_1_r.
+                                            pattern eps at 5;rewrite <- Rmult_1_r.
+                                            repeat rewrite <- Rmult_plus_distr_l.
+                                            rewrite Rmult_assoc.
+                                            apply Rmult_lt_compat_l.
+                                            { assumption. }
+                                            {
+                                              repeat rewrite Rplus_assoc.
+                                              rewrite <- double.
+                                              rewrite Rinv_r.
+                                              {
+                                                apply Rmult_lt_reg_r with 4.
+                                                { prove_sup0. }
+                                                {
+                                                  rewrite Rmult_assoc.
+                                                  rewrite Rinv_l, Rmult_1_l, Rmult_1_r.
+                                                  {
+                                                    replace 4 with (1+1+1+1).
+                                                    {
+                                                      repeat rewrite Rplus_assoc.
+                                                      repeat apply Rplus_lt_compat_l.
+                                                      pattern 1 at 1;rewrite <- Rplus_0_l.
+                                                      apply Rplus_lt_compat_r.
+                                                      exact Rlt_0_1.
+                                                  }
+                                                  {
+                                                    repeat rewrite <- plus_IZR.
+                                                    simpl.
+                                                    reflexivity.
+                                                  }
+                                                }
+                                                { discrR. }
+                                              }
+                                            }
+                                            { discrR. }
+                                          }
+                                        }
+                                        { discrR. }
+                                        { discrR. }
+                                      }
+                                      {
+                                        rewrite <- mult_IZR.
+                                        simpl.
+                                        reflexivity.
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        {
+                         assert (H := pr1 c P) ; elim H ; clear H ; intros l Hl.
+                         assert (Temp : l = fn' N c).
+                        {
+                          assert (bc'rc : Boule c' r c).
+                          {
+                            assert (t : Boule x delta c).
+                            {
+                              clear - xhinbxdelta P.
+                              destruct P.
+                              apply Rabs_def2 in xhinbxdelta.
+                              destruct xhinbxdelta.
+                              apply Rabs_def1.
+                              {
+                                unfold Rminus.
+                                apply Rplus_lt_reg_r with (x+h).
+                                rewrite (Rplus_comm delta).
+                                rewrite Rplus_assoc.
+                                apply Rplus_lt_compat.
+                                { assumption. }
+                                {
+                                  rewrite Rplus_comm.
+                                  assumption.
+                                }
+                              }
+                              {
+                                unfold Rminus.
+                                apply Rplus_lt_reg_r with x.
+                                rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+                                apply Rplus_lt_reg_l with delta.
+                                rewrite <- Rplus_assoc, Rplus_opp_r.
+                                apply Rplus_lt_compat.
+                                { apply cond_pos. }
+                                { assumption. }
+                              }
+                            }
+                            apply Pdelta in t.
+                            apply t.
+                          }
+                          assert (Hl' := Dfn_eq_fn' c N bc'rc).
+                          unfold derivable_pt_abs in Hl.
+                          clear -Hl Hl'.
+                          apply uniqueness_limite with (f:= fn N) (x:=c).
+                          { assumption. }
+                          { assumption. }
+                        }
+                        rewrite <- Temp.
+                        assert (Hl' : derivable_pt (fn N) c).
+                        {
+                          exists l.
+                          apply Hl.
+                        }
+                        rewrite pr_nu_var with (g:= fn N) (pr2:=Hl').
+                        {
+                          elim Hl'.
+                          clear Hl'.
+                          intros l' Hl'.
+                          assert (Main : l = l').
+                          {
+                            apply uniqueness_limite with (f:= fn N) (x:=c).
+                            { assumption. }
+                            { assumption. }
+                          }
+                          rewrite Main.
+                          simpl.
+                          reflexivity.
+                        }
+                        { reflexivity. }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
   {
-    apply Pdelta in t.
-    apply t.
-  }
-}
-}
-}
-{
-  apply Rlt_trans with (Rabs h * eps / 4 + Rabs h * eps / 4 + Rabs h * (eps / 8) + Rabs h * (eps / 8)).
-{
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  apply Rplus_lt_compat_l.
-  apply Rplus_lt_compat_l.
-  rewrite <- Rmult_plus_distr_l.
-  rewrite <- Rmult_plus_distr_l.
-  apply Rmult_lt_compat_l.
-{
-  apply Rabs_pos_lt.
-  assumption.
-}
-{
-  apply Rplus_lt_compat_l.
-  simpl in g_cont.
-  apply g_cont.
-  split.
-{
-  unfold D_x.
-  split.
-  {
-    unfold no_cond.
-    exact I.
-  }
-  {
-    apply Rlt_not_eq.
-    exact (proj1 P).
-  }
-}
-{
-  apply Rlt_trans with (Rabs h).
-{
-  apply Rabs_def1.
-{
-  destruct P.
-  rewrite Rabs_pos_eq.
-  {
-    unfold Rminus.
-    apply Rplus_lt_reg_r with x.
-    rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_comm.
-    assumption.
-  }
-  {
-    left.
-    assumption.
-  }
-}
-{
-apply Rle_lt_trans with 0.
-{
-  assert (t := Rabs_pos h).
-  clear -t.
-  apply Ropp_le_cancel.
-  rewrite Ropp_0, Ropp_involutive.
-  assumption.
-}
-{
-  clear -P.
-  destruct P.
-  unfold Rminus.
-  apply Rplus_lt_reg_r with x.
-  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r, Rplus_0_l.
-  assumption.
-}
-}
-}
-{
-  clear -Pdelta xhinbxdelta.
-  apply Pdelta in xhinbxdelta.
-  destruct xhinbxdelta as [_ P'].
-  apply Rabs_def2 in P'.
-  simpl in P'.
-  destruct P'.
-  apply Rabs_def1.
-  {
-    pattern h;rewrite <- Rplus_0_r.
-    rewrite <- (Rplus_opp_l x).
-    rewrite <- Rplus_assoc.
-    rewrite Rplus_comm.
-    rewrite <- Rplus_assoc.
-    assumption.
-  }
-  {
-    pattern h;rewrite <- Rplus_0_r.
-    rewrite <- (Rplus_opp_l x).
-    rewrite <- Rplus_assoc.
-    rewrite Rplus_comm.
-    rewrite <- Rplus_assoc.
-    assumption.
-  }
-}
-}
-}
-}
-{
-  rewrite Rplus_assoc.
-  rewrite Rplus_assoc.
-  rewrite <- Rmult_plus_distr_l.
-  replace (
-    Rabs h * eps / 4 + (Rabs h * eps / 4 + Rabs h * (eps / 8 + eps / 8))
-  ) with (
-    Rabs h * (eps / 4 + eps / 4 + eps / 8 + eps / 8)
-  ).
-  2:{
-    unfold Rdiv.
-    repeat rewrite Rmult_assoc.
-    repeat rewrite <- Rmult_plus_distr_l.
-    repeat rewrite Rplus_assoc.
-    reflexivity.
-  }
-  apply Rmult_lt_compat_l.
-{ 
-   apply Rabs_pos_lt ; assumption.
-}
-{
-  unfold Rdiv.
-  replace 8 with (2*4).
-  {
-    rewrite Rinv_mult_distr.
+    replace ((f (x + h) - f x) / h - g x) with ((/h) * ((f (x + h) - f x) - h * g x)).
     {
-      repeat rewrite <- Rmult_assoc.
-      repeat rewrite <- Rmult_plus_distr_r.
-      pattern eps at 1;rewrite <- Rmult_1_r.
-      pattern eps at 2;rewrite <- Rmult_1_r.
-      pattern eps at 5;rewrite <- Rmult_1_r.
-      repeat rewrite <- Rmult_plus_distr_l.
-      rewrite Rmult_assoc.
-      apply Rmult_lt_compat_l.
-      { assumption. }
+      rewrite Rabs_mult.
+      rewrite Rabs_Rinv.
       {
-        repeat rewrite Rplus_assoc.
-        rewrite <- double.
-        rewrite Rinv_r.
+        replace eps with (/ Rabs h * (Rabs h * eps)).
         {
-          apply Rmult_lt_reg_r with 4.
-          { prove_sup0. }
+          apply Rmult_lt_compat_l.
           {
-            rewrite Rmult_assoc.
-            rewrite Rinv_l, Rmult_1_l, Rmult_1_r.
+            apply Rinv_0_lt_compat.
+            apply Rabs_pos_lt.
+            assumption.
+          }
+          {
+            replace (
+              f (x + h) - f x - h * g x
+            ) with (
+              f (x + h) - fn N (x + h) - (f x - fn N x) + (fn N (x + h) - fn N x - h * g x)
+            ).
+            { assumption. }
             {
-              replace 4 with (1+1+1+1).
-              {
-                repeat rewrite Rplus_assoc.
-                repeat apply Rplus_lt_compat_l.
-                pattern 1 at 1;rewrite <- Rplus_0_l.
-                apply Rplus_lt_compat_r.
-                exact Rlt_0_1.
-            }
-            {
-              repeat rewrite <- plus_IZR.
-              simpl.
+              unfold Rminus.
+              repeat rewrite Rplus_assoc.
+              apply Rplus_eq_compat_l.
+              repeat rewrite <- Rplus_assoc.
+              apply Rplus_eq_compat_r.
+              rewrite Ropp_plus_distr.
+              rewrite Ropp_involutive.
+              repeat rewrite Rplus_assoc.
+              rewrite (Rplus_comm (fn N x)).
+              repeat rewrite Rplus_assoc.
+              rewrite Rplus_opp_l, Rplus_0_r.
+              rewrite Rplus_comm.
+              repeat rewrite Rplus_assoc.
+              rewrite Rplus_opp_r, Rplus_0_r.
               reflexivity.
             }
           }
-          { discrR. }
-        }
-      }
-      { discrR. }
-    }
-  }
-  { discrR. }
-  { discrR. }
-}
-{
-  rewrite <- mult_IZR.
-  simpl.
-  reflexivity.
-}
-}
-}
-}
-}
-}
-}
-}
-{
- assert (H := pr1 c P) ; elim H ; clear H ; intros l Hl.
- assert (Temp : l = fn' N c).
-  {
-    assert (bc'rc : Boule c' r c).
-    {
-      assert (t : Boule x delta c).
-      {
-        clear - xhinbxdelta P.
-        destruct P.
-        apply Rabs_def2 in xhinbxdelta.
-        destruct xhinbxdelta.
-        apply Rabs_def1.
-        {
-          unfold Rminus.
-          apply Rplus_lt_reg_r with (x+h).
-          rewrite (Rplus_comm delta).
-          rewrite Rplus_assoc.
-          apply Rplus_lt_compat.
-          { assumption. }
-          {
-            rewrite Rplus_comm.
-            assumption.
-          }
         }
         {
-          unfold Rminus.
-          apply Rplus_lt_reg_r with x.
-          rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-          apply Rplus_lt_reg_l with delta.
-          rewrite <- Rplus_assoc, Rplus_opp_r.
-          apply Rplus_lt_compat.
-          { apply cond_pos. }
-          { assumption. }
-        }
-      }
-      apply Pdelta in t.
-      apply t.
-    }
-    assert (Hl' := Dfn_eq_fn' c N bc'rc).
-    unfold derivable_pt_abs in Hl.
-    clear -Hl Hl'.
-    apply uniqueness_limite with (f:= fn N) (x:=c).
-    { assumption. }
-    { assumption. }
-  }
-  rewrite <- Temp.
-  assert (Hl' : derivable_pt (fn N) c).
-  {
-    exists l.
-    apply Hl.
-  }
-  rewrite pr_nu_var with (g:= fn N) (pr2:=Hl').
-  {
-    elim Hl'.
-    clear Hl'.
-    intros l' Hl'.
-    assert (Main : l = l').
-    {
-      apply uniqueness_limite with (f:= fn N) (x:=c).
-      { assumption. }
-      { assumption. }
-    }
-    rewrite Main.
-    simpl.
-    reflexivity.
-  }
-  { reflexivity. }
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
-{
-  replace ((f (x + h) - f x) / h - g x) with ((/h) * ((f (x + h) - f x) - h * g x)).
-  {
-    rewrite Rabs_mult.
-    rewrite Rabs_Rinv.
-    {
-      replace eps with (/ Rabs h * (Rabs h * eps)).
-      {
-        apply Rmult_lt_compat_l.
-        {
-          apply Rinv_0_lt_compat.
+          rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
+          reflexivity.
+          apply Rgt_not_eq.
           apply Rabs_pos_lt.
           assumption.
         }
-        {
-          replace (
-            f (x + h) - f x - h * g x
-          ) with (
-            f (x + h) - fn N (x + h) - (f x - fn N x) + (fn N (x + h) - fn N x - h * g x)
-          ).
-          { assumption. }
-          {
-            unfold Rminus.
-            repeat rewrite Rplus_assoc.
-            apply Rplus_eq_compat_l.
-            repeat rewrite <- Rplus_assoc.
-            apply Rplus_eq_compat_r.
-            rewrite Ropp_plus_distr.
-            rewrite Ropp_involutive.
-            repeat rewrite Rplus_assoc.
-            rewrite (Rplus_comm (fn N x)).
-            repeat rewrite Rplus_assoc.
-            rewrite Rplus_opp_l, Rplus_0_r.
-            rewrite Rplus_comm.
-            repeat rewrite Rplus_assoc.
-            rewrite Rplus_opp_r, Rplus_0_r.
-            reflexivity.
-          }
-        }
       }
-      {
-        rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
-        reflexivity.
-        apply Rgt_not_eq.
-        apply Rabs_pos_lt.
-        assumption.
-      }
+      { assumption. }
     }
-    { assumption. }
+    {
+      unfold Rminus, Rdiv.
+      rewrite Rmult_plus_distr_l.
+      rewrite <- Ropp_mult_distr_r.
+      repeat rewrite <- Rmult_assoc.
+      rewrite Rinv_l, Rmult_1_l.
+      2:assumption.
+      apply Rplus_eq_compat_r.
+      rewrite Rmult_comm.
+      reflexivity.
+    }
   }
-  {
-    unfold Rminus, Rdiv.
-    rewrite Rmult_plus_distr_l.
-    rewrite <- Ropp_mult_distr_r.
-    repeat rewrite <- Rmult_assoc.
-    rewrite Rinv_l, Rmult_1_l.
-    2:assumption.
-    apply Rplus_eq_compat_r.
-    rewrite Rmult_comm.
-    reflexivity.
-  }
-}
 }
 }
 }
