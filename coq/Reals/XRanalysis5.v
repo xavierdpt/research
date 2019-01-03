@@ -912,107 +912,164 @@ Lemma derivable_pt_lim_recip_interv : forall (f g:R->R) (lb ub x:R)
        derive_pt f (g x) (Prf (g x) Prg_incr) <> R0 ->
        derivable_pt_lim g x (R1 / derive_pt f (g x) (Prf (g x) Prg_incr)).
 Proof.
-intros f g lb ub x Prf g_cont_pur lb_lt_ub x_encad Prg_incr f_eq_g df_neq.
- assert (x_encad2 : lb <= x <= ub).
+  intros f g lb ub x Prf g_cont_pur lb_lt_ub x_encad Prg_incr f_eq_g df_neq.
+  assert (x_encad2 : lb <= x <= ub).
+{
   split ; apply Rlt_le ; intuition.
- elim (Prf (g x)); simpl; intros l Hl.
- unfold derivable_pt_lim.
- intros eps eps_pos.
+}
+{
+  elim (Prf (g x)); simpl; intros l Hl.
+  unfold derivable_pt_lim.
+  intros eps eps_pos.
   pose (y := g x).
-   assert (Hlinv := limit_inv).
-    assert (Hf_deriv : forall eps:R,
-    R0 < eps ->
-    exists delta : posreal,
-    (forall h:R,
-    h <> R0 -> Rabs h < delta -> Rabs ((f (g x + h) - f (g x)) / h - l) < eps)).
-     intros eps0 eps0_pos.
-      red in Hl ; red in Hl. elim (Hl eps0 eps0_pos).
-      intros deltatemp Htemp.
-       exists deltatemp ; exact Htemp.
-    elim (Hf_deriv eps eps_pos).
-    intros deltatemp Htemp.
-     red in Hlinv ; red in Hlinv ; unfold dist in Hlinv ; unfold R_dist in Hlinv.
-     assert (Hlinv' := Hlinv (fun h => (f (y+h) - f y)/h) (fun h => h <>R0) l R0).
-     unfold limit1_in, limit_in, dist in Hlinv' ; simpl in Hlinv'. unfold R_dist in Hlinv'.
-     assert (Premisse : (forall eps : R,
-     R0 < eps ->
-     exists alp : R,
-     R0 < alp /\
-     (forall x : R,
-     (fun h => h <>R0) x /\ Rabs (x - R0) < alp ->
-     Rabs ((f (y + x) - f y) / x - l) < eps))).
-      intros eps0 eps0_pos.
-       elim (Hf_deriv eps0 eps0_pos).
-       intros deltatemp' Htemp'.
-        exists deltatemp'.
-        split.
-         exact deltatemp'.(cond_pos).
-         intros htemp cond.
-          apply (Htemp' htemp).
-          exact (proj1 cond).
-         replace (htemp) with (htemp - R0).
-         exact (proj2 cond).
-         intuition.
-     assert (Premisse2 : l <> R0).
-      intro l_null.
-       rewrite l_null in Hl.
-       apply df_neq.
-       rewrite derive_pt_eq.
-       exact Hl.
-     elim (Hlinv' Premisse Premisse2 eps eps_pos).
-     intros alpha cond.
-      assert (alpha_pos := proj1 cond) ; assert (inv_cont := proj2 cond) ; clear cond.
-      unfold derivable, derivable_pt, derivable_pt_abs, derivable_pt_lim in Prf.
-      elim (Hl eps eps_pos).
-      intros delta f_deriv.
-       assert (g_cont := g_cont_pur).
-       unfold continuity_pt, continue_in, limit1_in, limit_in in g_cont.
-       pose (mydelta := Rmin delta alpha).
-       assert (mydelta_pos : R0 < mydelta ).
-        unfold mydelta, Rmin.
-        case (Rle_dec delta alpha).
-        intro ; exact (delta.(cond_pos)).
-        intro ; exact alpha_pos.
-       elim (g_cont mydelta mydelta_pos).
-       intros delta' new_g_cont.
-        assert(delta'_pos := proj1 (new_g_cont)).
-        clear g_cont ; assert (g_cont := proj2 (new_g_cont)) ; clear new_g_cont.
-        pose (mydelta'' := Rmin delta' (Rmin (x - lb) (ub - x))).
-        assert(mydelta''_pos : R0 < mydelta'' ).
-         unfold mydelta''.
-         apply Rmin_pos ; [intuition | apply Rmin_pos] ; apply Rgt_minus ; intuition.
-        pose (delta'' := mkposreal mydelta'' mydelta''_pos: posreal).
-        exists delta''.
-        intros h h_neq h_le_delta'.
+  assert (Hlinv := limit_inv).
+  assert (Hf_deriv : forall eps:R,
+  R0 < eps ->
+  exists delta : posreal,
+  (forall h:R,
+  h <> R0 -> Rabs h < delta -> Rabs ((f (g x + h) - f (g x)) / h - l) < eps)).
+{
+  intros eps0 eps0_pos.
+  red in Hl ; red in Hl. elim (Hl eps0 eps0_pos).
+  intros deltatemp Htemp.
+  exists deltatemp ; exact Htemp.
+}
+{
+  elim (Hf_deriv eps eps_pos).
+  intros deltatemp Htemp.
+  red in Hlinv ; red in Hlinv ; unfold dist in Hlinv ; unfold R_dist in Hlinv.
+  assert (Hlinv' := Hlinv (fun h => (f (y+h) - f y)/h) (fun h => h <> R0) l R0).
+  unfold limit1_in, limit_in, dist in Hlinv' ; simpl in Hlinv'. unfold R_dist in Hlinv'.
+  assert (Premisse : (forall eps : R,
+  R0 < eps ->
+  exists alp : R,
+  R0 < alp /\
+  (forall x : R,
+  (fun h => h <> R0) x /\ Rabs (x - R0) < alp ->
+  Rabs ((f (y + x) - f y) / x - l) < eps))).
+{
+  intros eps0 eps0_pos.
+  elim (Hf_deriv eps0 eps0_pos).
+  intros deltatemp' Htemp'.
+  exists deltatemp'.
+  split.
+{
+  exact deltatemp'.(cond_pos).
+}
+{
+  intros htemp cond.
+  apply (Htemp' htemp).
+{
+  exact (proj1 cond).
+}
+{
+  replace (htemp) with (htemp - R0).
+{
+  exact (proj2 cond).
+}
+{
+  intuition.
+}
+}
+}
+}
+{
+  assert (Premisse2 : l <> R0).
+{
+  intro l_null.
+  rewrite l_null in Hl.
+  apply df_neq.
+  rewrite derive_pt_eq.
+  exact Hl.
+}
+{
+  elim (Hlinv' Premisse Premisse2 eps eps_pos).
+  intros alpha cond.
+  assert (alpha_pos := proj1 cond) ; assert (inv_cont := proj2 cond) ; clear cond.
+  unfold derivable, derivable_pt, derivable_pt_abs, derivable_pt_lim in Prf.
+  elim (Hl eps eps_pos).
+  intros delta f_deriv.
+  assert (g_cont := g_cont_pur).
+  unfold continuity_pt, continue_in, limit1_in, limit_in in g_cont.
+  pose (mydelta := Rmin delta alpha).
+  assert (mydelta_pos : R0 < mydelta).
+{
+  unfold mydelta, Rmin.
+  case (Rle_dec delta alpha).
+{
+  intro ; exact (delta.(cond_pos)).
+}
+{
+  intro ; exact alpha_pos.
+}
+}
+{
+  elim (g_cont mydelta mydelta_pos).
+  intros delta' new_g_cont.
+  assert(delta'_pos := proj1 (new_g_cont)).
+  clear g_cont ; assert (g_cont := proj2 (new_g_cont)) ; clear new_g_cont.
+  pose (mydelta'' := Rmin delta' (Rmin (x - lb) (ub - x))).
+  assert(mydelta''_pos : R0 < mydelta'').
+{
+   unfold mydelta''.
+   apply Rmin_pos ; [intuition | apply Rmin_pos] ; apply Rgt_minus ; intuition.
+}
+{
+  pose (delta'' := mkposreal mydelta'' mydelta''_pos: posreal).
+  exists delta''.
+  intros h h_neq h_le_delta'.
   assert (lb <= x +h <= ub).
- assert (Sublemma2 : forall x y, Rabs x < Rabs y -> R0 < y -> x < y).
+{
+  assert (Sublemma2 : forall x y, Rabs x < Rabs y -> R0 < y -> x < y).
+{
   intros m n Hyp_abs y_pos. apply Rlt_le_trans with (r2:=Rabs n).
-   apply Rle_lt_trans with (r2:=Rabs m) ; [ | assumption] ; apply RRle_abs.
-   apply Req_le ; apply Rabs_right ; apply Rgt_ge ; assumption.
- assert (lb <= x + h <= ub).
- split.
- assert (Sublemma : forall x y z, -z <= y - x -> x <= y + z).
+{
+  apply Rle_lt_trans with (r2:=Rabs m) ; [ | assumption] ; apply RRle_abs.
+}
+{
+  apply Req_le ; apply Rabs_right ; apply Rgt_ge ; assumption.
+}
+}
+{
+  assert (lb <= x + h <= ub).
+{
+  split.
+{
+  assert (Sublemma : forall x y z, -z <= y - x -> x <= y + z).
 {
   intros.
-  unfold Rminus.
-  apply Rplus_le_reg_r with (-x0).
-  rewrite Rplus_opp_r.
-  apply Rplus_le_reg_r with (-z).
-  rewrite Rplus_0_l.
-  repeat rewrite Rplus_assoc.
-  rewrite (Rplus_comm z).
-  repeat rewrite Rplus_assoc.
-  rewrite Rplus_opp_l, Rplus_0_r.
+  apply Ropp_le_cancel.
+  rewrite Ropp_plus_distr.
+  apply Rplus_le_reg_l with y0.
+  rewrite <- Rplus_assoc, Rplus_opp_r, Rplus_0_l.
   assumption.
 }
- apply Sublemma.
- apply Rlt_le ; apply Sublemma2. rewrite Rabs_Ropp.
- apply Rlt_le_trans with (r2:=x-lb) ; [| apply RRle_abs] ;
- apply Rlt_le_trans with (r2:=Rmin (x - lb) (ub - x)) ; [| apply Rmin_l] ;
- apply Rlt_le_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))).
- apply Rlt_le_trans with (r2:=delta''). assumption. intuition. apply Rmin_r.
- apply Rgt_minus. intuition.
- assert (Sublemma : forall x y z, y <= z - x -> x + y <= z).
+{
+   apply Sublemma.
+   apply Rlt_le ; apply Sublemma2.
+{
+  rewrite Rabs_Ropp.
+  apply Rlt_le_trans with (r2:=x-lb) ; [| apply RRle_abs] ;
+  apply Rlt_le_trans with (r2:=Rmin (x - lb) (ub - x)) ; [| apply Rmin_l] ;
+  apply Rlt_le_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))).
+{
+  apply Rlt_le_trans with (r2:=delta'').
+  { assumption. }
+  {
+    right.
+    reflexivity.
+  }
+}
+{ apply Rmin_r. }
+}
+{
+  apply Rgt_minus.
+  apply x_encad.
+}
+}
+}
+{
+  assert (Sublemma : forall x y z, y <= z - x -> x + y <= z).
 {
   intros.
   apply Rplus_le_reg_l with (-x0).
@@ -1020,21 +1077,64 @@ intros f g lb ub x Prf g_cont_pur lb_lt_ub x_encad Prg_incr f_eq_g df_neq.
   rewrite Rplus_comm.
   assumption.
 }
- apply Sublemma.
- apply Rlt_le ; apply Sublemma2.
- apply Rlt_le_trans with (r2:=ub-x) ; [| apply RRle_abs] ;
- apply Rlt_le_trans with (r2:=Rmin (x - lb) (ub - x)) ; [| apply Rmin_r] ;
- apply Rlt_le_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))) ; [| apply Rmin_r] ; assumption.
- apply Rlt_le_trans with (r2:=delta''). assumption.
-  apply Rle_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))). intuition.
-  apply Rle_trans with (r2:=Rmin (x - lb) (ub - x)). apply Rmin_r. apply Rmin_r.
-         replace ((g (x + h) - g x) / h) with (R1/ (h / (g (x + h) - g x))).
-         assert (Hrewr : h = (comp f g ) (x+h) - (comp f g) x).
-          rewrite f_eq_g. rewrite f_eq_g ; unfold id. rewrite Rplus_comm ;
-          unfold Rminus ; rewrite Rplus_assoc ; rewrite Rplus_opp_r. intuition. intuition.
- assumption.
-         split ; [|intuition].
-         assert (Sublemma : forall x y z, - z <= y - x -> x <= y + z).
+{
+  apply Sublemma.
+  apply Rlt_le.
+  apply Sublemma2.
+{
+  apply Rlt_le_trans with (r2:=ub-x).
+  2:apply RRle_abs.
+  apply Rlt_le_trans with (r2:=Rmin (x - lb) (ub - x)).
+  2:apply Rmin_r.
+  apply Rlt_le_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))).
+  2:apply Rmin_r.
+  assumption.
+}
+{
+  apply Rlt_le_trans with (r2:=delta'').
+  { assumption. }
+  {
+    apply Rle_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))).
+  {
+    fold mydelta''.
+    right.
+    reflexivity.
+  }
+  {
+    apply Rle_trans with (r2:=Rmin (x - lb) (ub - x)).
+    { apply Rmin_r. }
+    { apply Rmin_r. }
+  }
+}
+}
+}
+}
+}
+{
+  replace ((g (x + h) - g x) / h) with (R1/ (h / (g (x + h) - g x))).
+{
+  assert (Hrewr : h = (comp f g ) (x+h) - (comp f g) x).
+{
+  rewrite f_eq_g.
+{
+  rewrite f_eq_g.
+  unfold id.
+{
+  rewrite Rplus_comm.
+  unfold Rminus.
+  rewrite Rplus_assoc.
+  rewrite Rplus_opp_r.
+  rewrite Rplus_0_r.
+  reflexivity.
+}
+{ assumption. }
+}
+{ assumption. }
+}
+{
+  split.
+  2:apply H.
+ assert (Sublemma : forall x y z, - z <= y - x -> x <= y + z).
 {
   intros.
   apply Rplus_le_reg_r with (-z).
@@ -1044,86 +1144,299 @@ intros f g lb ub x Prf g_cont_pur lb_lt_ub x_encad Prg_incr f_eq_g df_neq.
   rewrite Rplus_comm.
   assumption.
 }
-         apply Sublemma ; apply Rlt_le ; apply Sublemma2. rewrite Rabs_Ropp.
- apply Rlt_le_trans with (r2:=x-lb) ; [| apply RRle_abs] ;
- apply Rlt_le_trans with (r2:=Rmin (x - lb) (ub - x)) ; [| apply Rmin_l] ;
- apply Rlt_le_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))) ; [| apply Rmin_r] ; assumption.
- apply Rgt_minus. intuition.
-(*
- field.
- split. assumption.
- intro Hfalse. assert (Hf : g (x+h) = g x) by intuition.
- assert ((comp f g) (x+h) = (comp f g) x).
-  unfold comp ; rewrite Hf ; intuition.
- assert (Main : x+h = x).
- replace (x +h) with (id (x+h)) by intuition.
- assert (Temp : x = id x) by intuition ; rewrite Temp at 2 ; clear Temp.
- rewrite <- f_eq_g. rewrite <- f_eq_g. assumption.
- intuition. assumption.
- assert (h = 0).
- apply Rplus_0_r_uniq with (r:=x) ; assumption.
- apply h_neq ; assumption.
-         replace ((g (x + h) - g x) / h) with (1/ (h / (g (x + h) - g x))).
-         assert (Hrewr : h = (comp f g ) (x+h) - (comp f g) x).
-          rewrite f_eq_g. rewrite f_eq_g. unfold id ; rewrite Rplus_comm ;
-          unfold Rminus ; rewrite Rplus_assoc ; rewrite Rplus_opp_r ; intuition.
-          assumption. assumption.
-         rewrite Hrewr at 1. 
-         unfold comp.
-         replace (g(x+h)) with (g x + (g (x+h) - g(x))) by field.
-         pose (h':=g (x+h) - g x).
-         replace (g (x+h) - g x) with h' by intuition.
-         replace (g x + h' - g x) with h' by field.
-         assert (h'_neq : h' <> 0).
-          unfold h'.
-          intro Hfalse.
-          unfold Rminus in Hfalse ; apply Rminus_diag_uniq in Hfalse.
-          assert (Hfalse' : (comp f g) (x+h) = (comp f g) x).
-           intros ; unfold comp ; rewrite Hfalse ; trivial.
-          rewrite f_eq_g in Hfalse' ; rewrite f_eq_g in Hfalse'.
-          unfold id in Hfalse'.
-          apply Rplus_0_r_uniq in Hfalse'.
-          apply h_neq ; exact Hfalse'. assumption. assumption. assumption.
-         unfold Rdiv at 1 3; rewrite Rmult_1_l ; rewrite Rmult_1_l.
-         apply inv_cont.
-         split.
-          exact h'_neq.
+{
+  apply Sublemma.
+  apply Rlt_le.
+  apply Sublemma2.
+{
+  rewrite Rabs_Ropp.
+  apply Rlt_le_trans with (r2:=x-lb).
+  2:apply RRle_abs.
+  apply Rlt_le_trans with (r2:=Rmin (x - lb) (ub - x)).
+  2:apply Rmin_l.
+  apply Rlt_le_trans with (r2:=Rmin delta' (Rmin (x - lb) (ub - x))).
+  2:apply Rmin_r.
+  assumption.
+}
+{
+  apply Rgt_minus.
+  apply x_encad.
+}
+}
+}
+}
+{
+  assert(g (x + h) - g x <> R0).
+  {
+    intro Hfalse.
+    assert (Hf : g (x+h) = g x).
+    {
+      eapply Rplus_eq_reg_r.
+      symmetry.
+      rewrite Rplus_opp_r.
+      symmetry.
+      assumption.
+    }
+    assert ((comp f g) (x+h) = (comp f g) x).
+    {
+      unfold comp.
+      rewrite Hf.
+      reflexivity.
+    }
+    {
+      assert (Main : x+h = x).
+      {
+        replace (x +h) with (id (x+h)).
+        2:{
+          unfold id.
+          reflexivity.
+        }
+        assert (Temp : x = id x).
+        {
+          unfold id.
+          reflexivity.
+        }
+        rewrite Temp at 2.
+        clear Temp.
+        rewrite <- f_eq_g.
+        {
+          rewrite <- f_eq_g.
+          { assumption. }
+          { assumption. }
+        }
+        { assumption. }
+      }
+      {
+        assert (h = R0).
+        {
+          apply Rplus_0_r_uniq with (r:=x).
+          assumption.
+        }
+        {
+          apply h_neq.
+          assumption.
+        }
+      }
+    }
+  }
+  unfold Rdiv.
+  rewrite Rmult_1_l.
+  rewrite Rinv_mult_distr.
+  rewrite Rmult_comm.
+  rewrite Rinv_involutive.
+  reflexivity.
+  { assumption. }
+  { assumption. }
+  {
+    apply Rinv_neq_0_compat.
+    assumption.
+  }
+}
+}
+}
+}
+{
+  replace ((g (x + h) - g x) / h) with (R1 / (h / (g (x + h) - g x))).
+  {
+    assert (Hrewr : h = (comp f g ) (x+h) - (comp f g) x).
+    {
+      rewrite f_eq_g.
+      {
+        rewrite f_eq_g.
+        {
+          unfold id.
+          rewrite Rplus_comm.
+          unfold Rminus.
+          rewrite Rplus_assoc.
+          rewrite Rplus_opp_r.
+          rewrite Rplus_0_r.
+          reflexivity.
+        }
+        { assumption. }
+      }
+      { assumption. }
+    }
+    {
+      rewrite Hrewr at 1.
+      unfold comp.
+      replace (g(x+h)) with (g x + (g (x+h) - g(x))).
+      2:{
+        rewrite Rplus_minus.
+        reflexivity.
+      }
+      pose (h':=g (x+h) - g x).
+      replace (g (x+h) - g x) with h'.
+      2:{
+        subst h'.
+        reflexivity.
+      }
+      replace (g x + h' - g x) with h'.
+      2:{
+        rewrite Rplus_comm.
+        unfold Rminus.
+        rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+        reflexivity.
+      }
+      assert (h'_neq : h' <> R0).
+      {
+        unfold h'.
+        intro Hfalse.
+        unfold Rminus in Hfalse.
+        apply Rminus_diag_uniq in Hfalse.
+        assert (Hfalse' : (comp f g) (x+h) = (comp f g) x).
+        {
+          intros.
+          unfold comp.
+          rewrite Hfalse.
+          reflexivity.
+        }
+        {
+          rewrite f_eq_g in Hfalse'.
+          rewrite f_eq_g in Hfalse'.
+          {
+            unfold id in Hfalse'.
+            apply Rplus_0_r_uniq in Hfalse'.
+            apply h_neq.
+            exact Hfalse'.
+          }
+          { assumption. }
+          { assumption. }
+        }
+      }
+      {
+        unfold Rdiv at 1 3.
+        rewrite Rmult_1_l.
+        rewrite Rmult_1_l.
+        apply inv_cont.
+        split.
+        { exact h'_neq. }
+        {
           rewrite Rminus_0_r. 
-          unfold continuity_pt, continue_in, limit1_in, limit_in in g_cont_pur.
+          unfold continuity_pt in g_cont_pur.
+          unfold continue_in in g_cont_pur.
+          unfold limit1_in in g_cont_pur.
+          unfold limit_in in g_cont_pur.
           elim (g_cont_pur mydelta mydelta_pos).
           intros delta3 cond3.
-          unfold dist in cond3 ; simpl in cond3 ; unfold R_dist in cond3.
+          unfold dist in cond3.
+          simpl in cond3.
+          unfold R_dist in cond3.
           unfold h'.
           assert (mydelta_le_alpha : mydelta <= alpha).
-           unfold mydelta, Rmin ; case (Rle_dec delta alpha).
-           trivial.
-           intro ; intuition.
-          apply Rlt_le_trans with (r2:=mydelta).
-          unfold dist in g_cont ; simpl in g_cont ; unfold R_dist in g_cont ; apply g_cont.
-          split.
-           unfold D_x ; simpl.
-           split.
-            unfold no_cond ; trivial.
-            intro Hfalse ; apply h_neq.
-             apply (Rplus_0_r_uniq x).
-             symmetry ; assumption.
-            replace (x + h - x) with h by field. 
-            apply Rlt_le_trans with (r2:=delta'').
-            assumption ; unfold delta''. intuition.
-            apply Rle_trans with (r2:=mydelta''). apply Req_le. unfold delta''. intuition.
-            apply Rmin_l. assumption.
-            field ; split.
-             assumption.
-             intro Hfalse ; apply h_neq.
-             apply (Rplus_0_r_uniq x).
-             assert (Hfin : (comp f g) (x+h) = (comp f g) x).
-              apply Rminus_diag_uniq in Hfalse.
-              unfold comp.
-              rewrite Hfalse ; reflexivity.
-              rewrite f_eq_g in Hfin. rewrite f_eq_g in Hfin. unfold id in Hfin. exact Hfin.
-              assumption. assumption.
-*)
-Admitted.
+          {
+            unfold mydelta.
+            unfold Rmin.
+            case (Rle_dec delta alpha).
+            {
+              intro.
+              assumption.
+            }
+            {
+              intro.
+              right.
+              reflexivity.
+            }
+          }
+          {
+            apply Rlt_le_trans with (r2:=mydelta).
+            {
+              unfold dist in g_cont.
+              simpl in g_cont.
+              unfold R_dist in g_cont.
+              apply g_cont.
+              split.
+              {
+                unfold D_x.
+                simpl.
+                split.
+                {
+                  unfold no_cond.
+                  exact I.
+                }
+                {
+                  intro Hfalse.
+                  apply h_neq.
+                  apply (Rplus_0_r_uniq x).
+                  symmetry.
+                  assumption.
+                }
+              }
+              {
+                replace (x + h - x) with h.
+                2:{
+                  unfold Rminus.
+                  rewrite Rplus_comm.
+                  rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+                  reflexivity.
+                }
+                apply Rlt_le_trans with (r2:=delta'').
+                { assumption. }
+                {
+                  apply Rle_trans with (r2:=mydelta'').
+                  {
+                    apply Req_le.
+                    unfold delta''.
+                    simpl.
+                    reflexivity.
+                  }
+                  { apply Rmin_l. }
+                }
+              }
+            }
+            { assumption. }
+          }
+        }
+      }
+    }
+  }
+  {
+    assert(g (x + h) - g x <> R0).
+    {
+      intro Hfalse.
+      apply h_neq.
+      apply (Rplus_0_r_uniq x).
+      assert (Hfin : (comp f g) (x+h) = (comp f g) x).
+      {
+        apply Rminus_diag_uniq in Hfalse.
+        unfold comp.
+        rewrite Hfalse.
+        reflexivity.
+      }
+      {
+        rewrite f_eq_g in Hfin.
+        {
+          rewrite f_eq_g in Hfin.
+          {
+            unfold id in Hfin.
+            exact Hfin.
+          }
+          { assumption. }
+        }
+        { assumption. }
+      }
+    }
+    unfold Rdiv.
+    rewrite Rmult_1_l.
+    rewrite Rinv_mult_distr.
+    rewrite Rmult_comm.
+    apply Rmult_eq_compat_r.
+    rewrite Rinv_involutive.
+    reflexivity.
+    { assumption. }
+    { assumption. }
+    {
+      apply Rinv_neq_0_compat.
+      assumption.
+    }
+  }
+}
+}
+}
+}
+}
+}
+}
+Qed.
 
 Lemma derivable_pt_recip_interv_prelim0 : forall (f g : R -> R) (lb ub x : R)
        (Prf : forall a : R, g lb <= a <= g ub -> derivable_pt f a),
@@ -1210,21 +1523,23 @@ Lemma derive_pt_recip_interv_prelim0 : forall (f g:R->R) (lb ub x:R)
        derive_pt f (g x) Prf <> R0 ->
        derive_pt g x Prg = R1 / (derive_pt f (g x) Prf).
 Proof.
-intros f g lb ub x Prf Prg lb_lt_ub x_encad local_recip Df_neq.
- replace (derive_pt g x Prg) with
+  intros f g lb ub x Prf Prg lb_lt_ub x_encad local_recip Df_neq.
+  replace (derive_pt g x Prg) with
   ((derive_pt g x Prg) * (derive_pt f (g x) Prf) * / (derive_pt f (g x) Prf)).
- unfold Rdiv.
- rewrite (Rmult_comm _ (/ derive_pt f (g x) Prf)).
- rewrite (Rmult_comm _ (/ derive_pt f (g x) Prf)). 
- apply Rmult_eq_compat_l. 
- rewrite Rmult_comm.
- rewrite <- derive_pt_comp.
- assert (x_encad2 : lb <= x <= ub) by intuition.
- rewrite pr_nu_var2_interv with (g:=id) (pr2:= derivable_pt_id_interv lb ub x x_encad2) (lb:=lb) (ub:=ub).
-admit.
-assumption.
-assumption.
-assumption.
+  unfold Rdiv.
+  rewrite (Rmult_comm _ (/ derive_pt f (g x) Prf)).
+  rewrite (Rmult_comm _ (/ derive_pt f (g x) Prf)). 
+  apply Rmult_eq_compat_l. 
+  rewrite Rmult_comm.
+  rewrite <- derive_pt_comp.
+  assert (x_encad2 : lb <= x <= ub) by intuition.
+  {
+    rewrite pr_nu_var2_interv with (g:=id) (pr2:= derivable_pt_id_interv lb ub x x_encad2) (lb:=lb) (ub:=ub).
+    { admit. }
+    assumption.
+    assumption.
+    assumption.
+  }
  rewrite Rmult_assoc, Rinv_r.
  intuition.
  assumption.

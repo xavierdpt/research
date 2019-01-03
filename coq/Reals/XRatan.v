@@ -21,7 +21,7 @@ Require Import XSeqSeries.
 Require Import XPartSum.
 Require Import Omega.
 
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (** Tools *)
 
@@ -30,25 +30,75 @@ Proof.
 intros x y; unfold Rdiv; rewrite <-Ropp_mult_distr_l_reverse; reflexivity.
 Qed.
 
-Definition pos_half_prf : 0 < /2.
-Proof. fourier. Qed.
+Definition pos_half_prf : R0 < /R2.
+Proof.
+  apply Rinv_0_lt_compat.
+  exact Rlt_0_2.
+Qed.
 
-Definition pos_half := mkposreal (/2) pos_half_prf.
+Definition pos_half := mkposreal (/R2) pos_half_prf.
 
 Lemma Boule_half_to_interval :
-  forall x , Boule (/2) pos_half x -> 0 <= x <= 1.
+  forall x , Boule (/R2) pos_half x -> R0 <= x <= R1.
 Proof.
 unfold Boule, pos_half; simpl.
-intros x b; apply Rabs_def2 in b; destruct b; split; fourier.
+intros x b; apply Rabs_def2 in b; destruct b; split.
+{
+  left.
+  apply Rplus_lt_reg_r with (-/R2).
+  rewrite Rplus_0_l.
+  assumption.
+}
+{
+  replace R1 with (/R2+/R2).
+  left.
+  apply Rplus_lt_reg_r with (-/R2).
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_r, Rplus_0_r.
+  assumption.
+  pattern (/R2);rewrite <- Rmult_1_l.
+  rewrite <- Rmult_plus_distr_r.
+  fold R2.
+  rewrite Rinv_r.
+  reflexivity.
+  exact Neq_2_0.
+}
 Qed.
 
 Lemma Boule_lt : forall c r x, Boule c r x -> Rabs x < Rabs c + r.
 Proof.
 unfold Boule; intros c r x h.
 apply Rabs_def2 in h; destruct h; apply Rabs_def1;
- (destruct (Rle_lt_dec 0 c);[rewrite Rabs_pos_eq; fourier | 
-    rewrite <- Rabs_Ropp, Rabs_pos_eq; fourier]).
-Qed.
+ (destruct (Rle_lt_dec R0 c);[rewrite Rabs_pos_eq | 
+    rewrite <- Rabs_Ropp, Rabs_pos_eq]).
+{
+  apply Rplus_lt_reg_l with (-c).
+  rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+  rewrite Rplus_comm.
+  assumption.
+}
+{ assumption. }
+{
+  admit.
+}
+{
+  left.
+  apply Ropp_lt_cancel.
+  rewrite Ropp_involutive, Ropp_0.
+  assumption.
+}
+{
+  admit.
+}
+{ assumption. }
+{ admit. }
+{
+  left.
+  apply Ropp_lt_cancel.
+  rewrite Ropp_involutive, Ropp_0.
+  assumption.
+}
+Admitted.
 
 (* The following lemma does not belong here. *)
 Lemma Un_cv_ext :
@@ -62,7 +112,7 @@ Qed.
 (* The following two lemmas are general purposes about alternated series.
   They do not belong here. *)
 Lemma Alt_first_term_bound :forall f l N n,
-   Un_decreasing f -> Un_cv f 0 ->
+   Un_decreasing f -> Un_cv f R0 ->
    Un_cv (sum_f_R0 (tg_alt f)) l ->
    (N <= n)%nat ->
    R_dist (sum_f_R0 (tg_alt f) n) l <= f N.
@@ -79,11 +129,11 @@ intros [ | N] Npos n decr to0 cv nN.
  assert (decr' : Un_decreasing (fun i => f (S N + i)%nat)).
   intros k; replace (S N+S k)%nat with (S (S N+k)) by ring.
   apply (decr (S N + k)%nat).
- assert (to' : Un_cv (fun i => f (S N + i)%nat) 0).
+ assert (to' : Un_cv (fun i => f (S N + i)%nat) R0).
   intros eps ep; destruct (to0 eps ep) as [M PM].
   exists M; intros k kM; apply PM; omega.
  assert (cv' : Un_cv
-         (sum_f_R0 (tg_alt (fun i => ((-1) ^ S N * f(S N + i)%nat))))
+         (sum_f_R0 (tg_alt (fun i => ((-R1) ^ S N * f(S N + i)%nat))))
              (l - sum_f_R0 (tg_alt f) N)).
   intros eps ep; destruct (cv eps ep) as [M PM]; exists M.
   intros n' nM. 
@@ -91,20 +141,20 @@ intros [ | N] Npos n decr to0 cv nN.
   assert (nM' : (n' + S N >= M)%nat) by omega.
    generalize (PM _ nM'); unfold R_dist.
   rewrite (tech2 (tg_alt f) N (n' + S N)).
-  assert (t : forall a b c, (a + b) - c = b - (c - a)) by (intros; ring).
+  assert (t : forall a b c, (a + b) - c = b - (c - a)) by (intros; admit).
   rewrite t; clear t; unfold U, R_dist; clear U.
   replace (n' + S N - S N)%nat with n' by omega.
-  rewrite <- (sum_eq (tg_alt (fun i => (-1) ^ S N * f(S N + i)%nat))).
+  rewrite <- (sum_eq (tg_alt (fun i => (-R1) ^ S N * f(S N + i)%nat))).
    tauto.
    intros i _; unfold tg_alt.
    rewrite <- Rmult_assoc, <- pow_add, !(plus_comm i); reflexivity.
   omega.
   assert (cv'' : Un_cv (sum_f_R0 (tg_alt (fun i => f (S N + i)%nat)))
-                   ((-1) ^ S N * (l - sum_f_R0 (tg_alt f) N))).
-  apply (Un_cv_ext (fun n => (-1) ^ S N * 
-            sum_f_R0 (tg_alt (fun i : nat => (-1) ^ S N * f (S N + i)%nat)) n)).
+                   ((-R1) ^ S N * (l - sum_f_R0 (tg_alt f) N))).
+  apply (Un_cv_ext (fun n => (-R1) ^ S N * 
+            sum_f_R0 (tg_alt (fun i : nat => (-R1) ^ S N * f (S N + i)%nat)) n)).
    intros n0; rewrite scal_sum; apply sum_eq; intros i _.
-   unfold tg_alt; ring_simplify; replace (((-1) ^ S N) ^ 2) with 1.
+   unfold tg_alt; ring_simplify; replace (((-R1) ^ S N) ^ 2) with R1.
     ring.
    rewrite <- pow_mult, mult_comm, pow_mult; replace ((-1) ^2) with 1 by ring.
    rewrite pow1; reflexivity.
