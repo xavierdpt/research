@@ -674,33 +674,197 @@ Qed.
 (** * Definition of arctangent as the reciprocal function of tangent and proof of this status *)
 Lemma tan_1_gt_1 : tan 1 > 1.
 Proof.
-assert (0 < cos 1) by (apply cos_gt_0; assert (t:=PI2_1); fourier).
-assert (t1 : cos 1 <= 1 - 1/2 + 1/24).
-{
- destruct (pre_cos_bound 1 0) as [_ t]; try fourier; revert t.
- unfold cos_approx, cos_term; simpl; intros t; apply Rle_trans with (1:=t).
- clear t; apply Req_le; field.
-}
-{
-assert (t2 : 1 - 1/6 <= sin 1).
-{
- destruct (pre_sin_bound 1 0) as [t _]; try fourier; revert t.
- unfold sin_approx, sin_term; simpl; intros t; apply Rle_trans with (2:=t).
- clear t; apply Req_le; field.
-}
-{
-pattern 1 at 2; replace 1 with
-  (cos 1 / cos 1) by (field; apply Rgt_not_eq; fourier).
-apply Rlt_gt; apply (Rmult_lt_compat_r (/ cos 1) (cos 1) (sin 1)).
-{
- apply Rinv_0_lt_compat; assumption.
-}
-{
-apply Rle_lt_trans with (1 := t1); apply Rlt_le_trans with (2 := t2).
-fourier.
-}
-}
-}
+  assert (0 < cos 1).
+  {
+    assert (t:=PI2_1).
+    apply cos_gt_0.
+    {
+      apply Rlt_trans with (-R1).
+      {
+        apply Ropp_lt_contravar.
+        assumption.
+      }
+      {
+        apply Rlt_trans with 0.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          exact Rlt_0_1.
+        }
+        { exact Rlt_0_1. }
+      }
+    }
+    { assumption. }
+  }
+  assert (t1 : cos 1 <= 1 - 1/2 + 1/24).
+  {
+    destruct (pre_cos_bound 1 0) as [_ t].
+    {
+      apply Rle_trans with 0.
+      {
+        rewrite <- Ropp_0.
+        apply Ropp_le_contravar.
+        left.
+        prove_sup0.
+      }
+      {
+        left.
+        exact Rlt_0_1.
+      }
+    }
+    {
+      pattern 2;rewrite <- Rmult_1_r.
+      rewrite double.
+      pattern 1 at 1;rewrite <- Rplus_0_r.
+      apply Rplus_le_compat.
+      { apply Rle_refl. }
+      {
+        left.
+        exact Rlt_0_1.
+      }
+    }
+    {
+      revert t.
+      unfold cos_approx.
+      unfold cos_term.
+      simpl.
+      intros t.
+      apply Rle_trans with (1:=t).
+      clear t.
+      apply Req_le.
+      change (-1) with (-R1).
+      unfold Rdiv.
+      unfold Rminus.
+      rewrite Rinv_1.
+      rewrite <- !Ropp_mult_distr_l.
+      rewrite !Rmult_1_l.
+      rewrite <- !plus_IZR.
+      simpl.
+      rewrite <- Ropp_mult_distr_l.
+      rewrite Ropp_involutive.
+      rewrite Rmult_1_l.
+      reflexivity.
+    }
+  }
+  assert (t2 : 1 - 1/6 <= sin 1).
+  {
+    destruct (pre_sin_bound 1 0) as [t _].
+    {
+      left.
+      apply Rlt_0_1.
+    }
+    {
+      apply Rplus_le_reg_r with (-1).
+      rewrite Rplus_opp_r.
+      rewrite <- plus_IZR.
+      simpl.
+      left.
+      prove_sup0.
+    }
+    {
+      revert t.
+      unfold sin_approx.
+      unfold sin_term.
+      simpl.
+      intros t.
+      apply Rle_trans with (2:=t).
+      clear t.
+      apply Req_le.
+      unfold Rdiv, Rminus.
+      change (-1) with (-R1).
+      rewrite <- !Ropp_mult_distr_l.
+      rewrite Rinv_1.
+      rewrite !Rmult_1_r.
+      rewrite !Rmult_1_l.
+      rewrite <- !plus_IZR.
+      simpl.
+      reflexivity.
+    }
+  }
+  {
+    pattern 1 at 2; replace 1 with (cos 1 / cos 1).
+    2:{
+      unfold Rdiv.
+      rewrite Rinv_r.
+      reflexivity.
+      apply Rgt_not_eq.
+      assumption.
+    }
+    apply Rlt_gt.
+    apply (Rmult_lt_compat_r (/ cos 1) (cos 1) (sin 1)).
+    {
+      apply Rinv_0_lt_compat.
+      assumption.
+    }
+    {
+      apply Rle_lt_trans with (1 := t1).
+      apply Rlt_le_trans with (2 := t2).
+      unfold Rminus.
+      repeat rewrite Rplus_assoc.
+      apply Rplus_lt_compat_l.
+      replace 24 with (6*2*2).
+      2:{
+        rewrite <- !mult_IZR.
+        simpl.
+        reflexivity.
+      }
+      {
+        unfold Rdiv.
+        rewrite !Rinv_mult_distr.
+        apply Rmult_lt_reg_r with (6*2).
+        rewrite <- mult_IZR.
+        simpl.
+        prove_sup0.
+        rewrite Ropp_mult_distr_l.
+        rewrite Ropp_mult_distr_l.
+        rewrite Rmult_plus_distr_r.
+        rewrite !Rmult_assoc.
+        rewrite (Rmult_comm (/2)).
+        rewrite !Rmult_assoc.
+        rewrite Rinv_r, Rmult_1_r.
+        rewrite (Rmult_comm (/6)).
+        rewrite !Rmult_assoc.
+        rewrite Rinv_r, Rmult_1_r.
+        rewrite (Rmult_comm (/6)).
+        rewrite !Rmult_assoc.
+        rewrite (Rmult_comm 6).
+        rewrite !Rmult_assoc.
+        rewrite Rinv_l, Rmult_1_r.
+        apply Rmult_lt_reg_r with 2.
+        prove_sup0.
+        rewrite Rmult_plus_distr_r.
+        rewrite !Rmult_assoc.
+        rewrite Rinv_l, Rmult_1_r.
+        rewrite <- !Ropp_mult_distr_l.
+        rewrite !Rmult_1_l.
+        rewrite <- !mult_IZR.
+        simpl.
+        apply Rplus_lt_reg_r with 4.
+        rewrite Rplus_opp_l.
+        rewrite Rplus_assoc.
+        rewrite <- plus_IZR.
+        simpl.
+        apply Rplus_lt_reg_l with 12.
+        rewrite <- Rplus_assoc.
+        rewrite Rplus_opp_r, Rplus_0_l, Rplus_0_r.
+        apply Rplus_lt_reg_r with (-5).
+        rewrite Rplus_opp_r.
+        rewrite <- plus_IZR.
+        simpl.
+        prove_sup0.
+        discrR.
+        discrR.
+        discrR.
+        discrR.
+        discrR.
+        discrR.
+        rewrite <- mult_IZR.
+        simpl.
+        discrR.
+        discrR.
+      }
+    }
+  }
 Qed.
 
 Definition frame_tan y : {x | 0 < x < PI/2 /\ Rabs y < tan x}.
@@ -927,192 +1091,416 @@ Qed.
 
 Lemma ub_opp : forall x, x < PI/2 -> -PI/2 < -x.
 Proof.
-intros x h; rewrite Ropp_div; apply Ropp_lt_contravar; assumption.
+  intros x h.
+  rewrite Ropp_div.
+  apply Ropp_lt_contravar.
+  assumption.
 Qed.
 
 Lemma pos_opp_lt : forall x, 0 < x -> -x < x.
-Proof. intros; fourier. Qed.
+Proof.
+  intros.
+  apply Rlt_trans with 0.
+  {
+    rewrite <- Ropp_0.
+    apply Ropp_lt_contravar.
+    assumption.
+  }
+  { assumption. }
+Qed.
 
 Lemma tech_opp_tan : forall x y, -tan x < y -> tan (-x) < y.
 Proof.
-intros; rewrite tan_neg; assumption.
+  intros.
+  rewrite tan_neg.
+  assumption.
 Qed.
 
 Definition pre_atan (y : R) : {x : R | -PI/2 < x < PI/2 /\ tan x = y}.
 Proof.
-destruct (frame_tan y) as [ub [[ub0 ubpi2] Ptan_ub]].
-set (pr := (conj (tech_opp_tan _ _ (proj2 (Rabs_def2 _ _ Ptan_ub)))
-     (proj1 (Rabs_def2 _ _ Ptan_ub)))).
-destruct (exists_atan_in_frame (-ub) ub y (pos_opp_lt _ ub0) (ub_opp _ ubpi2)
-             ubpi2 pr) as [v [[vl vu] vq]].
-exists v; clear pr.
-split;[rewrite Ropp_div; split; fourier | assumption].
+  destruct (frame_tan y) as [ub [[ub0 ubpi2] Ptan_ub]].
+  set (pr := (conj (tech_opp_tan _ _ (proj2 (Rabs_def2 _ _ Ptan_ub))) (proj1 (Rabs_def2 _ _ Ptan_ub)))).
+  destruct (exists_atan_in_frame (-ub) ub y (pos_opp_lt _ ub0) (ub_opp _ ubpi2) ubpi2 pr) as [v [[vl vu] vq]].
+  exists v.
+  clear pr.
+  split.
+  {
+    rewrite Ropp_div.
+    split.
+    {
+      apply Rlt_trans with (-ub).
+      {
+        apply Ropp_lt_contravar.
+        assumption.
+      }
+      { assumption. }
+    }
+    {
+      apply Rlt_trans with ub.
+      { assumption. }
+      { assumption. }
+    }
+  }
+  { assumption. }
 Qed.
 
 Definition atan x := let (v, _) := pre_atan x in v.
 
 Lemma atan_bound : forall x, -PI/2 < atan x < PI/2.
 Proof.
-intros x; unfold atan; destruct (pre_atan x) as [v [int _]]; exact int.
+  intros x.
+  unfold atan.
+  destruct (pre_atan x) as [v [int _]].
+  exact int.
 Qed.
 
 Lemma atan_right_inv : forall x, tan (atan x) = x.
 Proof.
-intros x; unfold atan; destruct (pre_atan x) as [v [_ q]]; exact q.
+  intros x.
+  unfold atan.
+  destruct (pre_atan x) as [v [_ q]].
+  exact q.
 Qed.
 
 Lemma atan_opp : forall x, atan (- x) = - atan x.
 Proof.
-intros x; generalize (atan_bound (-x)); rewrite Ropp_div;intros [a b].
-generalize (atan_bound x); rewrite Ropp_div; intros [c d].
-apply tan_is_inj; try rewrite Ropp_div; try split; try fourier.
-rewrite tan_neg, !atan_right_inv; reflexivity.
+  intros x.
+  generalize (atan_bound (-x)).
+  rewrite Ropp_div.
+  intros [a b].
+  generalize (atan_bound x).
+  rewrite Ropp_div.
+  intros [c d].
+  apply tan_is_inj.
+  {
+    rewrite Ropp_div.
+    split.
+    { assumption. }
+    { assumption. }
+  }
+  {
+    rewrite Ropp_div.
+    split.
+    {
+      apply Ropp_lt_contravar.
+      assumption.
+    }
+    {
+      apply Ropp_lt_cancel.
+      rewrite Ropp_involutive.
+      assumption.
+    }
+  }
+  {
+    rewrite tan_neg.
+    rewrite !atan_right_inv.
+    reflexivity.
+  }
 Qed.
 
 Lemma derivable_pt_atan : forall x, derivable_pt atan x.
 Proof.
-intros x.
-destruct (frame_tan x) as [ub [[ub0 ubpi] P]].
-assert (lb_lt_ub : -ub < ub) by apply pos_opp_lt, ub0.
-assert (xint : tan(-ub) < x < tan ub).
-{
- assert (xint' : x < tan ub /\ -(tan ub) < x) by apply Rabs_def2, P.
-  rewrite tan_neg; tauto.
-}
-{
-assert (inv_p : forall x, tan(-ub) <= x -> x <= tan ub -> 
-                     comp tan atan x = id x).
-{
- intros; apply atan_right_inv.
-}
-{
-assert (int_tan : forall y, tan (- ub) <= y -> y <= tan ub ->
-                       -ub <= atan y <= ub).
-{
- clear -ub0 ubpi; intros y lo up; split.
-{
-  destruct (Rle_lt_dec (-ub) (atan y)) as [h | abs]; auto.
-  assert (y < tan (-ub)).
-{
-   rewrite <- (atan_right_inv y); apply tan_increasing.
-{
-     destruct (atan_bound y); assumption.
-}
-{
+  intros x.
+  destruct (frame_tan x) as [ub [[ub0 ubpi] P]].
+  assert (lb_lt_ub : -ub < ub).
+  {
+    apply pos_opp_lt.
     assumption.
-}
-{
-   fourier.
-}
-}
-{
-  fourier.
-}
-}
-{
- destruct (Rle_lt_dec (atan y) ub) as [h | abs]; auto.
-  assert (tan ub < y).
-{
-   rewrite <- (atan_right_inv y); apply tan_increasing.
-{
-    rewrite Ropp_div; fourier.
-}
-{
-   assumption.
-}
-{
-  destruct (atan_bound y); assumption.
-}
-}
-{
- fourier.
-}
-}
-}
-{
-assert (incr : forall x y, -ub <= x -> x < y -> y <= ub -> tan x < tan y).
-{
- intros y z l yz u; apply tan_increasing.
-{
-   rewrite Ropp_div; fourier.
-}
-{
-  assumption.
-}
-{
- fourier.
-}
-}
-{
-assert (der : forall a, -ub <= a <= ub -> derivable_pt tan a).
-{
- intros a [la ua]; apply derivable_pt_tan.
- rewrite Ropp_div; split; fourier.
-}
-{
-assert (df_neq : derive_pt tan (atan x)
-     (derivable_pt_recip_interv_prelim1 tan atan 
-        (- ub) ub x lb_lt_ub xint inv_p int_tan incr der) <> 0).
-{
- rewrite <- (pr_nu tan (atan x)
-              (derivable_pt_tan (atan x) (atan_bound x))).
- rewrite derive_pt_tan.
- solve[apply Rgt_not_eq, plus_Rsqr_gt_0].
-}
-{
-apply (derivable_pt_recip_interv tan atan (-ub) ub x
-      lb_lt_ub xint inv_p int_tan incr der).
-exact df_neq.
-}
-}
-}
-}
-}
-}
+  }
+  assert (xint : tan(-ub) < x < tan ub).
+  {
+    assert (xint' : x < tan ub /\ -(tan ub) < x).
+    {
+      apply Rabs_def2.
+      assumption.
+    }
+    rewrite tan_neg.
+    split.
+    { apply xint'. }
+    { apply xint'. }
+  }
+  {
+    assert (inv_p : forall x, tan(-ub) <= x -> x <= tan ub -> comp tan atan x = id x).
+    {
+      intros.
+      apply atan_right_inv.
+    }
+    assert (int_tan : forall y, tan (- ub) <= y -> y <= tan ub -> -ub <= atan y <= ub).
+    {
+      clear -ub0 ubpi.
+      intros y lo up.
+      split.
+      {
+        destruct (Rle_lt_dec (-ub) (atan y)) as [h | abs].
+        { assumption. }
+        {
+          assert (y < tan (-ub)).
+          {
+            rewrite <- (atan_right_inv y).
+            apply tan_increasing.
+            {
+              destruct (atan_bound y).
+              assumption.
+            }
+            { assumption. }
+            {
+              apply Rlt_trans with ub.
+              {
+                apply Rlt_trans with 0.
+                {
+                  rewrite <- Ropp_0.
+                  apply Ropp_lt_contravar.
+                  assumption.
+                }
+                { assumption. }
+              }
+              { assumption. }
+            }
+          }
+          {
+            exfalso.
+            eapply Rlt_irrefl.
+            eapply Rlt_le_trans.
+            { apply H. }
+            { assumption. }
+          }
+        }
+      }
+      {
+        destruct (Rle_lt_dec (atan y) ub) as [h | abs].
+        { assumption. }
+        {
+          assert (tan ub < y).
+          {
+            rewrite <- (atan_right_inv y).
+            apply tan_increasing.
+            {
+              rewrite Ropp_div.
+              apply Rlt_trans with (-ub).
+              {
+                apply Ropp_lt_contravar.
+                assumption.
+              }
+              {
+                apply Rlt_trans with 0.
+                {
+                  rewrite <- Ropp_0.
+                  apply Ropp_lt_contravar.
+                  assumption.
+                }
+                { assumption. }
+              }
+            }
+            { assumption. }
+            {
+              destruct (atan_bound y).
+              assumption.
+            }
+          }
+          {
+            exfalso.
+            eapply Rlt_irrefl.
+            eapply Rlt_le_trans.
+            { apply H. }
+            { assumption. }
+          }
+        }
+      }
+    }
+    {
+      assert (incr : forall x y, -ub <= x -> x < y -> y <= ub -> tan x < tan y).
+      {
+        intros y z l yz u.
+        apply tan_increasing.
+        {
+          rewrite Ropp_div.
+          apply Rlt_le_trans with (-ub).
+          {
+            apply Ropp_lt_contravar.
+            assumption.
+          }
+          { assumption. }
+        }
+        { assumption. }
+        {
+          apply Rle_lt_trans with ub.
+          { assumption. }
+          { assumption. }
+        }
+      }
+      assert (der : forall a, -ub <= a <= ub -> derivable_pt tan a).
+      {
+        intros a [la ua].
+        apply derivable_pt_tan.
+        rewrite Ropp_div.
+        split.
+        {
+          apply Rlt_le_trans with (-ub).
+          {
+            apply Ropp_lt_contravar.
+            assumption.
+          }
+          { assumption. }
+        }
+        {
+          apply Rle_lt_trans with ub.
+          { assumption. }
+          { assumption. }
+        }
+      }
+      {
+        assert (df_neq : derive_pt tan (atan x) (derivable_pt_recip_interv_prelim1 tan atan  (- ub) ub x lb_lt_ub xint inv_p int_tan incr der) <> 0).
+        {
+          rewrite <- (pr_nu tan (atan x) (derivable_pt_tan (atan x) (atan_bound x))).
+          rewrite derive_pt_tan.
+          apply Rgt_not_eq.
+          apply plus_Rsqr_gt_0.
+        }
+        {
+          apply (derivable_pt_recip_interv tan atan (-ub) ub x lb_lt_ub xint inv_p int_tan incr der).
+          exact df_neq.
+        }
+      }
+    }
+  }
 Qed.
 
 Lemma atan_increasing : forall x y, x < y -> atan x < atan y.
 Proof.
-intros x y d.
-assert (t1 := atan_bound x).
-assert (t2 := atan_bound y).
-destruct (Rlt_le_dec (atan x) (atan y)) as [lt | bad].
-{
- assumption.
-}
-{
-apply Rlt_not_le in d.
-case d.
-rewrite <- (atan_right_inv y), <- (atan_right_inv x).
-destruct bad as [ylt | yx].
-{
- apply Rlt_le, tan_increasing; try tauto.
-}
-{
-solve[rewrite yx; apply Rle_refl].
-}
-}
+  intros x y d.
+  assert (t1 := atan_bound x).
+  assert (t2 := atan_bound y).
+  destruct (Rlt_le_dec (atan x) (atan y)) as [lt | bad].
+  { assumption. }
+  {
+    apply Rlt_not_le in d.
+    case d.
+    rewrite <- (atan_right_inv y), <- (atan_right_inv x).
+    destruct bad as [ylt | yx].
+    {
+      apply Rlt_le.
+      apply tan_increasing.
+      { apply t2. }
+      { assumption. }
+      { apply t1. }
+    }
+    {
+      rewrite yx.
+      apply Rle_refl.
+    }
+  }
 Qed.
 
 Lemma atan_0 : atan 0 = 0.
 Proof.
-apply tan_is_inj; try (apply atan_bound).
-{
- assert (t := PI_RGT_0); rewrite Ropp_div; split; fourier.
-}
-{
-rewrite atan_right_inv, tan_0.
-reflexivity.
-}
+  apply tan_is_inj.
+  { apply atan_bound. }
+  {
+    assert (t := PI_RGT_0).
+    rewrite Ropp_div.
+    split.
+    {
+      rewrite <- Ropp_0.
+      apply Ropp_lt_contravar.
+      unfold Rdiv.
+      apply Rmult_lt_0_compat.
+      { assumption. }
+      {
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
+    {
+      unfold Rdiv.
+      apply Rmult_lt_0_compat.
+      { assumption. }
+      {
+        apply Rinv_0_lt_compat.
+        prove_sup0.
+      }
+    }
+  }
+  {
+    rewrite atan_right_inv.
+    rewrite tan_0.
+    reflexivity.
+  }
 Qed.
 
 Lemma atan_1 : atan 1 = PI/4.
 Proof.
-assert (ut := PI_RGT_0).
-assert (-PI/2 < PI/4 < PI/2) by (rewrite Ropp_div; split; fourier).
-assert (t := atan_bound 1).
-apply tan_is_inj; auto.
-rewrite tan_PI4, atan_right_inv; reflexivity.
+  assert (ut := PI_RGT_0).
+  assert (-PI/2 < PI/4 < PI/2).
+  {
+    rewrite Ropp_div.
+    split.
+    {
+      apply Rlt_trans with 0.
+      {
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        { assumption. }
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+      }
+      {
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        { assumption. }
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+      }
+    }
+    {
+      unfold Rdiv.
+      apply Rmult_lt_compat_l.
+      { assumption. }
+      {
+        apply Rinv_lt_contravar.
+        {
+          rewrite <- mult_IZR.
+          simpl.
+          prove_sup0.
+        }
+        {
+          replace 4 with (2*2).
+          {
+            pattern 2 at 1;rewrite <- Rmult_1_l.
+            apply Rmult_lt_compat_r.
+            { prove_sup0. }
+            {
+              pattern 2 at 1;rewrite <- Rmult_1_r.
+              rewrite double.
+              pattern 1 at 1;rewrite <- Rplus_0_l.
+              apply Rplus_lt_le_compat.
+              { exact Rlt_0_1. }
+              { apply Rle_refl. }
+            }
+          }
+          {
+            rewrite <- mult_IZR.
+            simpl.
+            reflexivity.
+          }
+        }
+      }
+    }
+  }
+  assert (t := atan_bound 1).
+  apply tan_is_inj.
+  { assumption. }
+  { assumption. }
+  {
+    rewrite tan_PI4.
+    rewrite atan_right_inv.
+    reflexivity.
+  }
 Qed.
 
 (** atan's derivative value is the function 1 / (1+x²) *)
@@ -1121,180 +1509,175 @@ Lemma derive_pt_atan : forall x,
       derive_pt atan x (derivable_pt_atan x) =
          1 / (1 + x²).
 Proof.
-intros x.
-destruct (frame_tan x) as [ub [[ub0 ubpi] Pub]].
-assert (lb_lt_ub : -ub < ub).
-{
-apply pos_opp_lt.
-assumption.
-}
-assert (xint : tan(-ub) < x < tan ub).
-{
-assert (xint' : x < tan ub /\ -(tan ub) < x).
-{
-apply Rabs_def2.
-assumption.
-}
-rewrite tan_neg.
-split.
-{ apply xint'. }
-{ apply xint'. }
-}
-{
-assert (inv_p : forall x, tan(-ub) <= x -> x <= tan ub ->  comp tan atan x = id x).
-{
-intros.
-apply atan_right_inv.
-}
-{
-assert (int_tan : forall y, tan (- ub) <= y -> y <= tan ub -> -ub <= atan y <= ub).
-{
-clear -ub0 ubpi.
-intros y lo up.
-split.
-{
-destruct (Rle_lt_dec (-ub) (atan y)) as [h | abs].
-{ assumption. }
-{
-assert (y < tan (-ub)).
-{
-rewrite <- (atan_right_inv y).
-apply tan_increasing.
-{
-destruct (atan_bound y).
-assumption.
-}
-{ assumption. }
-{
-apply Rlt_trans with ub.
-{
-apply Rlt_trans with 0.
-{
-rewrite <- Ropp_0.
-apply Ropp_lt_contravar.
-assumption.
-}
-{ assumption. }
-}
-{ assumption. }
-}
-}
-{
-clear abs up ubpi ub0.
-exfalso.
-eapply Rlt_irrefl.
-eapply Rlt_le_trans.
-{ exact H. }
-{ exact lo. }
-}
-}
-}
-{
-destruct (Rle_lt_dec (atan y) ub) as [h | abs].
-{ assumption. }
-{
-assert (tan ub < y).
-{
-rewrite <- (atan_right_inv y).
-apply tan_increasing.
-{
-rewrite Ropp_div.
-apply Ropp_lt_cancel.
-rewrite Ropp_involutive.
-apply Rlt_trans with ub.
-2:assumption.
-apply Rlt_trans with 0.
-rewrite <- Ropp_0.
-apply Ropp_lt_contravar.
-assumption.
-assumption.
-}
-{
-assumption.
-}
-{
-destruct (atan_bound y).
-assumption.
-}
-}
-{
-exfalso.
-eapply Rlt_irrefl.
-eapply Rlt_le_trans.
-exact H.
-exact up.
-}
-}
-}
-}
-{
-assert (incr : forall x y, -ub <= x -> x < y -> y <= ub -> tan x < tan y).
-{
-intros y z l yz u.
-apply tan_increasing.
-{
-rewrite Ropp_div.
-apply Rlt_le_trans with (-ub).
-apply Ropp_lt_contravar.
-assumption.
-assumption.
-}
-{
-assumption.
-}
-{
-apply Rle_lt_trans with ub.
-assumption.
-assumption.
-}
-}
-{
-assert (der : forall a, -ub <= a <= ub -> derivable_pt tan a).
-{
-intros a [la ua].
-apply derivable_pt_tan.
-rewrite Ropp_div.
-split.
-apply Rlt_le_trans with (-ub).
-apply Ropp_lt_contravar.
-assumption.
-assumption.
-apply Rle_lt_trans with ub.
-assumption.
-assumption.
-}
-{
-assert (df_neq : derive_pt tan (atan x)
-(derivable_pt_recip_interv_prelim1 tan atan 
-(- ub) ub x lb_lt_ub xint inv_p int_tan incr der) <> 0).
-{
-rewrite <- (pr_nu tan (atan x)
-(derivable_pt_tan (atan x) (atan_bound x))).
-rewrite derive_pt_tan.
-apply Rgt_not_eq.
-apply plus_Rsqr_gt_0.
-}
-assert (t := derive_pt_recip_interv tan atan (-ub) ub x lb_lt_ub
-xint incr int_tan der inv_p df_neq).
-rewrite <- (pr_nu atan x (derivable_pt_recip_interv tan atan (- ub) ub
-x lb_lt_ub xint inv_p int_tan incr der df_neq)).
-rewrite t.
-assert (t' := atan_bound x).
-rewrite <- (pr_nu tan (atan x) (derivable_pt_tan _ t')). 
-rewrite derive_pt_tan, atan_right_inv.
-replace (Rsqr x) with (x ^ 2).
-2:{
-unfold Rsqr.
-simpl.
-rewrite Rmult_1_r.
-reflexivity.
-}
-reflexivity.
-}
-}
-}
-}
-}
+  intros x.
+  destruct (frame_tan x) as [ub [[ub0 ubpi] Pub]].
+  assert (lb_lt_ub : -ub < ub).
+  {
+    apply pos_opp_lt.
+    assumption.
+  }
+  assert (xint : tan(-ub) < x < tan ub).
+  {
+    assert (xint' : x < tan ub /\ -(tan ub) < x).
+    {
+      apply Rabs_def2.
+      assumption.
+    }
+    rewrite tan_neg.
+    split.
+    { apply xint'. }
+    { apply xint'. }
+  }
+  assert (inv_p : forall x, tan(-ub) <= x -> x <= tan ub ->  comp tan atan x = id x).
+  {
+    intros.
+    apply atan_right_inv.
+  }
+  assert (int_tan : forall y, tan (- ub) <= y -> y <= tan ub -> -ub <= atan y <= ub).
+  {
+    clear -ub0 ubpi.
+    intros y lo up.
+    split.
+    {
+      destruct (Rle_lt_dec (-ub) (atan y)) as [h | abs].
+      { assumption. }
+      {
+        assert (y < tan (-ub)).
+        {
+          rewrite <- (atan_right_inv y).
+          apply tan_increasing.
+          {
+            destruct (atan_bound y).
+            assumption.
+          }
+          { assumption. }
+          {
+            apply Rlt_trans with ub.
+            {
+              apply Rlt_trans with 0.
+              {
+                rewrite <- Ropp_0.
+                apply Ropp_lt_contravar.
+                assumption.
+              }
+              { assumption. }
+            }
+            { assumption. }
+          }
+        }
+        {
+          clear abs up ubpi ub0.
+          exfalso.
+          eapply Rlt_irrefl.
+          eapply Rlt_le_trans.
+          { exact H. }
+          { exact lo. }
+        }
+      }
+    }
+    {
+      destruct (Rle_lt_dec (atan y) ub) as [h | abs].
+      { assumption. }
+      {
+        assert (tan ub < y).
+        {
+          rewrite <- (atan_right_inv y).
+          apply tan_increasing.
+          {
+            rewrite Ropp_div.
+            apply Ropp_lt_cancel.
+            rewrite Ropp_involutive.
+            apply Rlt_trans with ub.
+            2:assumption.
+            apply Rlt_trans with 0.
+            rewrite <- Ropp_0.
+            apply Ropp_lt_contravar.
+            assumption.
+            assumption.
+          }
+          { assumption. }
+          {
+            destruct (atan_bound y).
+            assumption.
+          }
+        }
+        {
+          exfalso.
+          eapply Rlt_irrefl.
+          eapply Rlt_le_trans.
+          exact H.
+          exact up.
+        }
+      }
+    }
+  }
+  {
+    assert (incr : forall x y, -ub <= x -> x < y -> y <= ub -> tan x < tan y).
+    {
+      intros y z l yz u.
+      apply tan_increasing.
+      {
+        rewrite Ropp_div.
+        apply Rlt_le_trans with (-ub).
+        {
+          apply Ropp_lt_contravar.
+          assumption.
+        }
+        { assumption. }
+      }
+      { assumption. }
+      {
+        apply Rle_lt_trans with ub.
+        { assumption. }
+        { assumption. }
+      }
+    }
+    {
+      assert (der : forall a, -ub <= a <= ub -> derivable_pt tan a).
+      {
+        intros a [la ua].
+        apply derivable_pt_tan.
+        rewrite Ropp_div.
+        split.
+        {
+          apply Rlt_le_trans with (-ub).
+          {
+            apply Ropp_lt_contravar.
+            assumption.
+          }
+          { assumption. }
+        }
+        {
+          apply Rle_lt_trans with ub.
+          { assumption. }
+          { assumption. }
+        }
+      }
+      {
+        assert (df_neq : derive_pt tan (atan x) (derivable_pt_recip_interv_prelim1 tan atan (- ub) ub x lb_lt_ub xint inv_p int_tan incr der) <> 0).
+        {
+          rewrite <- (pr_nu tan (atan x) (derivable_pt_tan (atan x) (atan_bound x))).
+          rewrite derive_pt_tan.
+          apply Rgt_not_eq.
+          apply plus_Rsqr_gt_0.
+        }
+        assert (t := derive_pt_recip_interv tan atan (-ub) ub x lb_lt_ub xint incr int_tan der inv_p df_neq).
+        rewrite <- (pr_nu atan x (derivable_pt_recip_interv tan atan (- ub) ub x lb_lt_ub xint inv_p int_tan incr der df_neq)).
+        rewrite t.
+        assert (t' := atan_bound x).
+        rewrite <- (pr_nu tan (atan x) (derivable_pt_tan _ t')). 
+        rewrite derive_pt_tan, atan_right_inv.
+        replace (Rsqr x) with (x ^ 2).
+        2:{
+          unfold Rsqr.
+          simpl.
+          rewrite Rmult_1_r.
+          reflexivity.
+        }
+        reflexivity.
+      }
+    }
+  }
 Qed.
 
 Lemma derivable_pt_lim_atan :
