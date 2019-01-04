@@ -1123,104 +1123,173 @@ Lemma derive_pt_atan : forall x,
 Proof.
 intros x.
 destruct (frame_tan x) as [ub [[ub0 ubpi] Pub]].
-assert (lb_lt_ub : -ub < ub) by apply pos_opp_lt, ub0.
+assert (lb_lt_ub : -ub < ub).
+{
+apply pos_opp_lt.
+assumption.
+}
 assert (xint : tan(-ub) < x < tan ub).
 {
- assert (xint' : x < tan ub /\ -(tan ub) < x) by apply Rabs_def2, Pub.
-  rewrite tan_neg; tauto.
+assert (xint' : x < tan ub /\ -(tan ub) < x).
+{
+apply Rabs_def2.
+assumption.
+}
+rewrite tan_neg.
+split.
+{ apply xint'. }
+{ apply xint'. }
 }
 {
-assert (inv_p : forall x, tan(-ub) <= x -> x <= tan ub -> 
-                     comp tan atan x = id x).
+assert (inv_p : forall x, tan(-ub) <= x -> x <= tan ub ->  comp tan atan x = id x).
 {
- intros; apply atan_right_inv.
+intros.
+apply atan_right_inv.
 }
 {
-assert (int_tan : forall y, tan (- ub) <= y -> y <= tan ub ->
-                       -ub <= atan y <= ub).
+assert (int_tan : forall y, tan (- ub) <= y -> y <= tan ub -> -ub <= atan y <= ub).
 {
- clear -ub0 ubpi; intros y lo up; split.
+clear -ub0 ubpi.
+intros y lo up.
+split.
 {
-  destruct (Rle_lt_dec (-ub) (atan y)) as [h | abs]; auto.
-  assert (y < tan (-ub)).
+destruct (Rle_lt_dec (-ub) (atan y)) as [h | abs].
+{ assumption. }
 {
-   rewrite <- (atan_right_inv y); apply tan_increasing.
+assert (y < tan (-ub)).
 {
-     destruct (atan_bound y); assumption.
+rewrite <- (atan_right_inv y).
+apply tan_increasing.
+{
+destruct (atan_bound y).
+assumption.
 }
+{ assumption. }
 {
-    assumption.
+apply Rlt_trans with ub.
+{
+apply Rlt_trans with 0.
+{
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+assumption.
 }
-{
-   fourier.
+{ assumption. }
 }
-}
-{
-  fourier.
-}
-}
-{
- destruct (Rle_lt_dec (atan y) ub) as [h | abs]; auto.
-  assert (tan ub < y).
-{
-   rewrite <- (atan_right_inv y); apply tan_increasing.
-{
-    rewrite Ropp_div; fourier.
-}
-{
-   assumption.
-}
-{
-  destruct (atan_bound y); assumption.
+{ assumption. }
 }
 }
 {
- fourier.
+clear abs up ubpi ub0.
+exfalso.
+eapply Rlt_irrefl.
+eapply Rlt_le_trans.
+{ exact H. }
+{ exact lo. }
+}
+}
+}
+{
+destruct (Rle_lt_dec (atan y) ub) as [h | abs].
+{ assumption. }
+{
+assert (tan ub < y).
+{
+rewrite <- (atan_right_inv y).
+apply tan_increasing.
+{
+rewrite Ropp_div.
+apply Ropp_lt_cancel.
+rewrite Ropp_involutive.
+apply Rlt_trans with ub.
+2:assumption.
+apply Rlt_trans with 0.
+rewrite <- Ropp_0.
+apply Ropp_lt_contravar.
+assumption.
+assumption.
+}
+{
+assumption.
+}
+{
+destruct (atan_bound y).
+assumption.
+}
+}
+{
+exfalso.
+eapply Rlt_irrefl.
+eapply Rlt_le_trans.
+exact H.
+exact up.
+}
 }
 }
 }
 {
 assert (incr : forall x y, -ub <= x -> x < y -> y <= ub -> tan x < tan y).
 {
- intros y z l yz u; apply tan_increasing.
+intros y z l yz u.
+apply tan_increasing.
 {
-   rewrite Ropp_div; fourier.
+rewrite Ropp_div.
+apply Rlt_le_trans with (-ub).
+apply Ropp_lt_contravar.
+assumption.
+assumption.
 }
 {
-  assumption.
+assumption.
 }
 {
- fourier.
+apply Rle_lt_trans with ub.
+assumption.
+assumption.
 }
 }
 {
 assert (der : forall a, -ub <= a <= ub -> derivable_pt tan a).
 {
- intros a [la ua]; apply derivable_pt_tan.
- rewrite Ropp_div; split; fourier.
+intros a [la ua].
+apply derivable_pt_tan.
+rewrite Ropp_div.
+split.
+apply Rlt_le_trans with (-ub).
+apply Ropp_lt_contravar.
+assumption.
+assumption.
+apply Rle_lt_trans with ub.
+assumption.
+assumption.
 }
 {
 assert (df_neq : derive_pt tan (atan x)
-     (derivable_pt_recip_interv_prelim1 tan atan 
-        (- ub) ub x lb_lt_ub xint inv_p int_tan incr der) <> 0).
+(derivable_pt_recip_interv_prelim1 tan atan 
+(- ub) ub x lb_lt_ub xint inv_p int_tan incr der) <> 0).
 {
- rewrite <- (pr_nu tan (atan x)
-              (derivable_pt_tan (atan x) (atan_bound x))).
- rewrite derive_pt_tan.
- solve[apply Rgt_not_eq, plus_Rsqr_gt_0].
+rewrite <- (pr_nu tan (atan x)
+(derivable_pt_tan (atan x) (atan_bound x))).
+rewrite derive_pt_tan.
+apply Rgt_not_eq.
+apply plus_Rsqr_gt_0.
 }
-{
 assert (t := derive_pt_recip_interv tan atan (-ub) ub x lb_lt_ub
-        xint incr int_tan der inv_p df_neq).
+xint incr int_tan der inv_p df_neq).
 rewrite <- (pr_nu atan x (derivable_pt_recip_interv tan atan (- ub) ub
-      x lb_lt_ub xint inv_p int_tan incr der df_neq)).
+x lb_lt_ub xint inv_p int_tan incr der df_neq)).
 rewrite t.
 assert (t' := atan_bound x).
 rewrite <- (pr_nu tan (atan x) (derivable_pt_tan _ t')). 
 rewrite derive_pt_tan, atan_right_inv.
-replace (Rsqr x) with (x ^ 2) by (unfold Rsqr; ring).
+replace (Rsqr x) with (x ^ 2).
+2:{
+unfold Rsqr.
+simpl.
+rewrite Rmult_1_r.
 reflexivity.
 }
+reflexivity.
 }
 }
 }
@@ -1231,11 +1300,16 @@ Qed.
 Lemma derivable_pt_lim_atan :
   forall x, derivable_pt_lim atan x (/(1 + x^2)).
 Proof.
-intros x.
-apply derive_pt_eq_1 with (derivable_pt_atan x).
-replace (x ^ 2) with (x * x) by ring.
-rewrite <- (Rmult_1_l (Rinv _)).
-apply derive_pt_atan.
+  intros x.
+  apply derive_pt_eq_1 with (derivable_pt_atan x).
+  replace (x ^ 2) with (x * x).
+  2:{
+    simpl.
+    rewrite Rmult_1_r.
+    reflexivity.
+  }
+  rewrite <- (Rmult_1_l (Rinv _)).
+  apply derive_pt_atan.
 Qed.
 
 (** * Definition of the arctangent function as the sum of the arctan power series *)
@@ -1245,266 +1319,391 @@ Definition Ratan_seq x :=  fun n => (x ^ (2 * n + 1) / INR (2 * n + 1))%R.
 
 Lemma Ratan_seq_decreasing : forall x, (0 <= x <= 1)%R -> Un_decreasing (Ratan_seq x).
 Proof.
-intros x Hx n.
- unfold Ratan_seq, Rdiv.
- apply Rmult_le_compat.
-{
-apply pow_le.
- exact (proj1 Hx).
-}
-{
- apply Rlt_le.
- apply Rinv_0_lt_compat.
- apply lt_INR_0.
- omega.
-}
-{
- destruct (proj1 Hx) as [Hx1|Hx1].
-{
- destruct (proj2 Hx) as [Hx2|Hx2].
-{
- (* . 0 < x < 1 *)
- rewrite <- (Rinv_involutive x).
-{
- assert (/ x <> 0)%R by auto with real.
- repeat rewrite <- Rinv_pow with (1 := H).
- apply Rlt_le.
- apply Rinv_lt_contravar.
-{
- apply Rmult_lt_0_compat ; apply pow_lt ; auto with real.
-}
-{
- apply Rlt_pow.
-{
- rewrite <- Rinv_1.
- apply Rinv_lt_contravar.
-{
- rewrite Rmult_1_r.
- exact Hx1.
-}
-{
- exact Hx2.
-}
-}
-{
- omega.
-}
-}
-}
-{
- apply Rgt_not_eq.
- exact Hx1.
-}
-}
-{
- (* . x = 1 *)
- rewrite Hx2.
- do 2 rewrite pow1.
- apply Rle_refl.
-}
-}
-{
- (* . x = 0 *)
- rewrite <- Hx1.
- do 2 (rewrite pow_i ; [ idtac | omega ]).
- apply Rle_refl.
-}
-}
-{
- apply Rlt_le.
- apply Rinv_lt_contravar.
-{
- apply Rmult_lt_0_compat ; apply lt_INR_0 ; omega.
-}
-{
- apply lt_INR.
- omega.
-}
-}
+  intros x Hx n.
+  unfold Ratan_seq, Rdiv.
+  apply Rmult_le_compat.
+  {
+    apply pow_le.
+    exact (proj1 Hx).
+  }
+  {
+    apply Rlt_le.
+    apply Rinv_0_lt_compat.
+    apply lt_INR_0.
+    omega.
+  }
+  {
+    destruct (proj1 Hx) as [Hx1|Hx1].
+    {
+      destruct (proj2 Hx) as [Hx2|Hx2].
+      {
+        (* . 0 < x < 1 *)
+        rewrite <- (Rinv_involutive x).
+        {
+          assert (/ x <> 0)%R.
+          {
+            apply Rinv_neq_0_compat.
+            apply Rgt_not_eq.
+            assumption.
+          }
+          repeat rewrite <- Rinv_pow with (1 := H).
+          apply Rlt_le.
+          apply Rinv_lt_contravar.
+          {
+            apply Rmult_lt_0_compat.
+            {
+              apply pow_lt.
+              apply Rinv_0_lt_compat.
+              assumption.
+            }
+            {
+              apply pow_lt.
+              apply Rinv_0_lt_compat.
+              assumption.
+            }
+          }
+          {
+            apply Rlt_pow.
+            {
+              rewrite <- Rinv_1.
+              apply Rinv_lt_contravar.
+              {
+                rewrite Rmult_1_r.
+                exact Hx1.
+              }
+              { exact Hx2. }
+            }
+            { omega. }
+          }
+        }
+        {
+          apply Rgt_not_eq.
+          exact Hx1.
+        }
+      }
+      {
+      (* . x = 1 *)
+        rewrite Hx2.
+        do 2 rewrite pow1.
+        apply Rle_refl.
+      }
+    }
+    {
+      (* . x = 0 *)
+      rewrite <- Hx1.
+      rewrite pow_i.
+      {
+        rewrite pow_i.
+        { apply Rle_refl. }
+        { omega. }
+      }
+      { omega. }
+    }
+  }
+  {
+    apply Rlt_le.
+    apply Rinv_lt_contravar.
+    {
+      apply Rmult_lt_0_compat.
+      {
+        apply lt_INR_0.
+        omega.
+      }
+      {
+        apply lt_INR_0.
+        omega.
+      }
+    }
+    {
+      apply lt_INR.
+      omega.
+    }
+  }
 Qed.
 
 Lemma Ratan_seq_converging : forall x, (0 <= x <= 1)%R -> Un_cv (Ratan_seq x) 0.
 Proof.
-intros x Hx eps Heps.
- destruct (archimed (/ eps)) as (HN,_).
- assert (0 < up (/ eps))%Z.
-{
-  apply lt_IZR.
-  apply Rlt_trans with (2 := HN).
-  apply Rinv_0_lt_compat.
-  exact Heps.
-}
-{
- case_eq (up (/ eps)) ;
-  intros ; rewrite H0 in H ; try discriminate H.
-   rewrite H0 in HN.
-   simpl in HN.
-   pose (N := Pos.to_nat p).
-   fold N in HN.
-   clear H H0.
-   exists N.
-  intros n Hn.
-   unfold R_dist.
-   rewrite Rminus_0_r.
-   unfold Ratan_seq.
-   rewrite Rabs_right.
-{
-   apply Rle_lt_trans with (1 ^ (2 * n + 1) / INR (2 * n + 1))%R.
-{
-   unfold Rdiv.
-   apply Rmult_le_compat_r.
-{
-   apply Rlt_le.
-   apply Rinv_0_lt_compat.
-   apply lt_INR_0.
-   omega.
-}
-{
-   apply pow_incr.
-   exact Hx.
-}
-}
-{
-   rewrite pow1.
-   apply Rle_lt_trans with (/ INR (2 * N + 1))%R.
-{
-   unfold Rdiv.
-   rewrite Rmult_1_l.
-   apply Rinv_le_contravar.
-{
-   apply lt_INR_0.
-   omega.
-}
-{
-   apply le_INR.
-   omega.
-}
-}
-{
-   rewrite <- (Rinv_involutive eps).
-{
-   apply Rinv_lt_contravar.
-{
-   apply Rmult_lt_0_compat.
-{
-   auto with real.
-}
-{
-   apply lt_INR_0.
-   omega.
-}
-}
-{
-   apply Rlt_trans with (INR N).
-{
-   destruct (archimed (/ eps)) as (H,_).
-   assert (0 < up (/ eps))%Z.
-{
-   apply lt_IZR.
-   apply Rlt_trans with (2 := H).
-   apply Rinv_0_lt_compat.
-   exact Heps.
-}
-{
-   unfold N.
-   rewrite INR_IZR_INZ, positive_nat_Z.
-   exact HN.
-}
-}
-{
-   apply lt_INR.
-   omega.
-}
-}
-}
-{
-   apply Rgt_not_eq.
-   exact Heps.
-}
-}
-}
-}
-{
-   apply Rle_ge.
-   unfold Rdiv.
-   apply Rmult_le_pos.
-{
-   apply pow_le.
-   exact (proj1 Hx).
-}
-{
-   apply Rlt_le.
-   apply Rinv_0_lt_compat.
-   apply lt_INR_0.
-   omega.
-}
-}
-}
+  intros x Hx eps Heps.
+  destruct (archimed (/ eps)) as (HN,_).
+  assert (0 < up (/ eps))%Z.
+  {
+    apply lt_IZR.
+    apply Rlt_trans with (2 := HN).
+    apply Rinv_0_lt_compat.
+    exact Heps.
+  }
+  case_eq (up (/ eps)).
+  {
+    intros.
+    rewrite H0 in H.
+    discriminate H.
+  }
+  {
+    intros.
+    rewrite H0 in H.
+    rewrite H0 in HN.
+    simpl in HN.
+    pose (N := Pos.to_nat p).
+    fold N in HN.
+    clear H H0.
+    exists N.
+    intros n Hn.
+    unfold R_dist.
+    rewrite Rminus_0_r.
+    unfold Ratan_seq.
+    rewrite Rabs_right.
+    {
+      apply Rle_lt_trans with (1 ^ (2 * n + 1) / INR (2 * n + 1))%R.
+      {
+        unfold Rdiv.
+        apply Rmult_le_compat_r.
+        {
+          apply Rlt_le.
+          apply Rinv_0_lt_compat.
+          apply lt_INR_0.
+          omega.
+        }
+        {
+          apply pow_incr.
+          exact Hx.
+        }
+      }
+      {
+        rewrite pow1.
+        apply Rle_lt_trans with (/ INR (2 * N + 1))%R.
+        {
+          unfold Rdiv.
+          rewrite Rmult_1_l.
+          apply Rinv_le_contravar.
+          {
+            apply lt_INR_0.
+            omega.
+          }
+          {
+            apply le_INR.
+            omega.
+          }
+        }
+        {
+          rewrite <- (Rinv_involutive eps).
+          {
+            apply Rinv_lt_contravar.
+            {
+              apply Rmult_lt_0_compat.
+              {
+                apply Rinv_0_lt_compat.
+                assumption.
+              }
+              {
+                apply lt_INR_0.
+                omega.
+              }
+            }
+            {
+              apply Rlt_trans with (INR N).
+              {
+                destruct (archimed (/ eps)) as (H,_).
+                assert (0 < up (/ eps))%Z.
+                {
+                  apply lt_IZR.
+                  apply Rlt_trans with (2 := H).
+                  apply Rinv_0_lt_compat.
+                  exact Heps.
+                }
+                {
+                  unfold N.
+                  rewrite INR_IZR_INZ, positive_nat_Z.
+                  exact HN.
+                }
+              }
+              {
+                apply lt_INR.
+                omega.
+              }
+            }
+          }
+          {
+            apply Rgt_not_eq.
+            exact Heps.
+          }
+        }
+      }
+    }
+    {
+      apply Rle_ge.
+      unfold Rdiv.
+      apply Rmult_le_pos.
+      {
+        apply pow_le.
+        exact (proj1 Hx).
+      }
+      {
+        apply Rlt_le.
+        apply Rinv_0_lt_compat.
+        apply lt_INR_0.
+        omega.
+      }
+    }
+  }
+  {
+    intros.
+    rewrite H0 in H.
+    discriminate H.
+  }
 Qed.
 
 Definition ps_atan_exists_01 (x : R) (Hx:0 <= x <= 1) :
    {l : R | Un_cv (fun N : nat => sum_f_R0 (tg_alt (Ratan_seq x)) N) l}.
 Proof.
-exact (alternated_series (Ratan_seq x)
-  (Ratan_seq_decreasing _ Hx) (Ratan_seq_converging _ Hx)).
+  apply alternated_series.
+  {
+    apply Ratan_seq_decreasing.
+    assumption.
+  }
+  {
+    apply Ratan_seq_converging.
+    assumption.
+  }
 Defined.
 
 Lemma Ratan_seq_opp : forall x n, Ratan_seq (-x) n = -Ratan_seq x n.
 Proof.
-intros x n; unfold Ratan_seq.
-rewrite !pow_add, !pow_mult, !pow_1.
-unfold Rdiv; replace ((-x) ^ 2) with (x ^ 2) by ring; ring.
+  intros x n.
+  unfold Ratan_seq.
+  rewrite !pow_add.
+  rewrite !pow_mult.
+  rewrite !pow_1.
+  unfold Rdiv.
+  replace ((-x) ^ 2) with (x ^ 2).
+  2:{
+    simpl.
+    rewrite !Rmult_1_r.
+    rewrite <- Ropp_mult_distr_l, Ropp_mult_distr_r, Ropp_involutive.
+    reflexivity.
+  }
+  simpl.
+  repeat rewrite Rmult_1_r.
+  rewrite <- Ropp_mult_distr_r.
+  rewrite !Rmult_assoc.
+  rewrite <- !Ropp_mult_distr_l.
+  rewrite !Rmult_assoc.
+  reflexivity.
 Qed.
 
 Lemma sum_Ratan_seq_opp : 
   forall x n, sum_f_R0 (tg_alt (Ratan_seq (- x))) n =
      - sum_f_R0 (tg_alt (Ratan_seq x)) n.
 Proof.
-intros x n; replace (-sum_f_R0 (tg_alt (Ratan_seq x)) n) with 
-  (-1 * sum_f_R0 (tg_alt (Ratan_seq x)) n) by ring.
-rewrite scal_sum; apply sum_eq; intros i _; unfold tg_alt.
-rewrite Ratan_seq_opp; ring.
+  intros x n.
+  replace (
+    -sum_f_R0 (tg_alt (Ratan_seq x)) n
+  ) with (
+    -1 * sum_f_R0 (tg_alt (Ratan_seq x)) n
+  ).
+  2:{
+    change (-1) with (-R1).
+    rewrite <- Ropp_mult_distr_l, Rmult_1_l.
+    reflexivity.
+  }
+  rewrite scal_sum.
+  apply sum_eq.
+  intros i _.
+  unfold tg_alt.
+  rewrite Ratan_seq_opp.
+  change (-1) with (-R1).
+  rewrite <- Ropp_mult_distr_r.
+  rewrite <- Ropp_mult_distr_r.
+  rewrite Rmult_1_r.
+  reflexivity.
 Qed.
 
 Definition ps_atan_exists_1 (x : R) (Hx : -1 <= x <= 1) :
    {l : R | Un_cv (fun N : nat => sum_f_R0 (tg_alt (Ratan_seq x)) N) l}.
 Proof.
-destruct (Rle_lt_dec 0 x).
-{
- assert (pr : 0 <= x <= 1) by tauto.
- exact (ps_atan_exists_01 x pr).
-}
-{
-assert (pr : 0 <= -x <= 1) by (destruct Hx; split; fourier).
-destruct (ps_atan_exists_01 _ pr) as [v Pv].
-exists (-v).
- apply (Un_cv_ext (fun n => (- 1) * sum_f_R0 (tg_alt (Ratan_seq (- x))) n)).
-{
- intros n; rewrite sum_Ratan_seq_opp; ring.
-}
-{
-replace (-v) with (-1 * v) by ring.
-apply CV_mult;[ | assumption].
-solve[intros; exists 0%nat; intros; rewrite R_dist_eq; auto].
-}
-}
+  destruct (Rle_lt_dec 0 x).
+  {
+    assert (pr : 0 <= x <= 1).
+    {
+      split.
+      { assumption. }
+      { apply Hx. }
+    }
+    exact (ps_atan_exists_01 x pr).
+  }
+  {
+    assert (pr : 0 <= -x <= 1).
+    {
+      destruct Hx.
+      split.
+      {
+        apply Ropp_le_cancel.
+        rewrite Ropp_involutive, Ropp_0.
+        left.
+        assumption.
+      }
+      {
+        apply Ropp_le_cancel.
+        rewrite Ropp_involutive.
+        assumption.
+      }
+    }
+    destruct (ps_atan_exists_01 _ pr) as [v Pv].
+    exists (-v).
+    apply (Un_cv_ext (fun n => (- 1) * sum_f_R0 (tg_alt (Ratan_seq (- x))) n)).
+    {
+      intros n.
+      rewrite sum_Ratan_seq_opp.
+      change (-1) with (-R1).
+      rewrite <- Ropp_mult_distr_l, <- Ropp_mult_distr_r, Ropp_involutive, Rmult_1_l.
+      reflexivity.
+    }
+    {
+      replace (-v) with (-1 * v).
+      2:{
+        change (-1) with (-R1).
+        rewrite <- Ropp_mult_distr_l, Rmult_1_l.
+        reflexivity.
+      }
+      apply CV_mult.
+      2:assumption.
+      unfold Un_cv.
+      intros.
+      exists 0%nat.
+      intros.
+      rewrite R_dist_eq.
+      assumption.
+    }
+  }
 Qed.
 
 Definition in_int (x : R) : {-1 <= x <= 1}+{~ -1 <= x <= 1}.
 Proof.
-destruct (Rle_lt_dec x 1).
-{
- destruct (Rle_lt_dec (-1) x).
-{
-  left;split; auto.
-}
-{
- right;intros [a1 a2]; fourier.
-}
-}
-{
-right;intros [a1 a2]; fourier.
-}
+  destruct (Rle_lt_dec x 1).
+  {
+    destruct (Rle_lt_dec (-1) x).
+    {
+      left.
+      split.
+      { assumption. }
+      { assumption. }
+    }
+    {
+      right.
+      intros [a1 a2].
+      eapply Rlt_irrefl.
+      eapply Rlt_le_trans.
+      { exact r0. }
+      { assumption. }
+    }
+  }
+  {
+    right.
+    intros [a1 a2].
+    eapply Rlt_irrefl.
+    eapply Rlt_le_trans.
+    { exact r. }
+    { assumption. }
+  }
 Qed.
 
 Definition ps_atan (x : R) : R :=
@@ -1517,188 +1716,296 @@ Definition ps_atan (x : R) : R :=
 
 Lemma ps_atan0_0 : ps_atan 0 = 0.
 Proof.
-unfold ps_atan.
- destruct (in_int 0) as [h1 | h2].
-{
- destruct (ps_atan_exists_1 0 h1) as [v P].
- apply (UL_sequence _ _ _ P).
-  apply (Un_cv_ext (fun n => 0)).
-{
-  symmetry;apply sum_eq_R0.
-  intros i _; unfold tg_alt, Ratan_seq; rewrite plus_comm; simpl.
-  unfold Rdiv; rewrite !Rmult_0_l, Rmult_0_r; reflexivity.
-}
-{
- intros eps ep; exists 0%nat; intros n _; unfold R_dist.
- rewrite Rminus_0_r, Rabs_pos_eq; auto with real.
-}
-}
-{
-case h2; split; fourier.
-}
+  unfold ps_atan.
+  destruct (in_int 0) as [h1 | h2].
+  {
+    destruct (ps_atan_exists_1 0 h1) as [v P].
+    apply (UL_sequence _ _ _ P).
+    apply (Un_cv_ext (fun n => 0)).
+    {
+      symmetry.
+      apply sum_eq_R0.
+      intros i _.
+      unfold tg_alt, Ratan_seq.
+      rewrite plus_comm.
+      simpl.
+      unfold Rdiv.
+      rewrite !Rmult_0_l, Rmult_0_r.
+      reflexivity.
+    }
+    {
+      intros eps ep.
+      exists 0%nat.
+      intros n _.
+      unfold R_dist.
+      rewrite Rminus_0_r.
+      rewrite Rabs_pos_eq.
+      { assumption. }
+      { apply Rle_refl. }
+    }
+  }
+  {
+    case h2.
+    split.
+    {
+      rewrite <- Ropp_0.
+      apply Ropp_le_contravar.
+      left.
+      exact Rlt_0_1.
+    }
+    {
+      left.
+      exact Rlt_0_1.
+    }
+  }
 Qed.
 
 Lemma ps_atan_exists_1_opp :
   forall x h h', proj1_sig (ps_atan_exists_1 (-x) h) = 
      -(proj1_sig (ps_atan_exists_1 x h')).
 Proof.
-intros x h h'; destruct (ps_atan_exists_1 (-x) h) as [v Pv].
-destruct (ps_atan_exists_1 x h') as [u Pu]; simpl.
-assert (Pu' : Un_cv (fun N => (-1) * sum_f_R0 (tg_alt (Ratan_seq x)) N) (-1 * u)).
- apply CV_mult;[ | assumption].
- intros eps ep; exists 0%nat; intros; rewrite R_dist_eq; assumption.  
-assert (Pv' : Un_cv
-           (fun N : nat => -1 * sum_f_R0 (tg_alt (Ratan_seq x)) N) v).
- apply Un_cv_ext with (2 := Pv); intros n; rewrite sum_Ratan_seq_opp; ring.
-replace (-u) with (-1 * u) by ring.
-apply UL_sequence with (1:=Pv') (2:= Pu').
+  intros x h h'.
+  destruct (ps_atan_exists_1 (-x) h) as [v Pv].
+  destruct (ps_atan_exists_1 x h') as [u Pu].
+  simpl.
+  assert (Pu' : Un_cv (fun N => (-1) * sum_f_R0 (tg_alt (Ratan_seq x)) N) (-1 * u)).
+  {
+    apply CV_mult.
+    2:assumption.
+    intros eps ep.
+    exists 0%nat.
+    intros.
+    rewrite R_dist_eq.
+    assumption.
+  }
+  assert (Pv' : Un_cv (fun N : nat => -1 * sum_f_R0 (tg_alt (Ratan_seq x)) N) v).
+  {
+    apply Un_cv_ext with (2 := Pv).
+    intros n.
+    rewrite sum_Ratan_seq_opp.
+    change (-1) with (-R1).
+    rewrite <- Ropp_mult_distr_l, Rmult_1_l.
+    reflexivity.
+  }
+  replace (-u) with (-1 * u).
+  2:{
+    change (-1) with (-R1).
+    rewrite <- Ropp_mult_distr_l, Rmult_1_l.
+    reflexivity.
+  }
+  apply UL_sequence with (1:=Pv') (2:= Pu').
 Qed.
 
 Lemma ps_atan_opp : forall x, ps_atan (-x) = -ps_atan x.
 Proof.
-intros x; unfold ps_atan.
-destruct (in_int (- x)) as [inside | outside].
-{
- destruct (in_int x) as [ins' | outs'].
-{
- generalize (ps_atan_exists_1_opp x inside ins').
-  intros h; exact h.
-}
-{
- destruct inside; case outs'; split; fourier.
-}
-}
-{   
-destruct (in_int x) as [ins' | outs'].
-{
- destruct outside; case ins'; split; fourier.
-}
-{
-apply atan_opp.
-}
-}
+  intros x; unfold ps_atan.
+  destruct (in_int (- x)) as [inside | outside].
+  {
+    destruct (in_int x) as [ins' | outs'].
+    {
+      generalize (ps_atan_exists_1_opp x inside ins').
+      intros h.
+      exact h.
+    }
+    {
+      destruct inside.
+      case outs'.
+      split.
+      {
+        apply Ropp_le_cancel.
+        change (-1) with (-R1).
+        rewrite Ropp_involutive.
+        assumption.
+      }
+      {
+        apply Ropp_le_cancel.
+        assumption.
+      }
+    }
+  }
+  {
+    destruct (in_int x) as [ins' | outs'].
+    {
+      destruct outside.
+      case ins'.
+      split.
+      {
+        apply Ropp_le_contravar.
+        assumption.
+      }
+      {
+        apply Ropp_le_cancel.
+        rewrite Ropp_involutive.
+        assumption.
+      }
+    }
+    { apply atan_opp. }
+  }
 Qed.
 
 (** atan = ps_atan *)
+
+Remark continuity_sqr : continuity (fun x1 : R => x1 ^ 2).
+Proof.
+  apply derivable_continuous.
+  apply derivable_pow.
+Qed.
 
 Lemma ps_atanSeq_continuity_pt_1 : forall (N:nat) (x:R),
       0 <= x ->
       x <= 1 ->
       continuity_pt (fun x => sum_f_R0 (tg_alt (Ratan_seq x)) N) x.
 Proof.
-assert (Sublemma : forall (x:R) (N:nat), sum_f_R0 (tg_alt (Ratan_seq x)) N = x * (comp (fun x => sum_f_R0 (fun n => (fun i : nat => (-1) ^ i / INR (2 * i + 1)) n * x ^ n) N) (fun x => x ^ 2) x)).
-{
- intros x N.
-  induction N.
-{
-   unfold tg_alt, Ratan_seq, comp ; simpl ; field.
-}
-{
-   simpl sum_f_R0 at 1.
-   rewrite IHN.
-   replace (comp (fun x => sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x ^ n) (S N)) (fun x => x ^ 2))
-     with (comp (fun x => sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x ^ n) N + (-1) ^ (S N) / INR (2 * (S N) + 1) * x ^ (S N)) (fun x => x ^ 2)).
-{
-   unfold comp.
-   rewrite Rmult_plus_distr_l.
-   apply Rplus_eq_compat_l.
-   unfold tg_alt, Ratan_seq.
-   rewrite <- Rmult_assoc.
-   case (Req_dec x 0) ; intro Hyp.
-{
-   rewrite Hyp ; rewrite pow_i.
-{ rewrite Rmult_0_l ; rewrite Rmult_0_l.
-   unfold Rdiv ; rewrite Rmult_0_l ; rewrite Rmult_0_r ; reflexivity.
-}
-{
-   intuition.
-}
-}
-{
-   replace (x * ((-1) ^ S N / INR (2 * S N + 1)) * (x ^ 2) ^ S N) with (x ^ (2 * S N + 1) * ((-1) ^ S N / INR (2 * S N + 1))).
-{
-   rewrite Rmult_comm ; unfold Rdiv at 1.
-   rewrite Rmult_assoc ; apply Rmult_eq_compat_l.
-   field. apply Rgt_not_eq ; intuition.
-}
-{
-   rewrite Rmult_assoc.
-   replace (x * ((-1) ^ S N / INR (2 * S N + 1) * (x ^ 2) ^ S N)) with (((-1) ^ S N / INR (2 * S N + 1) * (x ^ 2) ^ S N) * x).
-{
-   rewrite Rmult_assoc.
-   replace ((x ^ 2) ^ S N * x) with (x ^ (2 * S N + 1)).
-{
-   rewrite Rmult_comm at 1 ; reflexivity.
-}
-{
-   rewrite <- pow_mult.
-   assert (Temp : forall x n, x ^ n * x = x ^ (n+1)).
-{
-    intros a n ; induction n.
-{ rewrite pow_O. simpl ; intuition.
-}
-{
-    simpl ; rewrite Rmult_assoc ; rewrite IHn ; intuition.
-}
-}
-{
-   rewrite Temp ; reflexivity.
-}
-}
-}
-{
-   rewrite Rmult_comm ; reflexivity.
-}
-}
-}
-}
-{
-   intuition.
-}
-}
-}
-{
-intros N x x_lb x_ub.
- intros eps eps_pos.
- assert (continuity_id : continuity id).
-{
- apply derivable_continuous ; exact derivable_id.
-}
-{
-assert (Temp := continuity_mult id (comp
-        (fun x1 : R =>
-         sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x1 ^ n) N)
-        (fun x1 : R => x1 ^ 2))
-           continuity_id).
-assert (Temp2 : continuity
-    (comp
-       (fun x1 : R =>
-        sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x1 ^ n) N)
-       (fun x1 : R => x1 ^ 2))).
-{
- apply continuity_comp.
-{
- reg.
-}
-{
- apply continuity_finite_sum.
-}
-}
-{
- elim (Temp Temp2 x eps eps_pos) ; clear Temp Temp2 ; intros alpha T ; destruct T as (alpha_pos, T).
- exists alpha ; split.
-{
- intuition.
-}
-{
-intros x0 x0_cond.
- rewrite Sublemma ; rewrite Sublemma.
-apply T.
-intuition.
-}
-}
-}
-}
+  assert (Sublemma : forall (x:R) (N:nat), sum_f_R0 (tg_alt (Ratan_seq x)) N = x * (comp (fun x => sum_f_R0 (fun n => (fun i : nat => (-1) ^ i / INR (2 * i + 1)) n * x ^ n) N) (fun x => x ^ 2) x)).
+  {
+    intros x N.
+    induction N.
+    {
+      unfold tg_alt.
+      unfold Ratan_seq.
+      unfold comp.
+      simpl.
+      unfold Rdiv.
+      rewrite Rinv_1.
+      rewrite !Rmult_1_r, !Rmult_1_l.
+      reflexivity.
+    }
+    {
+      simpl sum_f_R0 at 1.
+      rewrite IHN.
+      replace (
+        comp (fun x => sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x ^ n) (S N)) (fun x => x ^ 2)
+      ) with (
+        comp (fun x => sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x ^ n) N + (-1) ^ (S N) / INR (2 * (S N) + 1) * x ^ (S N)) (fun x => x ^ 2)
+      ).
+      {
+        unfold comp.
+        rewrite Rmult_plus_distr_l.
+        apply Rplus_eq_compat_l.
+        unfold tg_alt, Ratan_seq.
+        rewrite <- Rmult_assoc.
+        case (Req_dec x 0).
+        {
+          intro Hyp.
+          rewrite Hyp.
+          rewrite pow_i.
+          {
+            rewrite Rmult_0_l.
+            rewrite Rmult_0_l.
+            unfold Rdiv.
+            rewrite Rmult_0_l.
+            rewrite Rmult_0_r.
+            reflexivity.
+          }
+          { omega. }
+        }
+        {
+          replace (
+            x * ((-1) ^ S N / INR (2 * S N + 1)) * (x ^ 2) ^ S N
+          ) with (
+            x ^ (2 * S N + 1) * ((-1) ^ S N / INR (2 * S N + 1))
+          ).
+          {
+            intro Hyp.
+            rewrite Rmult_comm.
+            unfold Rdiv at 1.
+            rewrite Rmult_assoc.
+            apply Rmult_eq_compat_l.
+            unfold Rdiv.
+            rewrite Rmult_comm.
+            reflexivity.
+          }
+          {
+            rewrite Rmult_assoc.
+            replace (
+              x * ((-1) ^ S N / INR (2 * S N + 1) * (x ^ 2) ^ S N)
+            ) with (
+              ((-1) ^ S N / INR (2 * S N + 1) * (x ^ 2) ^ S N) * x
+            ).
+            {
+              rewrite Rmult_assoc.
+              replace ((x ^ 2) ^ S N * x) with (x ^ (2 * S N + 1)).
+              {
+                rewrite Rmult_comm at 1.
+                reflexivity.
+              }
+              {
+                rewrite <- pow_mult.
+                assert (Temp : forall x n, x ^ n * x = x ^ (n+1)).
+                {
+                  intros a n.
+                  induction n.
+                  {
+                    rewrite pow_O.
+                    simpl.
+                    rewrite Rmult_1_l, Rmult_1_r.
+                    reflexivity.
+                  }
+                  {
+                    simpl.
+                    rewrite Rmult_assoc.
+                    rewrite IHn.
+                    reflexivity.
+                  }
+                }
+                {
+                  rewrite Temp.
+                  reflexivity.
+                }
+              }
+            }
+            {
+              rewrite Rmult_comm.
+              reflexivity.
+            }
+          }
+        }
+      }
+      {
+        simpl.
+        reflexivity.
+      }
+    }
+  }
+  {
+    intros N x x_lb x_ub.
+    intros eps eps_pos.
+    assert (continuity_id : continuity id).
+    {
+     apply derivable_continuous.
+     exact derivable_id.
+    }
+    assert (Temp := continuity_mult id
+      (comp
+        (fun x1 : R => sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x1 ^ n) N)
+        (fun x1 : R => x1 ^ 2)
+      )
+      continuity_id
+    ).
+    assert (Temp2 : continuity (comp
+      (fun x1 : R => sum_f_R0 (fun n : nat => (-1) ^ n / INR (2 * n + 1) * x1 ^ n) N)
+      (fun x1 : R => x1 ^ 2))
+    ).
+    {
+      apply continuity_comp.
+      { exact continuity_sqr. }
+      { apply continuity_finite_sum. }
+    }
+    elim (Temp Temp2 x eps eps_pos).
+    clear Temp Temp2.
+    intros alpha T.
+    destruct T as (alpha_pos, T).
+    exists alpha.
+    split.
+    { assumption. }
+    {
+      intros x0 x0_cond.
+      rewrite Sublemma.
+      rewrite Sublemma.
+      apply T.
+      assumption.
+    }
+  }
 Qed.
 
 (** Definition of ps_atan's derivative *)
@@ -1708,326 +2015,560 @@ Definition Datan_seq := fun (x:R) (n:nat) => x ^ (2*n).
 Lemma pow_lt_1_compat : forall x n, 0 <= x < 1 -> (0 < n)%nat ->
    0 <= x ^ n < 1.
 Proof.
-intros x n hx; induction 1; simpl.
-{
- rewrite Rmult_1_r; tauto.
-}
-{
-split.
-{
- apply Rmult_le_pos; tauto.
-}
-{
-rewrite <- (Rmult_1_r 1); apply Rmult_le_0_lt_compat; intuition.
-}
-}
+  intros x n hx.
+  induction 1.
+  {
+    simpl.
+    rewrite Rmult_1_r.
+    assumption.
+  }
+  {
+    simpl.
+    split.
+    {
+      apply Rmult_le_pos.
+      { apply hx. }
+      { apply IHle. }
+    }
+    {
+      rewrite <- (Rmult_1_r 1).
+      apply Rmult_le_0_lt_compat.
+      { apply hx. }
+      { apply IHle. }
+      { apply hx. }
+      { apply IHle. }
+    }
+  }
 Qed.
 
 Lemma Datan_seq_Rabs : forall x n, Datan_seq (Rabs x) n = Datan_seq x n.
 Proof.
-intros x n; unfold Datan_seq; rewrite !pow_mult, pow2_abs; reflexivity.
+  intros x n.
+  unfold Datan_seq.
+  rewrite !pow_mult.
+  rewrite pow2_abs.
+  reflexivity.
 Qed.
 
 Lemma Datan_seq_pos : forall x n, 0 < x -> 0 < Datan_seq x n.
 Proof.
-intros x n x_lb ; unfold Datan_seq ; induction n.
-{
- simpl ; intuition.
-}
-{
- replace (x ^ (2 * S n)) with ((x ^ 2) * (x ^ (2 * n))).
-{
- apply Rmult_gt_0_compat.
-{
- replace (x^2) with (x*x) by field ; apply Rmult_gt_0_compat ; assumption.
-}
-{
- assumption.
-}
-}
-{
- replace (2 * S n)%nat with (S (S (2 * n))) by intuition.
- simpl ; field.
-}
-}
+  intros x n x_lb.
+  unfold Datan_seq.
+  induction n.
+  {
+    simpl.
+    exact Rlt_0_1.
+  }
+  {
+    replace (x ^ (2 * S n)) with ((x ^ 2) * (x ^ (2 * n))).
+    {
+      apply Rmult_gt_0_compat.
+      {
+        replace (x^2) with (x*x).
+        2:{
+          simpl.
+          rewrite Rmult_1_r.
+          reflexivity.
+        }
+        apply Rmult_gt_0_compat.
+        { assumption. }
+        { assumption. }
+      }
+      { assumption. }
+    }
+    {
+      replace (2 * S n)%nat with (S (S (2 * n))).
+      {
+        simpl.
+        rewrite Rmult_1_r, !Rmult_assoc.
+        reflexivity.
+      }
+      simpl.
+      omega.
+    }
+  }
 Qed.
 
 Lemma Datan_sum_eq :forall x n,
   sum_f_R0 (tg_alt (Datan_seq x)) n = (1 - (- x ^ 2) ^ S n)/(1 + x ^ 2).
 Proof.
-intros x n.
-assert (dif : - x ^ 2 <> 1).
-{
-apply Rlt_not_eq; apply Rle_lt_trans with 0;[ | apply Rlt_0_1].
-assert (t := pow2_ge_0 x); fourier.
-}
-{
-replace (1 + x ^ 2) with (1 - - (x ^ 2)) by ring; rewrite <- (tech3 _ n dif).
-apply sum_eq; unfold tg_alt, Datan_seq; intros i _.
-rewrite pow_mult, <- Rpow_mult_distr.
-f_equal.
-ring.
-}
+  intros x n.
+  assert (dif : - x ^ 2 <> 1).
+  {
+    apply Rlt_not_eq.
+    apply Rle_lt_trans with 0.
+    2:apply Rlt_0_1.
+    assert (t := pow2_ge_0 x).
+    rewrite <- Ropp_0.
+    apply Ropp_le_contravar.
+    assumption.
+  }
+  replace (1 + x ^ 2) with (1 - - (x ^ 2)).
+  2:{
+    unfold Rminus.
+    rewrite Ropp_involutive.
+    reflexivity.
+  }
+  rewrite <- (tech3 _ n dif).
+  apply sum_eq.
+  unfold tg_alt.
+  unfold Datan_seq.
+  intros i _.
+  rewrite pow_mult.
+  rewrite <- Rpow_mult_distr.
+  change (-1) with (-R1).
+  rewrite <- Ropp_mult_distr_l.
+  rewrite Rmult_1_l.
+  reflexivity.
 Qed.
 
 Lemma Datan_seq_increasing : forall x y n, (n > 0)%nat -> 0 <= x < y -> Datan_seq x n < Datan_seq y n.
 Proof.
-intros x y n n_lb x_encad ; assert (x_pos : x >= 0) by intuition.
- assert (y_pos : y > 0).
-{ apply Rle_lt_trans with (r2:=x) ; intuition.
-}
-{
- induction n.
-{
- apply False_ind ; intuition.
-}
-{
- clear -x_encad x_pos y_pos ; induction n ; unfold Datan_seq.
-{
- case x_pos ; clear x_pos ; intro x_pos.
-{
- simpl ; apply Rmult_gt_0_lt_compat ; intuition. fourier.
-}
-{
- rewrite x_pos ; rewrite pow_i.
-{ replace (y ^ (2*1)) with (y*y).
-{
- apply Rmult_gt_0_compat ; assumption.
-}
-{
- simpl ; field.
-}
-}
-{
- intuition.
-}
-}
-}
-{
- assert (Hrew : forall a, a^(2 * S (S n)) = (a ^ 2) * (a ^ (2 * S n))).
-{
-  clear ; intro a ; replace (2 * S (S n))%nat with (S (S (2 * S n)))%nat by intuition.
-  simpl ; field.
-}
-{
- case x_pos ; clear x_pos ; intro x_pos.
-{
- rewrite Hrew ; rewrite Hrew.
- apply Rmult_gt_0_lt_compat ; intuition.
- apply Rmult_gt_0_lt_compat ; intuition ; fourier.
-}
-{
- rewrite x_pos.
- rewrite pow_i ; intuition.
-}
-}
-}
-}
-}
+  intros x y n n_lb x_encad.
+  assert (x_pos : x >= 0).
+  {
+    apply Rle_ge.
+    apply x_encad.
+  }
+  assert (y_pos : y > 0).
+  {
+    apply Rle_lt_trans with (r2:=x).
+    {
+    apply Rge_le.
+    assumption.
+    }
+    { apply x_encad. }
+  }
+  {
+    induction n.
+    {
+      apply False_ind.
+      inversion n_lb.
+    }
+    {
+      clear -x_encad x_pos y_pos.
+      induction n.
+      {
+        unfold Datan_seq.
+        case x_pos.
+        clear x_pos.
+        intro x_pos.
+        {
+          simpl.
+          apply Rmult_gt_0_lt_compat.
+          {
+            rewrite Rmult_1_r.
+            assumption.
+          }
+          { assumption. }
+          { apply x_encad. }
+          {
+            rewrite !Rmult_1_r.
+            apply x_encad.
+          }
+        }
+        {
+          clear x_pos.
+          intro x_pos.
+          rewrite x_pos.
+          rewrite pow_i.
+          {
+            replace (y ^ (2*1)) with (y*y).
+            {
+              apply Rmult_gt_0_compat.
+              { assumption. }
+              { assumption. }
+            }
+            {
+              simpl.
+              rewrite Rmult_1_r.
+              reflexivity.
+            }
+          }
+          { omega. }
+        }
+      }
+      {
+        assert (Hrew : forall a, a^(2 * S (S n)) = (a ^ 2) * (a ^ (2 * S n))).
+        {
+          clear.
+          intro a.
+          replace (2 * S (S n))%nat with (S (S (2 * S n)))%nat.
+          2:omega.
+          simpl.
+          rewrite !Rmult_1_r, !Rmult_assoc.
+          reflexivity.
+        }
+        {
+          unfold Datan_seq.
+          case x_pos.
+          clear x_pos.
+          intro x_pos.
+          {
+            rewrite Hrew.
+            rewrite Hrew.
+            apply Rmult_gt_0_lt_compat.
+            {
+              apply pow_lt.
+              assumption.
+            }
+            {
+              apply pow_lt.
+              assumption.
+            }
+            apply Rmult_gt_0_lt_compat.
+            {
+              rewrite Rmult_1_r.
+              assumption.
+            }
+            { assumption. }
+            { apply x_encad. }
+            {
+              rewrite !Rmult_1_r.
+              apply x_encad.
+            }
+            {
+              unfold Datan_seq in IHn.
+              assumption.
+            }
+          }
+          {
+            clear x_pos.
+            intro x_pos.
+            rewrite x_pos.
+            rewrite pow_i.
+            {
+              apply pow_lt.
+              subst x.
+              apply x_encad.
+            }
+            { omega. }
+          }
+        }
+      }
+    }
+  }
 Qed.
 
 Lemma Datan_seq_decreasing : forall x,  -1 < x -> x < 1 -> Un_decreasing (Datan_seq x).
 Proof.
-intros x x_lb x_ub n.
-unfold Datan_seq.
-replace (2 * S n)%nat with (2 + 2 * n)%nat by ring.
-rewrite <- (Rmult_1_l (x ^ (2 * n))).
-rewrite pow_add.
-apply Rmult_le_compat_r.
-{
-rewrite pow_mult; apply pow_le, pow2_ge_0.
-}
-{
-apply Rlt_le; rewrite <- pow2_abs.
-assert (intabs : 0 <= Rabs x < 1).
-{
- split;[apply Rabs_pos | apply Rabs_def1]; tauto.
-}
-{
-apply (pow_lt_1_compat (Rabs x) 2) in intabs.
-{
- tauto.
-}
-{
-omega.
-}
-}
-}
+  intros x x_lb x_ub n.
+  unfold Datan_seq.
+  replace (2 * S n)%nat with (2 + 2 * n)%nat.
+  2:{
+    simpl.
+    repeat rewrite (plus_comm _ 0%nat).
+    simpl.
+    rewrite <- plus_n_Sm.
+    reflexivity.
+  }
+  rewrite <- (Rmult_1_l (x ^ (2 * n))).
+  rewrite pow_add.
+  apply Rmult_le_compat_r.
+  {
+    rewrite pow_mult.
+    apply pow_le.
+    apply pow2_ge_0.
+  }
+  {
+    apply Rlt_le.
+    rewrite <- pow2_abs.
+    assert (intabs : 0 <= Rabs x < 1).
+    {
+      split.
+      { apply Rabs_pos. }
+      {
+        apply Rabs_def1.
+        { assumption. }
+        { assumption. }
+      }
+    }
+    apply (pow_lt_1_compat (Rabs x) 2) in intabs.
+    { apply intabs. }
+    { omega. }
+  }
 Qed.
 
 Lemma Datan_seq_CV_0 : forall x, -1 < x -> x < 1 -> Un_cv (Datan_seq x) 0.
 Proof.
-intros x x_lb x_ub eps eps_pos.
-assert (x_ub2 : Rabs (x^2) < 1).
-{
- rewrite Rabs_pos_eq;[ | apply pow2_ge_0].
- rewrite <- pow2_abs.
- assert (H: 0 <= Rabs x < 1)
-   by (split;[apply Rabs_pos | apply Rabs_def1; auto]).
- apply (pow_lt_1_compat _ 2) in H;[tauto | omega].
-}
-{
-elim (pow_lt_1_zero (x^2) x_ub2 eps eps_pos) ; intros N HN ; exists N ; intros n Hn.
-unfold R_dist, Datan_seq.
-replace (x ^ (2 * n) - 0) with ((x ^ 2) ^ n).
-{ apply HN ; assumption.
-}
-{
-rewrite pow_mult ; field.
-}
-}
+  intros x x_lb x_ub eps eps_pos.
+  assert (x_ub2 : Rabs (x^2) < 1).
+  {
+    rewrite Rabs_pos_eq.
+    2:apply pow2_ge_0.
+    rewrite <- pow2_abs.
+    assert (H: 0 <= Rabs x < 1).
+    {
+      split.
+      { apply Rabs_pos. }
+      {
+        apply Rabs_def1.
+        { assumption. }
+        { assumption. }
+      }
+    }
+    apply (pow_lt_1_compat _ 2) in H.
+    { apply H. }
+    { omega. }
+  }
+  {
+    elim (pow_lt_1_zero (x^2) x_ub2 eps eps_pos).
+    intros N HN.
+    exists N.
+    intros n Hn.
+    unfold R_dist, Datan_seq.
+    replace (x ^ (2 * n) - 0) with ((x ^ 2) ^ n).
+    {
+      apply HN.
+      assumption.
+    }
+    {
+      rewrite pow_mult.
+      unfold Rminus.
+      rewrite Ropp_0, Rplus_0_r.
+      reflexivity.
+    }
+  }
 Qed.
 
 Lemma Datan_lim : forall x, -1 < x -> x < 1 ->
     Un_cv (fun N : nat => sum_f_R0 (tg_alt (Datan_seq x)) N) (/ (1 + x ^ 2)).
 Proof.
-intros x x_lb x_ub eps eps_pos.
-assert (Tool0 : 0 <= x ^ 2) by apply pow2_ge_0.
-assert (Tool1 : 0 < (1 + x ^ 2)).
-{
- solve[apply Rplus_lt_le_0_compat ; intuition].
-}
-{
-assert (Tool2 : / (1 + x ^ 2) > 0).
-{
- apply Rinv_0_lt_compat ; tauto.
-}
-{
-assert (x_ub2' : 0<= Rabs (x^2) < 1).
-{
- rewrite Rabs_pos_eq, <- pow2_abs;[ | apply pow2_ge_0].
- apply pow_lt_1_compat;[split;[apply Rabs_pos | ] | omega].
- apply Rabs_def1; assumption.
-}
-{
-assert (x_ub2 : Rabs (x^2) < 1) by tauto.
-assert (eps'_pos : ((1+x^2)*eps) > 0).
-{
-  apply Rmult_gt_0_compat ; assumption.
-}
-{
-elim (pow_lt_1_zero _ x_ub2 _ eps'_pos) ; intros N HN ; exists N.
-intros n Hn.
-assert (H1 : - x^2 <> 1).
-{
- apply Rlt_not_eq; apply Rle_lt_trans with (2 := Rlt_0_1).
-assert (t := pow2_ge_0 x); fourier.
-}
-{
-rewrite Datan_sum_eq. 
-unfold R_dist.
-assert (tool : forall a b, a / b - /b = (-1 + a) /b).
-{
- intros a b; rewrite <- (Rmult_1_l (/b)); unfold Rdiv, Rminus.
- rewrite <- Ropp_mult_distr_l_reverse, Rmult_plus_distr_r, Rplus_comm.
- reflexivity.
-}
-{
-set (u := 1 + x ^ 2); rewrite tool; unfold Rminus; rewrite <- Rplus_assoc.
-unfold Rdiv, u.
-change (-1) with (-(1)).
-rewrite Rplus_opp_l, Rplus_0_l, Ropp_mult_distr_l_reverse, Rabs_Ropp.
-rewrite Rabs_mult; clear tool u.
-assert (tool : forall k, Rabs ((-x ^ 2) ^ k) = Rabs ((x ^ 2) ^ k)).
-{
- clear -Tool0; induction k;[simpl; rewrite Rabs_R1;tauto | ].
- rewrite <- !(tech_pow_Rmult _ k), !Rabs_mult, Rabs_Ropp, IHk, Rabs_pos_eq.
-{
-  reflexivity.
-}
-{
- exact Tool0.
-}
-}
-{
-rewrite tool, (Rabs_pos_eq (/ _)); clear tool;[ | apply Rlt_le; assumption].
-assert (tool : forall a b c, 0 < b -> a < b * c -> a * / b < c).
-{
- intros a b c bp h; replace c with (b * c * /b).
-{
-  apply Rmult_lt_compat_r.
-{  
-   apply Rinv_0_lt_compat; assumption.
-}
-{
-  assumption.
-}
-}
-{
- field; apply Rgt_not_eq; exact bp.
-}
-}
-{
-apply tool;[exact Tool1 | ].
-apply HN; omega.
-}
-}
-}
-}
-}
-}
-}
-}
+  intros x x_lb x_ub eps eps_pos.
+  assert (Tool0 : 0 <= x ^ 2).
+  { apply pow2_ge_0. }
+  assert (Tool1 : 0 < (1 + x ^ 2)).
+  {
+    apply Rplus_lt_le_0_compat.
+    { exact Rlt_0_1. }
+    { assumption. }
+  }
+  assert (Tool2 : / (1 + x ^ 2) > 0).
+  {
+    apply Rinv_0_lt_compat.
+    assumption.
+  }
+  assert (x_ub2' : 0<= Rabs (x^2) < 1).
+  {
+    rewrite Rabs_pos_eq.
+    {
+      rewrite <- pow2_abs.
+      apply pow_lt_1_compat.
+      {
+        split.
+        { apply Rabs_pos. }
+        {
+          apply Rabs_def1.
+          { assumption. }
+          { assumption. }
+        }
+      }
+      { omega. }
+    }
+    { assumption. }
+  }
+  assert (x_ub2 : Rabs (x^2) < 1).
+  { apply x_ub2'. }
+  assert (eps'_pos : ((1+x^2)*eps) > 0).
+  {
+    apply Rmult_gt_0_compat.
+    { assumption. }
+    { assumption. }
+  }
+  elim (pow_lt_1_zero _ x_ub2 _ eps'_pos).
+  intros N HN.
+  exists N.
+  intros n Hn.
+  assert (H1 : - x^2 <> 1).
+  {
+    apply Rlt_not_eq.
+    apply Rle_lt_trans with (2 := Rlt_0_1).
+    assert (t := pow2_ge_0 x).
+    apply Ropp_le_cancel.
+    rewrite Ropp_0, Ropp_involutive.
+    assumption.
+  }
+  rewrite Datan_sum_eq. 
+  unfold R_dist.
+  assert (tool : forall a b, a / b - /b = (-1 + a) /b).
+  {
+    intros a b.
+    rewrite <- (Rmult_1_l (/b)).
+    unfold Rdiv, Rminus.
+    rewrite <- Ropp_mult_distr_l_reverse, Rmult_plus_distr_r, Rplus_comm.
+    reflexivity.
+  }
+  set (u := 1 + x ^ 2).
+  rewrite tool.
+  unfold Rminus.
+  rewrite <- Rplus_assoc.
+  unfold Rdiv, u.
+  change (-1) with (-(1)).
+  rewrite Rplus_opp_l, Rplus_0_l, Ropp_mult_distr_l_reverse, Rabs_Ropp.
+  rewrite Rabs_mult.
+  clear tool u.
+  assert (tool : forall k, Rabs ((-x ^ 2) ^ k) = Rabs ((x ^ 2) ^ k)).
+  {
+    clear -Tool0.
+    induction k.
+    {
+      simpl.
+      reflexivity.
+    }
+    {
+      rewrite <- !(tech_pow_Rmult _ k), !Rabs_mult, Rabs_Ropp, IHk, Rabs_pos_eq.
+      { reflexivity. }
+      { exact Tool0. }
+    }
+  }
+  rewrite tool, (Rabs_pos_eq (/ _)).
+  2:{
+    apply Rlt_le.
+    assumption.
+  }
+  {
+    clear tool.
+    assert (tool : forall a b c, 0 < b -> a < b * c -> a * / b < c).
+    {
+      intros a b c bp h.
+      replace c with (b * c * /b).
+      {
+        apply Rmult_lt_compat_r.
+        {
+          apply Rinv_0_lt_compat.
+          assumption.
+        }
+        { assumption. }
+      }
+      {
+        rewrite Rmult_comm.
+        rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
+        reflexivity.
+        apply Rgt_not_eq.
+        assumption.
+      }
+    }
+    {
+      apply tool.
+      { assumption. }
+      {
+        apply HN.
+        omega.
+      }
+    }
+  }
 Qed.
 
 Lemma Datan_CVU_prelim : forall c (r : posreal), Rabs c + r < 1 ->
  CVU (fun N x => sum_f_R0 (tg_alt (Datan_seq x)) N)
      (fun y : R => / (1 + y ^ 2)) c r.
 Proof.
-intros c r ub_ub eps eps_pos.
-apply (Alt_CVU (fun x n => Datan_seq n x) 
-         (fun x => /(1 + x ^ 2))
-         (Datan_seq (Rabs c + r)) c r).
-{
-     intros x inb; apply Datan_seq_decreasing;
-      try (apply Boule_lt in inb; apply Rabs_def2 in inb;
-         destruct inb; fourier).
-}
-{
-    intros x inb; apply Datan_seq_CV_0;
-      try (apply Boule_lt in inb; apply Rabs_def2 in inb;
-         destruct inb; fourier).
-}
-{
-   intros x inb; apply (Datan_lim x);
-      try (apply Boule_lt in inb; apply Rabs_def2 in inb;
-         destruct inb; fourier).
-}
-{
-  intros x [ | n] inb.
-{
-   solve[unfold Datan_seq; apply Rle_refl].
-}
-{
-  rewrite <- (Datan_seq_Rabs x); apply Rlt_le, Datan_seq_increasing.
-{
-   omega.
-}
-{
-  apply Boule_lt in inb; intuition.
-  solve[apply Rabs_pos].
-}
-}
-}
-{
- apply Datan_seq_CV_0.
-{
-  apply Rlt_trans with 0;[fourier | ].
-  apply Rplus_le_lt_0_compat.
-{
-   solve[apply Rabs_pos].
-}
-{
-  destruct r; assumption.
-}
-}
-{
- assumption.
-}
-}
-{
-assumption.
-}
+  intros c r ub_ub eps eps_pos.
+  apply (Alt_CVU
+    (fun x n => Datan_seq n x) 
+    (fun x => /(1 + x ^ 2))
+    (Datan_seq (Rabs c + r)) c r).
+  {
+    intros x inb.
+    apply Boule_lt in inb.
+    apply Rabs_def2 in inb.
+    destruct inb.
+    apply Datan_seq_decreasing.
+    {
+      apply Rlt_trans with (-(Rabs c + r)).
+      {
+        apply Ropp_lt_contravar.
+        assumption.
+      }
+      { assumption. }
+    }
+    {
+      apply Rlt_trans with (Rabs c + r).
+      { assumption. }
+      { assumption. }
+    }
+  }
+  {
+    intros x inb.
+    apply Boule_lt in inb.
+    apply Rabs_def2 in inb.
+    destruct inb.
+    apply Datan_seq_CV_0.
+    {
+      apply Rlt_trans with (-(Rabs c + r)).
+      {
+        apply Ropp_lt_contravar.
+        assumption.
+      }
+      { assumption. }
+    }
+    {
+      apply Rlt_trans with (Rabs c + r).
+      { assumption. }
+      { assumption. }
+    }
+  }
+  {
+    intros x inb.
+    apply Boule_lt in inb.
+    apply Rabs_def2 in inb.
+    destruct inb.
+    apply (Datan_lim x).
+    {
+      apply Rlt_trans with (-(Rabs c + r)).
+      {
+        apply Ropp_lt_contravar.
+        assumption.
+      }
+      { assumption. }
+    }
+    {
+      apply Rlt_trans with (Rabs c + r).
+      { assumption. }
+      { assumption. }
+    }
+  }
+  {
+    intros x [ | n] inb.
+    {
+      unfold Datan_seq.
+      simpl.
+      apply Rle_refl.
+    }
+    {
+      rewrite <- (Datan_seq_Rabs x).
+      apply Rlt_le.
+      apply Datan_seq_increasing.
+      { omega. }
+      {
+        apply Boule_lt in inb.
+        split.
+        { apply Rabs_pos. }
+        { assumption. }
+      }
+    }
+  }
+  {
+    apply Datan_seq_CV_0.
+    {
+      apply Rlt_trans with 0.
+      {
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        exact Rlt_0_1.
+      }
+      {
+        apply Rplus_le_lt_0_compat.
+        { apply Rabs_pos. }
+        {
+          destruct r.
+          assumption.
+        }
+      }
+    }
+    { assumption. }
+  }
+  { assumption. }
 Qed.
 
 Lemma Datan_is_datan : forall (N:nat) (x:R),
