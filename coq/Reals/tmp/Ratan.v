@@ -2035,360 +2035,759 @@ Lemma Datan_is_datan : forall (N:nat) (x:R),
       x < 1 ->
 derivable_pt_lim (fun x => sum_f_R0 (tg_alt (Ratan_seq x)) N) x (sum_f_R0 (tg_alt (Datan_seq x)) N).
 Proof.
-assert (Tool : forall N, (-1) ^ (S (2 * N))  = - 1).
-{
- intro n ; induction n.
-{
-  simpl ; field.
-}
-{
-  replace ((-1) ^ S (2 * S n)) with ((-1) ^ 2 * (-1) ^ S (2*n)).
-{
-  rewrite IHn ; field.
-}
-{
-  rewrite <- pow_add.
-  replace (2 + S (2 * n))%nat with (S (2 * S n))%nat.
-{
-  reflexivity.
-}
-{
-  intuition.
-}
-}
-}
-}
-{
-intros N x x_lb x_ub.
- induction N.
-{
-  unfold Datan_seq, Ratan_seq, tg_alt ; simpl.
-  intros eps eps_pos.
-   elim (derivable_pt_lim_id x eps eps_pos) ; intros delta Hdelta ; exists delta.
-   intros h hneq h_b.
-    replace (1 * ((x + h) * 1 / 1) - 1 * (x * 1 / 1)) with (id (x + h) - id x).
-{ 
-    rewrite Rmult_1_r.
-    apply Hdelta ; assumption.
-}
-{
-    unfold id ; field ; assumption.
-}
-}
-{
-  intros eps eps_pos.
-  assert (eps_3_pos : (eps/3) > 0) by fourier.
-  elim (IHN (eps/3) eps_3_pos) ; intros delta1 Hdelta1.
-  assert (Main : derivable_pt_lim (fun x : R =>tg_alt (Ratan_seq x) (S N)) x ((tg_alt (Datan_seq x)) (S N))).
-{
-   clear -Tool ; intros eps' eps'_pos.
-   elim (derivable_pt_lim_pow x (2 * (S N) + 1) eps' eps'_pos) ; intros delta Hdelta ; exists delta.
-   intros h h_neq h_b ; unfold tg_alt, Ratan_seq, Datan_seq.
-   replace (((-1) ^ S N * ((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1)) -
-    (-1) ^ S N * (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h -
-    (-1) ^ S N * x ^ (2 * S N)) 
-    with (((-1)^(S N)) * ((((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1)) -
-    (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h - x ^ (2 * S N))).
-{
-   rewrite Rabs_mult ; rewrite pow_1_abs ; rewrite Rmult_1_l.
-   replace (((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1) -
-    x ^ (2 * S N + 1) / INR (2 * S N + 1)) / h - x ^ (2 * S N))
-    with ((/INR (2* S N + 1)) * (((x + h) ^ (2 * S N + 1) - x ^ (2 * S N + 1)) / h -
-    INR (2 * S N + 1) * x ^ pred (2 * S N + 1))).
-{
-   rewrite Rabs_mult.
-   case (Req_dec (((x + h) ^ (2 * S N + 1) - x ^ (2 * S N + 1)) / h -
-     INR (2 * S N + 1) * x ^ pred (2 * S N + 1)) 0) ; intro Heq.
-{
-   rewrite Heq ; rewrite Rabs_R0 ; rewrite Rmult_0_r ; assumption.
-}
-{
-   apply Rlt_trans with (r2:=Rabs
-           (((x + h) ^ (2 * S N + 1) - x ^ (2 * S N + 1)) / h -
-            INR (2 * S N + 1) * x ^ pred (2 * S N + 1))).
-{
-   rewrite <- Rmult_1_l ; apply Rmult_lt_compat_r.
-{
-   apply Rabs_pos_lt ; assumption.
-}
-{
-   rewrite Rabs_right.
-{
-   replace 1 with (/1) by field.
-   apply Rinv_1_lt_contravar ; intuition.
-}
-{
-   apply Rgt_ge ; replace (INR (2 * S N + 1)) with (INR (2*S N) + 1) ;
-   [apply RiemannInt.RinvN_pos | ].
-   replace (2 * S N + 1)%nat with (S (2 * S N))%nat by intuition ;
-   rewrite S_INR ; reflexivity.
-}
-}
-}
-{
-   apply Hdelta ; assumption.
-}
-}
-}
-{
-   rewrite Rmult_minus_distr_l.
-   replace (/ INR (2 * S N + 1) * (INR (2 * S N + 1) * x ^ pred (2 * S N + 1))) with (x ^ (2 * S N)).
-{
-   unfold Rminus ; rewrite Rplus_comm.
-   replace (((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1) +
-      - (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h + - x ^ (2 * S N))
-      with (- x ^ (2 * S N) + (((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1) +
-      - (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h)) by intuition.
-   apply Rplus_eq_compat_l. field.
-   split ; [apply Rgt_not_eq|] ; intuition.
-}
-{
-   clear ; replace (pred (2 * S N + 1)) with (2 * S N)%nat by intuition.
-   field ; apply Rgt_not_eq ; intuition.
-}
-}
-}
-{
-   field ; split ; [apply Rgt_not_eq |] ; intuition.
-}
-}
-{
-   elim (Main (eps/3) eps_3_pos) ; intros delta2 Hdelta2.
-   destruct delta1 as (delta1, delta1_pos) ; destruct delta2 as (delta2, delta2_pos).
-   pose (mydelta := Rmin delta1 delta2).
-   assert (mydelta_pos : mydelta > 0).
-{
-    unfold mydelta ; rewrite Rmin_Rgt ; split ; assumption.
-}
-{
-   pose (delta := mkposreal mydelta mydelta_pos) ; exists delta ; intros h h_neq h_b.
-   clear Main IHN.
-   unfold Rminus at 1.
-   apply Rle_lt_trans with (r2:=eps/3 + eps / 3).
-{
-   assert (Temp : (sum_f_R0 (tg_alt (Ratan_seq (x + h))) (S N) -
-    sum_f_R0 (tg_alt (Ratan_seq x)) (S N)) / h +
-    - sum_f_R0 (tg_alt (Datan_seq x)) (S N) = ((sum_f_R0 (tg_alt (Ratan_seq (x + h))) N -
-              sum_f_R0 (tg_alt (Ratan_seq x)) N) / h) + (-
-             sum_f_R0 (tg_alt (Datan_seq x)) N) + ((tg_alt (Ratan_seq (x + h)) (S N) - tg_alt (Ratan_seq x) (S N)) /
-             h - tg_alt (Datan_seq x) (S N))).
-{
-    simpl ; field ; intuition.
-}
-{
-   apply Rle_trans with (r2:= Rabs ((sum_f_R0 (tg_alt (Ratan_seq (x + h))) N -
-        sum_f_R0 (tg_alt (Ratan_seq x)) N) / h +
-       - sum_f_R0 (tg_alt (Datan_seq x)) N) +
-       Rabs ((tg_alt (Ratan_seq (x + h)) (S N) - tg_alt (Ratan_seq x) (S N)) / h -
-        tg_alt (Datan_seq x) (S N))).
-{
-   rewrite Temp ; clear Temp ; apply Rabs_triang.
-}
-{
-   apply Rplus_le_compat ; apply Rlt_le ; [apply Hdelta1 | apply Hdelta2] ;
-   intuition ; apply Rlt_le_trans with (r2:=delta) ; intuition unfold delta, mydelta.
-{
-   apply Rmin_l.
-}
-{
-   apply Rmin_r.
-}
-}
-}
-}
-{
-   fourier.
-}
-}
-}
-}
-}
+  assert (Tool : forall N, (-1) ^ (S (2 * N))  = - 1).
+  {
+    intro n.
+    induction n.
+    {
+      simpl.
+      rewrite Rmult_1_r.
+      reflexivity.
+    }
+    {
+      replace ((-1) ^ S (2 * S n)) with ((-1) ^ 2 * (-1) ^ S (2*n)).
+      {
+        rewrite IHn.
+        simpl.
+        rewrite Rmult_1_r.
+        change (-1) with (-R1).
+        repeat rewrite <- Ropp_mult_distr_r.
+        repeat rewrite <- Ropp_mult_distr_l.
+        rewrite Ropp_involutive.
+        repeat rewrite Rmult_1_l.
+        reflexivity.
+      }
+      {
+        rewrite <- pow_add.
+        replace (2 + S (2 * n))%nat with (S (2 * S n))%nat.
+        { reflexivity. }
+        {
+          simpl.
+          repeat rewrite plus_n_Sm.
+          reflexivity.
+        }
+      }
+    }
+  }
+  {
+    intros N x x_lb x_ub.
+    induction N.
+    {
+      unfold Datan_seq.
+      unfold Ratan_seq.
+      unfold tg_alt.
+      simpl.
+      intros eps eps_pos.
+      elim (derivable_pt_lim_id x eps eps_pos).
+      intros delta Hdelta.
+      exists delta.
+      intros h hneq h_b.
+      replace (1 * ((x + h) * 1 / 1) - 1 * (x * 1 / 1)) with (id (x + h) - id x).
+      {
+        rewrite Rmult_1_r.
+        apply Hdelta.
+        { assumption. }
+        { assumption. }
+      }
+      {
+        unfold id.
+        unfold Rminus, Rdiv.
+        rewrite Rinv_1.
+        repeat rewrite Rmult_1_r.
+        repeat rewrite Rmult_1_l.
+        reflexivity.
+      }
+    }
+    {
+      intros eps eps_pos.
+      assert (eps_3_pos : (eps/3) > 0).
+      {
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        { assumption. }
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+      }
+      elim (IHN (eps/3) eps_3_pos).
+      intros delta1 Hdelta1.
+      assert (Main : derivable_pt_lim (fun x : R =>tg_alt (Ratan_seq x) (S N)) x ((tg_alt (Datan_seq x)) (S N))).
+      {
+        clear -Tool.
+        intros eps' eps'_pos.
+        elim (derivable_pt_lim_pow x (2 * (S N) + 1) eps' eps'_pos).
+        intros delta Hdelta.
+        exists delta.
+        intros h h_neq h_b.
+        unfold tg_alt.
+        unfold Ratan_seq.
+        unfold Datan_seq.
+        replace (
+          ((-1) ^ S N * ((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1)) - (-1) ^ S N * (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h - (-1) ^ S N * x ^ (2 * S N)
+        ) with (
+          ((-1)^(S N)) * ((((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1)) - (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h - x ^ (2 * S N))
+        ).
+        {
+          rewrite Rabs_mult.
+          rewrite pow_1_abs.
+          rewrite Rmult_1_l.
+          replace (
+            ((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1) - x ^ (2 * S N + 1) / INR (2 * S N + 1)) / h - x ^ (2 * S N)
+          ) with (
+            (/INR (2* S N + 1)) * (((x + h) ^ (2 * S N + 1) - x ^ (2 * S N + 1)) / h - INR (2 * S N + 1) * x ^ pred (2 * S N + 1))
+          ).
+          {
+            rewrite Rabs_mult.
+            case (Req_dec (((x + h) ^ (2 * S N + 1) - x ^ (2 * S N + 1)) / h - INR (2 * S N + 1) * x ^ pred (2 * S N + 1)) 0).
+            {
+              intro Heq.
+              rewrite Heq.
+              rewrite Rabs_R0.
+              rewrite Rmult_0_r.
+              assumption.
+            }
+            {
+              intro Heq.
+              apply Rlt_trans with (r2:=Rabs (((x + h) ^ (2 * S N + 1) - x ^ (2 * S N + 1)) / h - INR (2 * S N + 1) * x ^ pred (2 * S N + 1))).
+              {
+                rewrite <- Rmult_1_l.
+                apply Rmult_lt_compat_r.
+                {
+                  apply Rabs_pos_lt.
+                  assumption.
+                }
+                {
+                  rewrite Rabs_right.
+                  {
+                    replace 1 with (/1).
+                    2:{
+                      rewrite Rinv_1.
+                      reflexivity.
+                    }
+                    apply Rinv_1_lt_contravar.
+                    { apply Rle_refl. }
+                    {
+                      clear.
+                      change 1 with (INR 1).
+                      apply lt_INR.
+                      omega.
+                    }
+                  }
+                  {
+                    apply Rgt_ge.
+                    replace (INR (2 * S N + 1)) with (INR (2*S N) + 1).
+                    { apply RiemannInt.RinvN_pos. }
+                    {
+                      replace (2 * S N + 1)%nat with (S (2 * S N))%nat.
+                      2:{
+                        simpl.
+                        rewrite (plus_comm _ 0%nat).
+                        simpl.
+                        rewrite (plus_comm _ 1%nat).
+                        simpl.
+                        reflexivity.
+                      }
+                      rewrite S_INR.
+                      reflexivity.
+                    }
+                  }
+                }
+              }
+              {
+                apply Hdelta.
+                { assumption. }
+                { assumption. }
+              }
+            }
+          }
+          {
+            rewrite Rmult_minus_distr_l.
+            replace (/ INR (2 * S N + 1) * (INR (2 * S N + 1) * x ^ pred (2 * S N + 1))) with (x ^ (2 * S N)).
+            {
+              unfold Rminus.
+              rewrite Rplus_comm.
+              replace (
+                ((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1) + - (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h + - x ^ (2 * S N)
+              ) with (
+                - x ^ (2 * S N) + (((x + h) ^ (2 * S N + 1) / INR (2 * S N + 1) + - (x ^ (2 * S N + 1) / INR (2 * S N + 1))) / h)
+              ).
+              2:{
+                repeat rewrite Rplus_assoc.
+                rewrite Rplus_comm.
+                reflexivity.
+              }
+              apply Rplus_eq_compat_l.
+              unfold Rdiv.
+              repeat rewrite <- Rmult_assoc.
+              apply Rmult_eq_compat_r.
+              rewrite Rmult_plus_distr_l.
+              rewrite Rmult_comm.
+              apply Rplus_eq_compat_l.
+              rewrite Rmult_comm.
+              rewrite <- Ropp_mult_distr_l.
+              reflexivity.
+            }
+            {
+              clear.
+              replace (pred (2 * S N + 1)) with (2 * S N)%nat.
+              2:{
+                simpl.
+                rewrite plus_0_r.
+                rewrite <- plus_assoc.
+                simpl.
+                rewrite (plus_comm _ 1%nat).
+                simpl.
+                repeat rewrite <- plus_n_Sm.
+                reflexivity.
+              }
+              rewrite <- Rmult_assoc.
+              rewrite Rinv_l, Rmult_1_l.
+              reflexivity.
+              apply Rgt_not_eq.
+              change 0 with (INR 0).
+              apply lt_INR.
+              omega.
+            }
+          }
+        }
+        {
+          unfold Rminus.
+          set (m := (-1) ^ S N).
+          set (p :=  (2 * S N + 1)%nat).
+          unfold Rdiv.
+          repeat rewrite Rmult_plus_distr_r.
+          repeat rewrite Rmult_assoc.
+          repeat rewrite Rplus_assoc.
+          repeat rewrite <- Ropp_mult_distr_l.
+          repeat rewrite <- Ropp_mult_distr_r.
+          apply Rmult_eq_reg_l with m.
+          repeat rewrite Rmult_plus_distr_l.
+          repeat rewrite <- Ropp_mult_distr_l.
+          repeat rewrite <- Ropp_mult_distr_r.
+          repeat rewrite Rmult_plus_distr_l.
+          repeat rewrite <- Rmult_assoc.
+          replace (m*m) with 1.
+          repeat rewrite Rmult_1_l.
+          reflexivity.
+          unfold m.
+          rewrite <- pow_add.
+          replace (S N + S N)%nat with (2*(S N))%nat.
+          rewrite pow_1_even.
+          reflexivity.
+          clear.
+          simpl.
+          repeat rewrite <- plus_n_Sm.
+          repeat rewrite <- plus_Sn_m.
+          rewrite (plus_comm _ 0%nat).
+          simpl.
+          reflexivity.
+          unfold m.
+          Search( _^_ <> 0).
+          apply pow_nonzero.
+          apply Rlt_not_eq.
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          exact Rlt_0_1.
+        }
+      }
+      {
+        elim (Main (eps/3) eps_3_pos).
+        intros delta2 Hdelta2.
+        destruct delta1 as (delta1, delta1_pos).
+        destruct delta2 as (delta2, delta2_pos).
+        pose (mydelta := Rmin delta1 delta2).
+        assert (mydelta_pos : mydelta > 0).
+        {
+          unfold mydelta.
+          rewrite Rmin_Rgt.
+          split.
+          { assumption. }
+          { assumption. }
+        }
+        pose (delta := mkposreal mydelta mydelta_pos).
+        exists delta.
+        intros h h_neq h_b.
+        clear Main IHN.
+        unfold Rminus at 1.
+        apply Rle_lt_trans with (r2:=eps/3 + eps / 3).
+        {
+          assert (Temp :
+            (sum_f_R0 (tg_alt (Ratan_seq (x + h))) (S N) - sum_f_R0 (tg_alt (Ratan_seq x)) (S N)) / h + - sum_f_R0 (tg_alt (Datan_seq x)) (S N)
+            =
+            ((sum_f_R0 (tg_alt (Ratan_seq (x + h))) N - sum_f_R0 (tg_alt (Ratan_seq x)) N) / h) + (- sum_f_R0 (tg_alt (Datan_seq x)) N) + ((tg_alt (Ratan_seq (x + h)) (S N) - tg_alt (Ratan_seq x) (S N)) / h - tg_alt (Datan_seq x) (S N))
+          ).
+          {
+            simpl.
+            clear.
+            unfold Rminus, Rdiv.
+            repeat rewrite Ropp_plus_distr.
+            repeat rewrite <- Rplus_assoc.
+            apply Rplus_eq_compat_r.
+            repeat rewrite Rplus_assoc.
+            repeat rewrite Rmult_plus_distr_r.
+            repeat rewrite Rplus_assoc.
+            apply Rplus_eq_compat_l.
+            rewrite Rplus_comm.
+            repeat rewrite Rplus_assoc.
+            apply Rplus_eq_compat_l.
+            rewrite Rplus_comm.
+            repeat rewrite Rplus_assoc.
+            apply Rplus_eq_compat_l.
+            reflexivity.
+          }
+          apply Rle_trans with (r2:=
+            Rabs ((sum_f_R0 (tg_alt (Ratan_seq (x + h))) N - sum_f_R0 (tg_alt (Ratan_seq x)) N) / h + - sum_f_R0 (tg_alt (Datan_seq x)) N) + Rabs ((tg_alt (Ratan_seq (x + h)) (S N) - tg_alt (Ratan_seq x) (S N)) / h - tg_alt (Datan_seq x) (S N))
+          ).
+          {
+            rewrite Temp.
+            clear Temp.
+            apply Rabs_triang.
+          }
+          {
+            apply Rplus_le_compat.
+            2:apply Rlt_le.
+            apply Rlt_le.
+            2:apply Hdelta2.
+            apply Hdelta1.
+            assumption.
+            simpl.
+            apply Rlt_le_trans with (r2:=delta).
+            assumption.
+            unfold delta.
+            simpl.
+            unfold mydelta.
+            apply Rmin_l.
+            assumption.
+            simpl.
+            apply Rlt_le_trans with (r2:=delta).
+            assumption.
+            unfold delta.
+            simpl.
+            unfold mydelta.
+            simpl.
+            apply Rmin_r.
+          }
+        }
+        {
+          apply Rmult_lt_reg_r with 3.
+          { prove_sup0. }
+          {
+            unfold Rdiv.
+            rewrite Rmult_plus_distr_r.
+            repeat rewrite Rmult_assoc.
+            rewrite <- Rmult_plus_distr_l.
+            apply Rmult_lt_compat_l.
+            { assumption. }
+            {
+              rewrite Rinv_l.
+              {
+                replace (1+1) with (0+1+1).
+                2:{
+                  rewrite Rplus_0_l.
+                  reflexivity.
+                }
+                replace 3 with (1+1+1).
+                2:{
+                  repeat rewrite <- plus_IZR.
+                  simpl.
+                  reflexivity.
+                }
+                repeat apply Rplus_lt_compat_r.
+                exact Rlt_0_1.
+              }
+              { discrR. }
+            }
+          }
+        }
+      }
+    }
+  }
 Qed.
 
 Lemma Ratan_CVU' :
   CVU (fun N x => sum_f_R0 (tg_alt (Ratan_seq x)) N)
                      ps_atan (/2) (mkposreal (/2) pos_half_prf).
 Proof.
-apply (Alt_CVU (fun i r => Ratan_seq r i) ps_atan PI_tg (/2) pos_half);
-  lazy beta.
-{
-    now intros; apply Ratan_seq_decreasing, Boule_half_to_interval.
-}
-{
-   now intros; apply Ratan_seq_converging, Boule_half_to_interval.
-}
-{
-  intros x b; apply Boule_half_to_interval in b.
-  unfold ps_atan; destruct (in_int x) as [inside | outside];
-   [ | destruct b; case outside; split; fourier].
-  destruct (ps_atan_exists_1 x inside) as [v Pv].
-  apply Un_cv_ext with (2 := Pv);[reflexivity].
-}
-{
- intros x n b; apply Boule_half_to_interval in b.
- rewrite <- (Rmult_1_l (PI_tg n)); unfold Ratan_seq, PI_tg. 
- apply Rmult_le_compat_r.
-{
-  apply Rlt_le, Rinv_0_lt_compat, (lt_INR 0); omega.
-}
-{
- rewrite <- (pow1 (2 * n + 1)); apply pow_incr; assumption.
-}
-}
-{
-exact PI_tg_cv.
-}
+  apply (Alt_CVU (fun i r => Ratan_seq r i) ps_atan PI_tg (/2) pos_half).
+  {
+    intros.
+    apply Ratan_seq_decreasing.
+    apply Boule_half_to_interval.
+    assumption.
+  }
+  {
+    intros.
+    apply Ratan_seq_converging.
+    apply Boule_half_to_interval.
+    assumption.
+  }
+  {
+    intros x b.
+    apply Boule_half_to_interval in b.
+    unfold ps_atan.
+    destruct (in_int x) as [inside | outside].
+    {
+      destruct (ps_atan_exists_1 x inside) as [v Pv].
+      apply Un_cv_ext with (2 := Pv).
+      intros.
+      reflexivity.
+    }
+    {
+      destruct b.
+      case outside.
+      split.
+      {
+        apply Rle_trans with 0.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_le_contravar.
+          left.
+          exact Rlt_0_1.
+        }
+        { assumption. }
+      }
+      { assumption. }
+    }
+  }
+  {
+    intros x n b.
+    apply Boule_half_to_interval in b.
+    rewrite <- (Rmult_1_l (PI_tg n)).
+    unfold Ratan_seq.
+    unfold PI_tg. 
+    apply Rmult_le_compat_r.
+    {
+      apply Rlt_le.
+      apply Rinv_0_lt_compat.
+      apply (lt_INR 0).
+      omega.
+    }
+    {
+      rewrite <- (pow1 (2 * n + 1)).
+      apply pow_incr.
+      assumption.
+    }
+  }
+  { exact PI_tg_cv. }
 Qed.
 
 Lemma Ratan_CVU :
   CVU (fun N x => sum_f_R0 (tg_alt (Ratan_seq x)) N)
                      ps_atan 0  (mkposreal 1 Rlt_0_1).
 Proof.
-intros eps ep; destruct (Ratan_CVU' eps ep) as [N Pn].
-exists N; intros n x nN b_y.
-case (Rtotal_order 0 x) as [xgt0 | [x0 | x0]].
-{
-  assert (Boule (/2) {| pos := / 2; cond_pos := pos_half_prf|} x).
-{
-   revert b_y; unfold Boule; simpl; intros b_y; apply Rabs_def2 in b_y.
-   destruct b_y; unfold Boule; simpl; apply Rabs_def1; fourier.
-}
-{
-  apply Pn; assumption.
-}
-}
-{
- rewrite <- x0, ps_atan0_0.
- rewrite <- (sum_eq (fun _ => 0)), sum_cte, Rmult_0_l, Rminus_0_r, Rabs_pos_eq.
-{
-   assumption.
-}
-{
-  apply Rle_refl.
-}
-{
- intros i _; unfold tg_alt, Ratan_seq, Rdiv; rewrite plus_comm; simpl.
- solve[rewrite !Rmult_0_l, Rmult_0_r; auto].
-}
-}
-{
-replace (ps_atan x - sum_f_R0 (tg_alt (Ratan_seq x)) n) with
-  (-(ps_atan (-x) - sum_f_R0 (tg_alt (Ratan_seq (-x))) n)).
-{
- rewrite Rabs_Ropp.
- assert (Boule (/2) {| pos := / 2; cond_pos := pos_half_prf|} (-x)).
-{
-  revert b_y; unfold Boule; simpl; intros b_y; apply Rabs_def2 in b_y.
-  destruct b_y; unfold Boule; simpl; apply Rabs_def1; fourier.
-}
-{
- apply Pn; assumption.
-}
-}
-{
-unfold Rminus; rewrite ps_atan_opp, Ropp_plus_distr, sum_Ratan_seq_opp.
-rewrite !Ropp_involutive; reflexivity.
-}
-}
+  intros eps ep.
+  destruct (Ratan_CVU' eps ep) as [N Pn].
+  exists N.
+  intros n x nN b_y.
+  case (Rtotal_order 0 x) as [xgt0 | [x0 | x0]].
+  {
+    assert (Boule (/2) {| pos := / 2; cond_pos := pos_half_prf|} x).
+    {
+      revert b_y.
+      unfold Boule.
+      simpl.
+      intros b_y.
+      apply Rabs_def2 in b_y.
+      destruct b_y.
+      apply Rabs_def1.
+      {
+        unfold Rminus in H.
+        rewrite Ropp_0, Rplus_0_r in H.
+        unfold Rminus.
+        apply Rplus_lt_reg_r with (/2).
+        rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+        rewrite <- double.
+        rewrite Rinv_r.
+        { assumption. }
+        { discrR. }
+      }
+      {
+        unfold Rminus.
+        apply Rplus_lt_reg_r with (/2).
+        rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+        assumption.
+      }
+    }
+    apply Pn.
+    { assumption. }
+    { assumption. }
+  }
+  {
+    rewrite <- x0.
+    rewrite ps_atan0_0.
+    rewrite <- (sum_eq (fun _ => 0)).
+    rewrite sum_cte.
+    rewrite Rmult_0_l.
+    rewrite Rminus_0_r.
+    rewrite Rabs_pos_eq.
+    { assumption. }
+    { apply Rle_refl. }
+    {
+      intros i _.
+      unfold tg_alt.
+      unfold Ratan_seq.
+      unfold Rdiv.
+      rewrite plus_comm.
+      simpl.
+      rewrite Rmult_0_l.
+      rewrite Rmult_0_l.
+      rewrite Rmult_0_r.
+      reflexivity.
+    }
+  }
+  {
+    replace (
+      ps_atan x - sum_f_R0 (tg_alt (Ratan_seq x)) n
+    ) with (
+      -(ps_atan (-x) - sum_f_R0 (tg_alt (Ratan_seq (-x))) n)
+    ).
+    {
+      rewrite Rabs_Ropp.
+      assert (Boule (/2) {| pos := / 2; cond_pos := pos_half_prf|} (-x)).
+      {
+        revert b_y.
+        unfold Boule.
+        simpl.
+        intros b_y.
+        apply Rabs_def2 in b_y.
+        destruct b_y.
+        apply Rabs_def1.
+        {
+          unfold Rminus.
+          apply Rplus_lt_reg_r with (/2).
+          rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+          rewrite <- double.
+          rewrite Rinv_r.
+          {
+            unfold Rminus in H0.
+            rewrite Ropp_0, Rplus_0_r in H0.
+            apply Ropp_lt_cancel.
+            rewrite Ropp_involutive.
+            assumption.
+          }
+          { discrR. }
+        }
+        {
+          unfold Rminus.
+          apply Rplus_lt_reg_r with (/2).
+          rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+          apply Ropp_lt_cancel.
+          rewrite Ropp_involutive, Ropp_0.
+          assumption.
+        }
+      }
+      {
+        apply Pn.
+        { assumption. }
+        { assumption. }
+      }
+    }
+    {
+      unfold Rminus.
+      rewrite ps_atan_opp.
+      rewrite Ropp_plus_distr.
+      rewrite sum_Ratan_seq_opp.
+      rewrite Ropp_involutive.
+      rewrite Ropp_involutive.
+      reflexivity.
+    }
+  }
 Qed.
 
 Lemma Alt_PI_tg : forall n, PI_tg n = Ratan_seq 1 n.
 Proof.
-intros n; unfold PI_tg, Ratan_seq, Rdiv; rewrite pow1, Rmult_1_l.
-reflexivity.
+  intros n.
+  unfold PI_tg.
+  unfold Ratan_seq.
+  unfold Rdiv.
+  rewrite pow1.
+  rewrite Rmult_1_l.
+  reflexivity.
 Qed.
 
 Lemma Ratan_is_ps_atan : forall eps, eps > 0 ->
        exists N, forall n, (n >= N)%nat -> forall x, -1 < x -> x < 1 ->
        Rabs (sum_f_R0 (tg_alt (Ratan_seq x)) n - ps_atan x) < eps.
 Proof.
-intros eps ep.
-destruct (Ratan_CVU _ ep) as [N1 PN1].
-exists N1; intros n nN x xm1 x1; rewrite <- Rabs_Ropp, Ropp_minus_distr.
-apply PN1; [assumption | ].
-unfold Boule; simpl; rewrite Rminus_0_r; apply Rabs_def1; assumption.
+  intros eps ep.
+  destruct (Ratan_CVU _ ep) as [N1 PN1].
+  exists N1.
+  intros n nN x xm1 x1.
+  rewrite <- Rabs_Ropp.
+  rewrite Ropp_minus_distr.
+  apply PN1.
+  { assumption. }
+  {
+    unfold Boule.
+    simpl.
+    rewrite Rminus_0_r.
+    apply Rabs_def1.
+    { assumption. }
+    { assumption. }
+  }
 Qed.
 
 Lemma Datan_continuity : continuity (fun x => /(1+x ^ 2)).
 Proof.
-apply continuity_inv.
-{
-apply continuity_plus.
-{
-apply continuity_const ; unfold constant ; intuition.
-}
-{
-apply derivable_continuous ; apply derivable_pow.
-}
-}
-{
-intro x ; apply Rgt_not_eq ; apply Rge_gt_trans with (1+0) ; [|fourier] ;
- apply Rplus_ge_compat_l.
- replace (x^2) with (x²).
-{
- apply Rle_ge ; apply Rle_0_sqr.
-}
-{
- unfold Rsqr ; field.
-}
-}
+  apply continuity_inv.
+  {
+    apply continuity_plus.
+    {
+      apply continuity_const.
+      unfold constant.
+      intros.
+      reflexivity.
+    }
+    {
+      apply derivable_continuous.
+      apply derivable_pow.
+    }
+  }
+  {
+    intro x.
+    apply Rgt_not_eq.
+    apply Rge_gt_trans with (1+0).
+    {
+      apply Rplus_ge_compat_l.
+      replace (x^2) with (x²).
+      2:{
+        unfold Rsqr.
+        simpl.
+        rewrite Rmult_1_r.
+        reflexivity.
+      }
+      {
+        apply Rle_ge.
+        apply Rle_0_sqr.
+      }
+    }
+    {
+      rewrite Rplus_0_r.
+      exact Rlt_0_1.
+    }
+  }
 Qed.
 
 Lemma derivable_pt_lim_ps_atan : forall x, -1 < x < 1 ->
   derivable_pt_lim ps_atan x ((fun y => /(1 + y ^ 2)) x).
 Proof.
-intros x x_encad.
-destruct (boule_in_interval (-1) 1 x x_encad) as [c [r [Pcr1 [P1 P2]]]].
-change (/ (1 + x ^ 2)) with ((fun u => /(1 + u ^ 2)) x).
-assert (t := derivable_pt_lim_CVU).
-apply derivable_pt_lim_CVU with 
-          (fn := (fun N x => sum_f_R0 (tg_alt (Ratan_seq x)) N))
-          (fn' := (fun N x => sum_f_R0 (tg_alt (Datan_seq x)) N))
-          (c := c) (r := r).
-{
-    assumption.
-}
-{
-   intros y N inb; apply Rabs_def2 in inb; destruct inb.
-   apply Datan_is_datan.
-{
-    fourier.
-}
-{
-   fourier.
-}
-}
-{
-  intros y inb; apply Rabs_def2 in inb; destruct inb.
-  assert (y_gt_0 : -1 < y) by fourier.
-  assert (y_lt_1 : y < 1) by fourier.
-  intros eps eps_pos ; elim (Ratan_is_ps_atan eps eps_pos).
-  intros N HN ; exists N; intros n n_lb ; apply HN ; tauto.
-}
-{
- apply Datan_CVU_prelim.
- replace ((c - r + (c + r)) / 2) with c by field.
- unfold mkposreal_lb_ub; simpl.
- replace ((c + r - (c - r)) / 2) with (r :R) by field.
- assert (Rabs c < 1 - r).
-{
-  unfold Boule in Pcr1; destruct r; simpl in *; apply Rabs_def1;
-  apply Rabs_def2 in Pcr1; destruct Pcr1; fourier.
-}
-{
- fourier.
-}
-}
-{
-intros; apply Datan_continuity.
-}
+  intros x x_encad.
+  destruct (boule_in_interval (-1) 1 x x_encad) as [c [r [Pcr1 [P1 P2]]]].
+  change (/ (1 + x ^ 2)) with ((fun u => /(1 + u ^ 2)) x).
+  assert (t := derivable_pt_lim_CVU).
+  apply derivable_pt_lim_CVU with 
+    (fn := (fun N x => sum_f_R0 (tg_alt (Ratan_seq x)) N))
+    (fn' := (fun N x => sum_f_R0 (tg_alt (Datan_seq x)) N))
+    (c := c) (r := r).
+  { assumption. }
+  {
+    intros y N inb.
+    apply Rabs_def2 in inb.
+    destruct inb.
+    apply Datan_is_datan.
+    {
+      clear H t P2 Pcr1 x_encad N.
+      eapply Rle_trans.
+      { left. exact P1. }
+      {
+        unfold Rminus.
+        apply Rplus_le_reg_l with (-c).
+        rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+        rewrite Rplus_comm.
+        left.
+        assumption.
+      }
+    }
+    {
+      eapply Rlt_le_trans.
+      2:left;exact P2.
+      apply Rplus_lt_reg_l with (-c).
+      rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+      rewrite Rplus_comm.
+      assumption.
+    }
+  }
+  {
+    intros y inb.
+    apply Rabs_def2 in inb.
+    destruct inb.
+    assert (y_gt_0 : -1 < y).
+    {
+      clear H t P2 Pcr1 x_encad.
+      eapply Rlt_trans.
+      { exact P1. }
+      {
+        unfold Rminus.
+        apply Rplus_lt_reg_l with (-c).
+        rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+        rewrite Rplus_comm.
+        assumption.
+      }
+    }
+    assert (y_lt_1 : y < 1).
+    {
+      eapply Rlt_trans.
+      2:exact P2.
+      apply Rplus_lt_reg_l with (-c).
+      rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+      rewrite Rplus_comm.
+      assumption.
+    }
+    intros eps eps_pos.
+    elim (Ratan_is_ps_atan eps eps_pos).
+    intros N HN.
+    exists N.
+    intros n n_lb.
+    apply HN.
+    { assumption. }
+    { assumption. }
+    { assumption. }
+  }
+  {
+    apply Datan_CVU_prelim.
+    assert (Rabs c < 1 - r).
+    {
+      unfold Boule in Pcr1.
+      destruct r.
+      simpl in *.
+      apply Rabs_def1.
+      {
+        apply Rabs_def2 in Pcr1.
+        destruct Pcr1.
+        unfold Rminus.
+        apply Rplus_lt_reg_r with pos.
+        rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+        assumption.
+      }
+      {
+        rewrite Ropp_minus_distr.
+        unfold Rminus.
+        apply Rplus_lt_reg_l with (-pos).
+        rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+        rewrite Rplus_comm.
+        assumption.
+      }
+    }
+    {
+      apply Rplus_lt_reg_r with (-r).
+      rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+      assumption.
+    }
+  }
+  {
+    intros.
+    apply Datan_continuity.
+  }
 Qed.
 
 Lemma derivable_pt_ps_atan :
    forall x, -1 < x < 1 -> derivable_pt ps_atan x.
 Proof.
-intros x x_encad.
-exists (/(1+x^2)) ; apply derivable_pt_lim_ps_atan; assumption.
+  intros x x_encad.
+  exists (/(1+x^2)).
+  apply derivable_pt_lim_ps_atan.
+  assumption.
 Qed.
 
 Lemma ps_atan_continuity_pt_1 : forall eps : R,
@@ -2398,568 +2797,786 @@ Lemma ps_atan_continuity_pt_1 : forall eps : R,
        (forall x, x < 1 -> 0 < x -> R_dist x 1 < alp ->
        dist R_met (ps_atan x) (Alt_PI/4) < eps).
 Proof.
-intros eps eps_pos.
-assert (eps_3_pos : eps / 3 > 0) by fourier.
-elim (Ratan_is_ps_atan (eps / 3) eps_3_pos) ; intros N1 HN1.
-unfold Alt_PI.
-destruct exist_PI as [v Pv]; replace ((4 * v)/4) with v by field.
-assert (Pv' : Un_cv (sum_f_R0 (tg_alt (Ratan_seq 1))) v).
-{
- apply Un_cv_ext with (2:= Pv).
- intros; apply sum_eq; intros; unfold tg_alt; rewrite Alt_PI_tg; tauto.
-}
-{
-destruct (Pv' (eps / 3) eps_3_pos) as [N2 HN2].
-set (N := (N1 + N2)%nat).
-assert (O_lb : 0 <= 1) by intuition ; assert (O_ub : 1 <= 1) by intuition ;
- elim (ps_atanSeq_continuity_pt_1 N 1 O_lb O_ub (eps / 3) eps_3_pos) ; intros alpha Halpha ;
- clear -HN1 HN2 Halpha eps_3_pos; destruct Halpha as (alpha_pos, Halpha).
-exists alpha ; split;[assumption | ].
-intros x x_ub x_lb x_bounds.
-simpl ; unfold R_dist.
-replace (ps_atan x - v) with ((ps_atan x - sum_f_R0 (tg_alt (Ratan_seq x)) N)
-     + (sum_f_R0 (tg_alt (Ratan_seq x)) N - sum_f_R0 (tg_alt (Ratan_seq 1)) N)
-     + (sum_f_R0 (tg_alt (Ratan_seq 1)) N - v)).
-{
-apply Rle_lt_trans with (r2:=Rabs (ps_atan x - sum_f_R0 (tg_alt (Ratan_seq x)) N) +
-      Rabs ((sum_f_R0 (tg_alt (Ratan_seq x)) N - sum_f_R0 (tg_alt (Ratan_seq 1)) N) +
-   (sum_f_R0 (tg_alt (Ratan_seq 1)) N - v))).
-{
-rewrite Rplus_assoc ; apply Rabs_triang.
-}
-{
-   replace eps with (2 / 3 * eps + eps / 3).
-{
-   rewrite Rplus_comm.
-   apply Rplus_lt_compat.
-{
-   apply Rle_lt_trans with (r2 := Rabs (sum_f_R0 (tg_alt (Ratan_seq x)) N - sum_f_R0 (tg_alt (Ratan_seq 1)) N) +
-      Rabs (sum_f_R0 (tg_alt (Ratan_seq 1)) N - v)).
-{
-   apply Rabs_triang.
-}
-{
-   apply Rlt_le_trans with (r2:= eps / 3 + eps / 3).
-{
-   apply Rplus_lt_compat.
-{
-   simpl in Halpha ; unfold R_dist in Halpha.
-   apply Halpha ; split.
-{
-   unfold D_x, no_cond ; split ; [ | apply Rgt_not_eq ] ; intuition.
-}
-{
-   intuition.
-}
-}
-{
-   apply HN2; unfold N; omega.
-}
-}
-{
-   fourier.
-}
-}
-}
-{
-  rewrite <- Rabs_Ropp, Ropp_minus_distr; apply HN1.
-{
-     unfold N; omega.
-}
-{
-    fourier.
-}
-{
-  assumption.
-}
-}
-}
-{
- field.
-}
-}
-}
-{
-ring.
-}
-}
+
+  intros eps eps_pos.
+
+  assert (eps_3_pos : eps / 3 > 0).
+  {
+    unfold Rdiv.
+    apply Rmult_lt_reg_r with 3.
+    { prove_sup0. }
+    {
+      rewrite Rmult_0_l, Rmult_assoc, Rinv_l, Rmult_1_r.
+      { assumption. }
+      { discrR. }
+    }
+  }
+
+  elim (Ratan_is_ps_atan (eps / 3) eps_3_pos).
+  intros N1 HN1.
+  unfold Alt_PI.
+  destruct exist_PI as [v Pv].
+  replace ((4 * v)/4) with v.
+  2:{
+    unfold Rdiv.
+    rewrite Rmult_comm.
+    rewrite <- Rmult_assoc, Rinv_l, Rmult_1_l.
+    { reflexivity. }
+    { discrR. }
+  }
+  assert (Pv' : Un_cv (sum_f_R0 (tg_alt (Ratan_seq 1))) v).
+  {
+    apply Un_cv_ext with (2:= Pv).
+    intros.
+    apply sum_eq.
+    intros.
+    unfold tg_alt.
+    rewrite Alt_PI_tg.
+    reflexivity.
+  }
+
+  destruct (Pv' (eps / 3) eps_3_pos) as [N2 HN2].
+  set (N := (N1 + N2)%nat).
+  assert (O_lb : 0 <= 1).
+  {
+    left.
+    exact Rlt_0_1.
+  }
+  assert (O_ub : 1 <= 1).
+  { apply Rle_refl. }
+
+  elim (ps_atanSeq_continuity_pt_1 N 1 O_lb O_ub (eps / 3) eps_3_pos).
+  intros alpha Halpha.
+  clear -HN1 HN2 Halpha eps_3_pos.
+  destruct Halpha as (alpha_pos, Halpha).
+  exists alpha.
+  split.
+  { assumption. }
+  {
+    intros x x_ub x_lb x_bounds.
+    simpl.
+    unfold R_dist.
+    replace (
+      ps_atan x - v
+    ) with (
+      (ps_atan x - sum_f_R0 (tg_alt (Ratan_seq x)) N) + (sum_f_R0 (tg_alt (Ratan_seq x)) N - sum_f_R0 (tg_alt (Ratan_seq 1)) N) + (sum_f_R0 (tg_alt (Ratan_seq 1)) N - v)
+    ).
+    {
+      apply Rle_lt_trans with (r2:=Rabs (ps_atan x - sum_f_R0 (tg_alt (Ratan_seq x)) N) + Rabs ((sum_f_R0 (tg_alt (Ratan_seq x)) N - sum_f_R0 (tg_alt (Ratan_seq 1)) N) + (sum_f_R0 (tg_alt (Ratan_seq 1)) N - v))).
+      {
+        rewrite Rplus_assoc.
+        apply Rabs_triang.
+      }
+      {
+        replace eps with (2 / 3 * eps + eps / 3).
+        {
+          rewrite Rplus_comm.
+          apply Rplus_lt_compat.
+          {
+            apply Rle_lt_trans with (r2 := Rabs (sum_f_R0 (tg_alt (Ratan_seq x)) N - sum_f_R0 (tg_alt (Ratan_seq 1)) N) + Rabs (sum_f_R0 (tg_alt (Ratan_seq 1)) N - v)).
+            { apply Rabs_triang. }
+            {
+              apply Rlt_le_trans with (r2:= eps / 3 + eps / 3).
+              {
+                apply Rplus_lt_compat.
+                {
+                  simpl in Halpha.
+                  unfold R_dist in Halpha.
+                  apply Halpha.
+                  split.
+                  {
+                    unfold D_x, no_cond.
+                    split.
+                    { exact I. }
+                    {
+                      apply Rgt_not_eq.
+                      assumption.
+                    }
+                  }
+                  { assumption. }
+                }
+                {
+                  apply HN2.
+                  unfold N.
+                  omega.
+                }
+              }
+              {
+                unfold Rdiv.
+                rewrite <- double.
+                rewrite Rmult_assoc.
+                rewrite (Rmult_comm _ eps).
+                right.
+                reflexivity.
+              }
+            }
+          }
+          {
+            rewrite <- Rabs_Ropp.
+            rewrite Ropp_minus_distr.
+            apply HN1.
+            {
+              unfold N.
+              omega.
+            }
+            {
+              apply Rlt_trans with 0.
+              {
+                rewrite <- Ropp_0.
+                apply Ropp_lt_contravar.
+                exact Rlt_0_1.
+              }
+              { assumption. }
+            }
+            { assumption. }
+          }
+        }
+        {
+          unfold Rdiv.
+          rewrite (Rmult_comm eps).
+          rewrite <- Rmult_plus_distr_r.
+          pattern (/3) at 2;rewrite <- Rmult_1_l.
+          rewrite <- Rmult_plus_distr_r.
+          rewrite <- plus_IZR.
+          simpl.
+          rewrite Rinv_r, Rmult_1_l.
+          { reflexivity. }
+          { discrR. }
+        }
+      }
+    }
+    {
+      unfold Rminus.
+      repeat rewrite Rplus_assoc.
+      apply Rplus_eq_compat_l.
+      rewrite <- Rplus_0_l.
+      repeat rewrite <- Rplus_assoc.
+      apply Rplus_eq_compat_r.
+      repeat rewrite Rplus_assoc.
+      rewrite Rplus_opp_l, Rplus_0_r.
+      rewrite Rplus_opp_l.
+      reflexivity.
+    }
+  }
 Qed.
 
 Lemma Datan_eq_DatanSeq_interv : forall x, -1 < x < 1 ->
  forall (Pratan:derivable_pt ps_atan x) (Prmymeta:derivable_pt atan x),
       derive_pt ps_atan x Pratan = derive_pt atan x Prmymeta.
 Proof.
-assert (freq : 0 < tan 1) by apply (Rlt_trans _ _ _ Rlt_0_1 tan_1_gt_1).
-intros x x_encad Pratan Prmymeta.
- rewrite pr_nu_var2_interv with (g:=ps_atan) (lb:=-1) (ub:=tan 1)
-   (pr2 := derivable_pt_ps_atan x x_encad).
-{
- rewrite pr_nu_var2_interv with (f:=atan) (g:=atan) (lb:=-1) (ub:= 1) (pr2:=derivable_pt_atan x).
-{
- assert (Temp := derivable_pt_lim_ps_atan x x_encad).
- assert (Hrew1 : derive_pt ps_atan x (derivable_pt_ps_atan x x_encad) = (/(1+x^2))).
-{
-  apply derive_pt_eq_0 ; assumption.
-}
-{
-  rewrite derive_pt_atan.
-  rewrite Hrew1.
-  replace (Rsqr x) with (x ^ 2) by (unfold Rsqr; ring).
-  unfold Rdiv; rewrite Rmult_1_l; reflexivity.
-}
-}
-{
-     fourier.
-}
-{
-    assumption.
-}
-{
-   intros; reflexivity.
-}
-}
-{
-  fourier.
-}
-{
- assert (t := tan_1_gt_1); split;destruct x_encad; fourier.
-}
-{
-intros; reflexivity.
-}
+
+  intros x x_encad Pratan Prmymeta.
+
+  assert (freq : 0 < tan 1).
+  {
+    apply Rlt_trans with 1.
+    exact Rlt_0_1.
+    apply tan_1_gt_1.
+  }
+
+  rewrite pr_nu_var2_interv with (g:=ps_atan) (lb:=-1) (ub:=tan 1) (pr2 := derivable_pt_ps_atan x x_encad).
+  {
+    rewrite pr_nu_var2_interv with (f:=atan) (g:=atan) (lb:=-1) (ub:= 1) (pr2:=derivable_pt_atan x).
+    {
+      assert (Temp := derivable_pt_lim_ps_atan x x_encad).
+      assert (Hrew1 : derive_pt ps_atan x (derivable_pt_ps_atan x x_encad) = (/(1+x^2))).
+      {
+        apply derive_pt_eq_0.
+        assumption.
+      }
+      rewrite derive_pt_atan.
+      rewrite Hrew1.
+      replace (Rsqr x) with (x ^ 2).
+      2:{
+        unfold Rsqr.
+        simpl.
+        rewrite Rmult_1_r.
+        reflexivity.
+      }
+      unfold Rdiv.
+      rewrite Rmult_1_l.
+      reflexivity.
+    }
+    {
+      apply Rlt_trans with 0.
+      {
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        exact Rlt_0_1.
+      }
+      { exact Rlt_0_1. }
+    }
+    { assumption. }
+    {
+      intros.
+      reflexivity.
+    }
+  }
+  {
+    apply Rlt_trans with 0.
+    {
+      rewrite <- Ropp_0.
+      apply Ropp_lt_contravar.
+      exact Rlt_0_1.
+    }
+    { assumption. }
+  }
+  {
+    assert (t := tan_1_gt_1).
+    destruct x_encad.
+    split.
+    { assumption. }
+    {
+      apply Rlt_trans with 1.
+      { assumption. }
+      { assumption. }
+    }
+  }
+  {
+    intros.
+    reflexivity.
+  }
 Qed.
 
 Lemma atan_eq_ps_atan :
  forall x, 0 < x < 1 -> atan x = ps_atan x.
 Proof.
-intros x x_encad.
-assert (pr1 : forall c : R, 0 < c < x -> derivable_pt (atan - ps_atan) c).
-{
- intros c c_encad.
- apply derivable_pt_minus.
-{
-  exact (derivable_pt_atan c).
-}
-{
- apply derivable_pt_ps_atan.
-  destruct x_encad; destruct c_encad; split; fourier.
-}
-}
-{
-assert (pr2 : forall c : R, 0 < c < x -> derivable_pt id c).
-{
- intros ; apply derivable_pt_id; fourier.
-}
-{
-assert (delta_cont : forall c : R, 0 <= c <= x -> continuity_pt (atan - ps_atan) c).
-{
- intros c [[c_encad1 | c_encad1 ] [c_encad2 | c_encad2]];
-        apply continuity_pt_minus.
-{
-        apply derivable_continuous_pt ; apply derivable_pt_atan.
-}
-{ 
-       apply derivable_continuous_pt ; apply derivable_pt_ps_atan.
-       split; destruct x_encad; fourier.
-}
-{
-      apply derivable_continuous_pt, derivable_pt_atan.
-}
-{
-     apply derivable_continuous_pt, derivable_pt_ps_atan.
-     subst c; destruct x_encad; split.
-{ apply Rlt_trans with 0. { rewrite <- Ropp_0. apply Ropp_lt_contravar. exact Rlt_0_1. }
-}
-{
-    apply derivable_continuous_pt, derivable_pt_atan.
-}
-{
-   apply derivable_continuous_pt, derivable_pt_ps_atan.
-   subst c; split.
-{ rewrite <- Ropp_0. apply Ropp_lt_contravar. exact Rlt_0_1. }
-{ exact Rlt_0_1. }
-}
-{
-  apply derivable_continuous_pt, derivable_pt_atan.
-}
-{
- apply derivable_continuous_pt, derivable_pt_ps_atan.
- subst c; destruct x_encad; split.
-{ rewrite <- Ropp_0. apply Ropp_lt_contravar. exact Rlt_0_1. }
-{ exact Rlt_0_1. }
-}
-}
-{
-assert (id_cont : forall c : R, 0 <= c <= x -> continuity_pt id c).
-{
-    intros ; apply derivable_continuous ; apply derivable_id.
-}
-{
-assert (x_lb : 0 < x).
-{ 
-destruct x_encad.
-assumption.
-}
-elim (MVT (atan - ps_atan)%F id 0 x pr1 pr2 x_lb delta_cont id_cont) ; intros d Temp ; elim Temp ; intros d_encad Main.
-clear - Main x_encad.
-assert (Temp : forall (pr: derivable_pt (atan - ps_atan) d), derive_pt (atan - ps_atan) d pr = 0).
-{
- intro pr.
- assert (d_encad3 : -1 < d < 1).
-{
-  destruct d_encad; destruct x_encad; split.
-{ apply Rlt_trans with 0. rewrite <- Ropp_0. apply Ropp_lt_contravar. exact Rlt_0_1. assumption. }
-{ apply Rlt_trans with x;assumption. }
-}
-{
- pose (pr3 := derivable_pt_minus atan ps_atan d (derivable_pt_atan d) (derivable_pt_ps_atan d d_encad3)).
- rewrite <- pr_nu_var2_interv with (f:=(atan - ps_atan)%F) (g:=(atan - ps_atan)%F) (lb:=0) (ub:=x) (pr1:=pr3) (pr2:=pr).
-{
-    unfold pr3.
-  rewrite derive_pt_minus.
-  rewrite Datan_eq_DatanSeq_interv with (Prmymeta := derivable_pt_atan d).
-{
-  unfold Rminus.
-  rewrite Rplus_opp_r.
-  reflexivity.
-}
-{
+  intros x x_encad.
+  assert (pr1 : forall c : R, 0 < c < x -> derivable_pt (atan - ps_atan) c).
+  {
+    intros c c_encad.
+    apply derivable_pt_minus.
+    { apply derivable_pt_atan. }
+    {
+      apply derivable_pt_ps_atan.
+      destruct x_encad.
+      destruct c_encad.
+      split.
+      {
+        apply Rlt_trans with 0.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          exact Rlt_0_1.
+        }
+        { assumption. }
+      }
+      {
+        apply Rlt_trans with x.
+        { assumption. }
+        { assumption. }
+      }
+    }
+  }
+  assert (pr2 : forall c : R, 0 < c < x -> derivable_pt id c).
+  {
+    intros.
+    apply derivable_pt_id.
+  }
+  assert (delta_cont : forall c : R, 0 <= c <= x -> continuity_pt (atan - ps_atan) c).
+  {
+    intros c [[c_encad1 | c_encad1 ] [c_encad2 | c_encad2]].
+    {
+      apply continuity_pt_minus.
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_atan.
+      }
+      { 
+        apply derivable_continuous_pt.
+        apply derivable_pt_ps_atan.
+        destruct x_encad.
+        split.
+        {
+          apply Rlt_trans with 0.
+          {
+            rewrite <- Ropp_0.
+            apply Ropp_lt_contravar.
+            exact Rlt_0_1.
+          }
+          { assumption. }
+        }
+        {
+          apply Rlt_trans with x.
+          { assumption. }
+          { assumption. }
+        }
+      }
+    }
+    {
+      apply continuity_pt_minus.
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_atan.
+      }
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_ps_atan.
+        subst c.
+        destruct x_encad.
+        split.
+        {
+          apply Rlt_trans with 0.
+          {
+            rewrite <- Ropp_0.
+            apply Ropp_lt_contravar.
+            exact Rlt_0_1.
+          }
+          { assumption. }
+        }
+        { assumption. }
+      }
+    }
+    {
+      apply continuity_pt_minus.
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_atan.
+      }
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_ps_atan.
+        subst c.
+        split.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          exact Rlt_0_1.
+        }
+        { exact Rlt_0_1. }
+      }
+    }
+    {
+      apply continuity_pt_minus.
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_atan.
+      }
+      {
+        apply derivable_continuous_pt.
+        apply derivable_pt_ps_atan.
+        subst c.
+        destruct x_encad.
+        split.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          exact Rlt_0_1.
+        }
+        { exact Rlt_0_1. }
+      }
+    }
+  }
+  assert (id_cont : forall c : R, 0 <= c <= x -> continuity_pt id c).
+  {
+    intros.
+    apply derivable_continuous.
+    apply derivable_id.
+  }
+  assert (x_lb : 0 < x).
+  { 
+    destruct x_encad.
     assumption.
-}
-}
-{ 
-   destruct d_encad.
-    apply Rlt_trans with d;assumption.
-}
-{
-  assumption.
-}
-{
- reflexivity.
-}
-}
-}
-{
-assert (iatan0 : atan 0 = 0).
-{
- apply tan_is_inj.
-{
-   apply atan_bound.
-}
-{
-  rewrite Ropp_div; assert (t := PI2_RGT_0); split.
-{
-  rewrite <- Ropp_0.
-  apply Ropp_lt_contravar.
-  assumption.
-}
-{
-assumption.
-}
-}
-{
- rewrite tan_0, atan_right_inv; reflexivity.
-}
-}
-{
-generalize Main; rewrite Temp, Rmult_0_r.
-replace ((atan - ps_atan)%F x) with (atan x - ps_atan x).
-2:{
-unfold minus_fct. reflexivity.
-}
-replace ((atan - ps_atan)%F 0) with (atan 0 - ps_atan 0).
-2:{
-unfold minus_fct.
-reflexivity.
-}
-rewrite iatan0, ps_atan0_0, !Rminus_0_r.
-replace (derive_pt id d (pr2 d d_encad)) with 1.
-{ 
- rewrite Rmult_1_r.
-  intros M.
-  apply Rminus_diag_uniq.
-symmetry.
-assumption.
-}
-{
-rewrite pr_nu_var with (g:=id) (pr2:=derivable_pt_id d).
-{
- symmetry ; apply derive_pt_id.
-}
-{
-reflexivity.
-}
-}
-}
-}
-}
-}
-}
-}
+  }
+  elim (MVT (atan - ps_atan)%F id 0 x pr1 pr2 x_lb delta_cont id_cont).
+  intros d Temp.
+  elim Temp.
+  intros d_encad Main.
+  clear - Main x_encad.
+  assert (Temp : forall (pr: derivable_pt (atan - ps_atan) d), derive_pt (atan - ps_atan) d pr = 0).
+  {
+    intro pr.
+    assert (d_encad3 : -1 < d < 1).
+    {
+      destruct d_encad.
+      destruct x_encad.
+      split.
+      {
+        apply Rlt_trans with 0.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          exact Rlt_0_1.
+        }
+        { assumption. }
+      }
+      {
+        apply Rlt_trans with x.
+        { assumption. }
+        { assumption. }
+      }
+    }
+    pose (pr3 := derivable_pt_minus atan ps_atan d (derivable_pt_atan d) (derivable_pt_ps_atan d d_encad3)).
+    rewrite <- pr_nu_var2_interv with (f:=(atan - ps_atan)%F) (g:=(atan - ps_atan)%F) (lb:=0) (ub:=x) (pr1:=pr3) (pr2:=pr).
+    {
+      unfold pr3.
+      rewrite derive_pt_minus.
+      rewrite Datan_eq_DatanSeq_interv with (Prmymeta := derivable_pt_atan d).
+      {
+        unfold Rminus.
+        rewrite Rplus_opp_r.
+        reflexivity.
+      }
+      { assumption. }
+    }
+    {
+      destruct d_encad.
+      apply Rlt_trans with d.
+      { assumption. }
+      { assumption. }
+    }
+    { assumption. }
+    { reflexivity. }
+  }
+  {
+    assert (iatan0 : atan 0 = 0).
+    {
+      clear.
+      apply tan_is_inj.
+      { apply atan_bound. }
+      {
+        rewrite Ropp_div.
+        assert (t := PI2_RGT_0).
+        split.
+        {
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          assumption.
+        }
+        { assumption. }
+      }
+      {
+        rewrite tan_0, atan_right_inv.
+        reflexivity.
+      }
+    }
+    generalize Main.
+    rewrite Temp, Rmult_0_r.
+    replace ((atan - ps_atan)%F x) with (atan x - ps_atan x).
+    2:{
+      unfold minus_fct.
+      reflexivity.
+    }
+    replace ((atan - ps_atan)%F 0) with (atan 0 - ps_atan 0).
+    2:{
+      unfold minus_fct.
+      reflexivity.
+    }
+    rewrite iatan0, ps_atan0_0, !Rminus_0_r.
+    replace (derive_pt id d (pr2 d d_encad)) with 1.
+    2:{
+      rewrite pr_nu_var with (g:=id) (pr2:=derivable_pt_id d).
+      {
+        symmetry.
+        apply derive_pt_id.
+      }
+      { reflexivity. }
+    }
+    rewrite Rmult_1_r.
+    intros M.
+    apply Rminus_diag_uniq.
+    symmetry.
+    assumption.
+  }
 Qed.
 
 
 Theorem Alt_PI_eq : Alt_PI = PI.
 Proof.
-apply Rmult_eq_reg_r with (/4).
-fold (Alt_PI/4).
-fold (PI/4).
-2: { apply Rgt_not_eq. apply Rinv_0_lt_compat. prove_sup0. }
-assert (0 < PI/6) by (apply PI6_RGT_0).
-assert (t1:= PI2_1).
-assert (t2 := PI_4).
-assert (m := Alt_PI_RGT_0).
-assert (-PI/2 < 1 < PI/2).
-{
-rewrite Ropp_div.
-split.
-{
-apply Rlt_trans with (-1).
-apply Ropp_lt_contravar. assumption.
-apply Rlt_trans with 0.
-rewrite <- Ropp_0. apply Ropp_lt_contravar. exact Rlt_0_1.
- exact Rlt_0_1.
-}
-{
-assumption.
-}
-}
-apply cond_eq; intros eps ep.
-change (R_dist (Alt_PI/4) (PI/4) < eps).
-assert (ca : continuity_pt atan 1).
-{
-  apply derivable_continuous_pt, derivable_pt_atan.
-}
-{
-assert (Xe : exists eps', exists eps'',
-  eps' + eps'' <= eps /\ 0 < eps' /\ 0 < eps'').
-{
- exists (eps/2).
-  exists (eps/2).
-  repeat apply conj.
-{
-  right.
-  unfold Rdiv.
-  rewrite <- double.
-  rewrite Rmult_comm.
-  rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
-  reflexivity.
-  discrR.
-}
-{
-  unfold Rdiv.
-  apply Rmult_lt_0_compat.
-  assumption.
-  apply Rinv_0_lt_compat.
-  prove_sup0.
-}
-{
-  unfold Rdiv.
-  apply Rmult_lt_0_compat.
-  assumption.
-  apply Rinv_0_lt_compat.
-  prove_sup0.
-}
-}
-{
-destruct Xe as [eps' [eps'' [eps_ineq [ep' ep'']]]].
-destruct (ps_atan_continuity_pt_1 _ ep') as [alpha [a0 Palpha]].
-destruct (ca _ ep'') as [beta [b0 Pbeta]].
-assert (Xa : exists a, 0 < a < 1 /\ R_dist a 1 < alpha /\
-                R_dist a 1 < beta).
-{
- exists (Rmax (/2) (Rmax (1 - alpha /2) (1 - beta /2))).
- assert (/2 <= Rmax (/2) (Rmax (1 - alpha /2) (1 - beta /2))).
-{ apply Rmax_l. }
- assert (Rmax (1 - alpha /2) (1 - beta /2) <=
-         Rmax (/2) (Rmax (1 - alpha /2) (1 - beta /2))).
-{ apply Rmax_r. }
- assert ((1 - alpha /2) <= Rmax (1 - alpha /2) (1 - beta /2)).
-{ apply Rmax_l. }
- assert ((1 - beta /2) <= Rmax (1 - alpha /2) (1 - beta /2)).
-{ apply Rmax_r. }
- assert (Rmax (1 - alpha /2) (1 - beta /2) < 1).
-{
-  apply Rmax_lub_lt.
-{
-  unfold Rminus.
-  pattern 1 at 2;rewrite <- Rplus_0_r.
-  apply Rplus_lt_compat_l.
-  rewrite <- Ropp_0.
-  apply Ropp_lt_contravar.
-  unfold Rdiv.
-  apply Rmult_lt_0_compat.
-  assumption.
-exact pos_half_prf.
-}
-{
-  unfold Rminus.
-  pattern 1 at 2;rewrite <- Rplus_0_r.
-  apply Rplus_lt_compat_l.
-  rewrite <- Ropp_0.
-  apply Ropp_lt_contravar.
-  unfold Rdiv.
-  apply Rmult_lt_0_compat.
-  assumption.
-exact pos_half_prf.
-}
-}
-{
- split.
- split.
-  2:apply Rmax_lub_lt.
-{
-clear - H1.
-eapply Rlt_le_trans.
-2:exact H1.
-exact pos_half_prf.
-}
-{
-  exact half_1.
-}
-{
-assumption.
-}
- assert (0 <= 1 - Rmax (/ 2) (Rmax (1 - alpha / 2) (1 - beta / 2))).
-{
-  assert (Rmax (/2) (Rmax (1 - alpha / 2) 
-            (1 - beta /2)) <= 1).
-{
-  apply Rmax_lub.
+  apply Rmult_eq_reg_r with (/4).
   {
-    apply Rmult_le_reg_l with 2.
+    fold (Alt_PI/4).
+    fold (PI/4).
+    assert (0 < PI/6) by (apply PI6_RGT_0).
+    assert (t1:= PI2_1).
+    assert (t2 := PI_4).
+    assert (m := Alt_PI_RGT_0).
+    assert (-PI/2 < 1 < PI/2).
+    {
+      rewrite Ropp_div.
+      split.
+      {
+        apply Rlt_trans with (-1).
+        {
+          apply Ropp_lt_contravar.
+          assumption.
+        }
+        {
+          apply Rlt_trans with 0.
+          {
+            rewrite <- Ropp_0.
+            apply Ropp_lt_contravar.
+            exact Rlt_0_1.
+          }
+          { exact Rlt_0_1. }
+        }
+      }
+      { assumption. }
+    }
+    apply cond_eq.
+    intros eps ep.
+    change (R_dist (Alt_PI/4) (PI/4) < eps).
+    assert (ca : continuity_pt atan 1).
+    {
+      apply derivable_continuous_pt.
+      apply derivable_pt_atan.
+    }
+    assert (Xe : exists eps', exists eps'', eps' + eps'' <= eps /\ 0 < eps' /\ 0 < eps'').
+    {
+      exists (eps/2).
+      exists (eps/2).
+      repeat apply conj.
+      {
+        right.
+        unfold Rdiv.
+        rewrite <- double.
+        rewrite Rmult_comm.
+        rewrite Rmult_assoc, Rinv_l, Rmult_1_r.
+        { reflexivity. }
+        { discrR. }
+      }
+      {
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        { assumption. }
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+      }
+      {
+        unfold Rdiv.
+        apply Rmult_lt_0_compat.
+        { assumption. }
+        {
+          apply Rinv_0_lt_compat.
+          prove_sup0.
+        }
+      }
+    }
+    destruct Xe as [eps' [eps'' [eps_ineq [ep' ep'']]]].
+    destruct (ps_atan_continuity_pt_1 _ ep') as [alpha [a0 Palpha]].
+    destruct (ca _ ep'') as [beta [b0 Pbeta]].
+    assert (Xa : exists a, 0 < a < 1 /\ R_dist a 1 < alpha /\ R_dist a 1 < beta).
+    {
+      exists (Rmax (/2) (Rmax (1 - alpha /2) (1 - beta /2))).
+      assert (/2 <= Rmax (/2) (Rmax (1 - alpha /2) (1 - beta /2))).
+      { apply Rmax_l. }
+      assert (Rmax (1 - alpha /2) (1 - beta /2) <= Rmax (/2) (Rmax (1 - alpha /2) (1 - beta /2))).
+      { apply Rmax_r. }
+      assert ((1 - alpha /2) <= Rmax (1 - alpha /2) (1 - beta /2)).
+      { apply Rmax_l. }
+      assert ((1 - beta /2) <= Rmax (1 - alpha /2) (1 - beta /2)).
+      { apply Rmax_r. }
+      assert (Rmax (1 - alpha /2) (1 - beta /2) < 1).
+      {
+        apply Rmax_lub_lt.
+        {
+          unfold Rminus.
+          pattern 1 at 2;rewrite <- Rplus_0_r.
+          apply Rplus_lt_compat_l.
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          unfold Rdiv.
+          apply Rmult_lt_0_compat.
+          { assumption. }
+          { exact pos_half_prf. }
+        }
+        {
+          unfold Rminus.
+          pattern 1 at 2;rewrite <- Rplus_0_r.
+          apply Rplus_lt_compat_l.
+          rewrite <- Ropp_0.
+          apply Ropp_lt_contravar.
+          unfold Rdiv.
+          apply Rmult_lt_0_compat.
+          { assumption. }
+          { exact pos_half_prf. }
+        }
+      }
+      split.
+      {
+        split.
+        {
+          clear - H1.
+          eapply Rlt_le_trans.
+          { apply pos_half_prf. }
+          { assumption. }
+        }
+        {
+          apply Rmax_lub_lt.
+          { exact half_1. }
+          { assumption. }
+        }
+      }
+      {
+        assert (0 <= 1 - Rmax (/ 2) (Rmax (1 - alpha / 2) (1 - beta / 2))).
+        {
+          assert (Rmax (/2) (Rmax (1 - alpha / 2)  (1 - beta /2)) <= 1).
+          {
+            apply Rmax_lub.
+            {
+              apply Rmult_le_reg_l with 2.
+              { prove_sup0. }
+              rewrite Rinv_r.
+              {
+                rewrite double.
+                pattern 1 at 1;rewrite <- Rplus_0_r.
+                apply Rplus_le_compat_l.
+                left.
+                prove_sup0.
+              }
+              { discrR. }
+            }
+            {
+              left.
+              assumption.
+            }
+          }
+          clear - H6.
+          unfold Rminus.
+          apply Rplus_le_reg_l with (-(1)).
+          rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l, Rplus_0_r.
+          apply Ropp_le_contravar.
+          assumption.
+        }
+        split.
+        {
+          unfold R_dist.
+          rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_pos_eq.
+          {
+            clear - H3 H2 a0.
+            set (S := (Rmax (1 - alpha / 2) (1 - beta / 2))).
+            fold S in H2, H3.
+            apply Ropp_lt_cancel.
+            rewrite Ropp_minus_distr.
+            unfold Rminus.
+            apply Rplus_lt_reg_r with 1.
+            rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+            apply Rlt_le_trans with S.
+            {
+              apply Rlt_le_trans with (1-alpha/2).
+              {
+                unfold Rminus.
+                rewrite Rplus_comm.
+                apply Rplus_lt_compat_l.
+                apply Ropp_lt_contravar.
+                pattern alpha at 2;rewrite <- Rmult_1_r.
+                unfold Rdiv.
+                apply Rmult_lt_compat_l.
+                { assumption. }
+                {
+                  rewrite <- (Rinv_l 2).
+                  {
+                    pattern (/2) at 1;rewrite <- Rmult_1_r.
+                    apply Rmult_lt_compat_l.
+                    {
+                      apply Rinv_0_lt_compat.
+                      prove_sup0.
+                    }
+                    {
+                      pattern 2;rewrite <- Rmult_1_r, double.
+                      pattern 1 at 1;rewrite <- Rplus_0_r.
+                      apply Rplus_lt_compat_l.
+                      prove_sup0.
+                    }
+                  }
+                  { discrR. }
+                }
+              }
+              { assumption. }
+            }
+            { assumption. }
+          }
+          { assumption. }
+        }
+        {
+          unfold R_dist.
+          rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_pos_eq.
+          {
+            clear - H2 H4 b0.
+            set ( S := Rmax (1 - alpha / 2) (1 - beta / 2) ).
+            fold S in H2, H4.
+            unfold Rminus.
+            apply Rplus_lt_reg_r with (Rmax (/2) S).
+            rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+            apply Rplus_lt_reg_l with (-beta).
+            rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+            rewrite Rplus_comm.
+            apply Rlt_le_trans with S.
+            {
+              clear H2.
+              apply Rlt_le_trans with (1-beta/2).
+              {
+                unfold Rminus.
+                apply Rplus_lt_compat_l.
+                apply Ropp_lt_contravar.
+                unfold Rdiv.
+                pattern beta at 2;rewrite <- Rmult_1_r.
+                apply Rmult_lt_compat_l.
+                { assumption. }
+                apply Rmult_lt_reg_r with 2.
+                { prove_sup0. }
+                {
+                  rewrite Rinv_l.
+                  {
+                    rewrite Rmult_comm, double.
+                    apply Rlt_n_Sn.
+                  }
+                  { discrR. }
+                }
+              }
+              { assumption. }
+            }
+            { assumption. }
+          }
+          { assumption. }
+        }
+      }
+    }
+    destruct Xa as [a [[Pa0 Pa1] [P1 P2]]].
+    apply Rle_lt_trans with (1 := R_dist_tri _ _ (ps_atan a)).
+    apply Rlt_le_trans with (2 := eps_ineq).
+    apply Rplus_lt_compat.
+    {
+      rewrite R_dist_sym.
+      apply Palpha.
+      { assumption. }
+      { assumption. }
+      { assumption. }
+    }
+    {
+      rewrite <- atan_eq_ps_atan.
+      {
+        rewrite <- atan_1.
+        apply (Pbeta a).
+        split.
+        {
+          unfold D_x.
+          split.
+          {
+            unfold no_cond.
+            exact I.
+          }
+          {
+            apply Rgt_not_eq.
+            assumption.
+          }
+        }
+        { exact P2. }
+      }
+      {
+        split.
+        { assumption. }
+        { assumption. }
+      }
+    }
+  }
+  {
+    apply Rgt_not_eq.
+    apply Rinv_0_lt_compat.
     prove_sup0.
-    rewrite Rinv_r.
-    rewrite double.
-    pattern 1 at 1;rewrite <- Rplus_0_r.
-    apply Rplus_le_compat_l.
-    left;prove_sup0.
-    discrR.
   }
-  {
-    left. assumption.
-  }
-}
-  {
-clear - H6.
-unfold Rminus.
-apply Rplus_le_reg_l with (-(1)).
-rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l, Rplus_0_r.
-apply Ropp_le_contravar.
-assumption.
-}
-}
-{
-  split.
-  {
-    unfold R_dist.
-    rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_pos_eq.
-{
-  clear - H3 H2 a0.
-  set (S := (Rmax (1 - alpha / 2) (1 - beta / 2))).
-  fold S in H2, H3.
-  apply Ropp_lt_cancel.
-  rewrite Ropp_minus_distr.
-  unfold Rminus.
-  apply Rplus_lt_reg_r with 1.
-  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-  apply Rlt_le_trans with S.
-  2:assumption.
-  apply Rlt_le_trans with (1-alpha/2).
-  2:assumption.
-  unfold Rminus.
-  rewrite Rplus_comm.
-  apply Rplus_lt_compat_l.
-  apply Ropp_lt_contravar.
-  pattern alpha at 2;rewrite <- Rmult_1_r.
-  unfold Rdiv.
-  apply Rmult_lt_compat_l.
-  assumption.
-  rewrite <- (Rinv_l 2).
-  2:discrR.
-  pattern (/2) at 1;rewrite <- Rmult_1_r.
-  apply Rmult_lt_compat_l.
-  apply Rinv_0_lt_compat. prove_sup0.
-  pattern 2;rewrite <- Rmult_1_r, double.
-  pattern 1 at 1;rewrite <- Rplus_0_r.
-  apply Rplus_lt_compat_l.
-  prove_sup0.
-}
-{
-  assumption.
-}
-  }
-  {
-    unfold R_dist.
-    rewrite <- Rabs_Ropp, Ropp_minus_distr, Rabs_pos_eq.
-{
-  clear - H2 H4 b0.
-  set ( S := Rmax (1 - alpha / 2) (1 - beta / 2) ).
-  fold S in H2, H4.
-  unfold Rminus.
-  apply Rplus_lt_reg_r with (Rmax (/2) S).
-  rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
-  apply Rplus_lt_reg_l with (-beta).
-  rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
-  rewrite Rplus_comm.
-  apply Rlt_le_trans with S.
-  2:assumption.
-  clear H2.
-  apply Rlt_le_trans with (1-beta/2).
-  2:assumption.
-  unfold Rminus.
-  apply Rplus_lt_compat_l.
-  apply Ropp_lt_contravar.
-  unfold Rdiv.
-  pattern beta at 2;rewrite <- Rmult_1_r.
-  apply Rmult_lt_compat_l.
-  assumption.
-  apply Rmult_lt_reg_r with 2.
-  prove_sup0.
-  rewrite Rinv_l.
-  rewrite Rmult_comm, double.
-  apply Rlt_n_Sn.
-  discrR.
-}
-{
-assumption.
-}
-  }
-}
-}
-}
-{
-  destruct Xa as [a [[Pa0 Pa1] [P1 P2]]].
-  apply Rle_lt_trans with (1 := R_dist_tri _ _ (ps_atan a)).
-  apply Rlt_le_trans with (2 := eps_ineq).
-  apply Rplus_lt_compat.
-{
-  rewrite R_dist_sym.
-  apply Palpha.
-  { assumption. }
-  { assumption. }
-  { assumption. }
-}
-{
-  rewrite <- atan_eq_ps_atan.
-{
-  rewrite <- atan_1.
-  apply (Pbeta a).
-  split.
-  2:exact P2.
-  split.
-  { unfold no_cond. exact I. }
-  { apply Rgt_not_eq. assumption. }
-}
-{
-  split.
-  { assumption. }
-  { assumption. }
-}
-}
-}
-}
-}
 Qed.
 
 Lemma PI_ineq :
