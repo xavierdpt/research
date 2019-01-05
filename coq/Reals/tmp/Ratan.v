@@ -586,83 +586,84 @@ Lemma exists_atan_in_frame :
  tan lb < y < tan ub -> {x | lb < x < ub /\ tan x = y}.
 Proof.
 intros lb ub y lb_lt_ub lb_cond ub_cond y_encad.
- case y_encad ; intros y_encad1 y_encad2.
-     assert (f_cont : forall a : R, lb <= a <= ub -> continuity_pt tan a).
 {
-      intros a a_encad. apply derivable_continuous_pt ; apply derivable_pt_tan.
-      split.
+case y_encad ; intros y_encad1 y_encad2.
+assert (f_cont : forall a : R, lb <= a <= ub -> continuity_pt tan a).
+{
+intros a a_encad. apply derivable_continuous_pt ; apply derivable_pt_tan.
+split.
 { apply Rlt_le_trans with (r2:=lb) ; intuition.
 }
 {
-      apply Rle_lt_trans with (r2:=ub) ; intuition.
+apply Rle_lt_trans with (r2:=ub) ; intuition.
 }
 }
 {
-     assert (Cont : forall a : R, lb <= a <= ub -> continuity_pt (fun x => tan x - y) a).
+assert (Cont : forall a : R, lb <= a <= ub -> continuity_pt (fun x => tan x - y) a).
 {
-      intros a a_encad. unfold continuity_pt, continue_in, limit1_in, limit_in ; simpl ; unfold R_dist.
-      intros eps eps_pos. elim (f_cont a a_encad eps eps_pos).
-      intros alpha alpha_pos. destruct alpha_pos as (alpha_pos,Temp).
-      exists alpha. split.
+intros a a_encad. unfold continuity_pt, continue_in, limit1_in, limit_in ; simpl ; unfold R_dist.
+intros eps eps_pos. elim (f_cont a a_encad eps eps_pos).
+intros alpha alpha_pos. destruct alpha_pos as (alpha_pos,Temp).
+exists alpha. split.
 {
-      assumption.
+assumption.
 }
-{
- intros x  x_cond.
-      replace (tan x - y - (tan a - y)) with (tan x - tan a) by field.
-      exact (Temp x x_cond).
-}
-}
-{
-     assert (H1 : (fun x : R => tan x - y) lb < 0).
-{
-       apply Rlt_minus. assumption.
-}
-{
-      assert (H2 : 0 < (fun x : R => tan x - y) ub).
-{
-       apply Rgt_minus. assumption.
-}
-{
-     destruct (IVT_interv (fun x => tan x - y) lb ub Cont lb_lt_ub H1 H2) as (x,Hx).
-     exists x.
-     destruct Hx as (Hyp,Result).
-     intuition.
-{
-     assert (Temp2 : x <> lb).
-{
-      intro Hfalse. rewrite Hfalse in Result.
-      assert (Temp2 : y <> tan lb).
-{
-       apply Rgt_not_eq ; assumption.
-}
-{
-      clear - Temp2 Result.
-    apply Temp2.
-      intuition.
+{ intros x  x_cond.
+replace (tan x - y - (tan a - y)) with (tan x - tan a) by field.
+exact (Temp x x_cond).
 }
 }
 {
-     clear -Temp2 H3.
-      case H3 ; intuition. apply False_ind ; apply Temp2 ; symmetry ; assumption.
+assert (H1 : (fun x : R => tan x - y) lb < 0).
+{
+apply Rlt_minus. assumption.
+}
+{
+assert (H2 : 0 < (fun x : R => tan x - y) ub).
+{
+apply Rgt_minus. assumption.
+}
+{
+destruct (IVT_interv (fun x => tan x - y) lb ub Cont lb_lt_ub H1 H2) as (x,Hx).
+exists x.
+destruct Hx as (Hyp,Result).
+intuition.
+{
+assert (Temp2 : x <> lb).
+{
+intro Hfalse. rewrite Hfalse in Result.
+assert (Temp2 : y <> tan lb).
+{
+apply Rgt_not_eq ; assumption.
+}
+{
+clear - Temp2 Result.
+apply Temp2.
+intuition.
 }
 }
 {
-      assert (Temp : x <> ub).
-{
-      intro Hfalse. rewrite Hfalse in Result.
-      assert (Temp2 : y <> tan ub).
-{
-       apply Rlt_not_eq ; assumption.
-}
-{
-      clear - Temp2 Result.
-       apply Temp2.
-      intuition.
+clear -Temp2 H3.
+case H3 ; intuition. apply False_ind ; apply Temp2 ; symmetry ; assumption.
 }
 }
 {
-      case H4 ; intuition.
+assert (Temp : x <> ub).
+{
+intro Hfalse. rewrite Hfalse in Result.
+assert (Temp2 : y <> tan ub).
+{
+apply Rlt_not_eq ; assumption.
+}
+{
+clear - Temp2 Result.
+apply Temp2.
+intuition.
+}
+}
+{
+case H4 ; intuition.
+}
 }
 }
 }
@@ -869,220 +870,549 @@ Qed.
 
 Definition frame_tan y : {x | 0 < x < PI/2 /\ Rabs y < tan x}.
 Proof.
-destruct (total_order_T (Rabs y) 1) as [Hs|Hgt].
-{
- assert (yle1 : Rabs y <= 1) by (destruct Hs; fourier).
- clear Hs; exists 1; split;[split; [exact Rlt_0_1 | exact PI2_1] | ].
- apply Rle_lt_trans with (1 := yle1); exact tan_1_gt_1.
-}
-{
-assert (0 < / (Rabs y + 1)).
-{
- apply Rinv_0_lt_compat; fourier.
-}
-{
-set (u := /2 * / (Rabs y + 1)).
-assert (0 < u).
-{
- apply Rmult_lt_0_compat; [fourier | assumption].
-}
-{
-assert (vlt1 : / (Rabs y + 1) < 1).
-{
- apply Rmult_lt_reg_r with (Rabs y + 1).
-{
-  assert (t := Rabs_pos y); fourier.
-}
-{
- rewrite Rinv_l; [rewrite Rmult_1_l | apply Rgt_not_eq]; fourier.
-}
-}
-{
-assert (vlt2 : u < 1).
-{
- apply Rlt_trans with (/ (Rabs y + 1)).
-{
-  rewrite double_var.
-  assert (t : forall x, 0 < x -> x < x + x) by (clear; intros; fourier).
-  unfold u; rewrite Rmult_comm; apply t.
-  unfold Rdiv; rewrite Rmult_comm; assumption.
-}
-{
- assumption.
-}
-}
-{
-assert(int : 0 < PI / 2 - u < PI / 2).
-{
- split.
-{
-  assert (t := PI2_1); apply Rlt_Rminus, Rlt_trans with (2 := t); assumption.
-}
-{
- assert (dumb : forall x y, 0 < y -> x - y < x) by (clear; intros; fourier).
- apply dumb; clear dumb; assumption.
-}
-}
-{
-exists (PI/2 - u).
-assert (tmp : forall x y, 0 < x -> y < 1 -> x * y < x).
-{
- clear; intros x y x0 y1; pattern x at 2; rewrite <- (Rmult_1_r x).
- apply Rmult_lt_compat_l; assumption.
-}
-{
-assert (0 < sin u).
-{
- apply sin_gt_0;[ assumption | ].
- assert (t := PI2_Rlt_PI); assert (t' := PI2_1).
- apply Rlt_trans with (2 := Rlt_trans _ _ _ t' t); assumption.
-}
-{
-split.
-{
- assumption.
-}
-{
- apply Rlt_trans with (/2 * / cos(PI / 2 - u)).
-{
- rewrite cos_shift.
- assert (sin u < u).
-{
-  assert (t1 : 0 <= u) by (apply Rlt_le; assumption).
-  assert (t2 : u <= 4) by
-   (apply Rle_trans with 1;[apply Rlt_le | fourier]; assumption).
-  destruct (pre_sin_bound u 0 t1 t2) as [_ t].
-  apply Rle_lt_trans with (1 := t); clear t1 t2 t.
-  unfold sin_approx; simpl; unfold sin_term; simpl ((-1) ^ 0);
-  replace ((-1) ^ 2) with 1 by ring; simpl ((-1) ^ 1);
-  rewrite !Rmult_1_r, !Rmult_1_l; simpl plus; simpl (INR (fact 1)).
-  rewrite <- (fun x => tech_pow_Rmult x 0), <- (fun x => tech_pow_Rmult x 2),
-    <- (fun x => tech_pow_Rmult x 4).
-  rewrite (Rmult_comm (-1)); simpl ((/(Rabs y + 1)) ^ 0).
-  unfold Rdiv; rewrite Rinv_1, !Rmult_assoc, <- !Rmult_plus_distr_l.
-  apply tmp;[assumption | ].
-  rewrite Rplus_assoc, Rmult_1_l; pattern 1 at 2; rewrite <- Rplus_0_r.
-  apply Rplus_lt_compat_l.
-  rewrite <- Rmult_assoc.
-  match goal with |- (?a * (-1)) + _ < 0 =>
-   rewrite <- (Rplus_opp_l a); change (-1) with (-(1)); rewrite Ropp_mult_distr_r_reverse, Rmult_1_r
-  end.
-  apply Rplus_lt_compat_l.
-  assert (0 < u ^ 2) by (apply pow_lt; assumption).
-  replace (u ^ 4) with (u ^ 2 * u ^ 2) by ring.
- rewrite Rmult_assoc; apply Rmult_lt_compat_l; auto.
-  apply Rlt_trans with (u ^ 2 * /INR (fact 3)).
-{
-   apply Rmult_lt_compat_l; auto.
-   apply Rinv_lt_contravar.
-{
-    solve[apply Rmult_lt_0_compat; apply INR_fact_lt_0].
-}
-{
-   rewrite !INR_IZR_INZ; apply IZR_lt; reflexivity.
-}
-}
-{
-  rewrite Rmult_comm; apply tmp.
-{
-   solve[apply Rinv_0_lt_compat, INR_fact_lt_0].
-}
-{
-  apply Rlt_trans with (2 := vlt2).
-  simpl; unfold u; apply tmp; auto; rewrite Rmult_1_r; assumption.
-}
-}
-}
-{
- apply Rlt_trans with (Rabs y + 1);[fourier | ]. 
- pattern (Rabs y + 1) at 1; rewrite <- (Rinv_involutive (Rabs y + 1));
-  [ | apply Rgt_not_eq; fourier].
- rewrite <- Rinv_mult_distr.
-{
-   apply Rinv_lt_contravar.
-{
+  destruct (total_order_T (Rabs y) 1) as [Hs|Hgt].
+  {
+    assert (yle1 : Rabs y <= 1).
+    {
+      destruct Hs.
+      {
+        left.
+        assumption.
+      }
+      {
+        right.
+        assumption.
+      }
+    }
+    clear Hs.
+    exists 1.
+    split.
+    {
+      split.
+      { exact Rlt_0_1. }
+      { exact PI2_1. }
+    }
+    {
+      apply Rle_lt_trans with (1 := yle1).
+      exact tan_1_gt_1.
+    }
+  }
+  assert (0 < / (Rabs y + 1)).
+  {
+    apply Rinv_0_lt_compat.
+    unfold Rgt in Hgt.
+    apply Rplus_lt_reg_r with (-R1).
+    rewrite Rplus_assoc, Rplus_opp_r, Rplus_0_r, Rplus_0_l.
+    apply Rlt_trans with R1.
+    {
+      apply Rlt_trans with 0.
+      {
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        exact Rlt_0_1.
+      }
+      { exact Rlt_0_1. }
+    }
+    { assumption. }
+  }
+  set (u := /2 * / (Rabs y + 1)).
+  assert (0 < u).
+  {
     apply Rmult_lt_0_compat.
-{
-     apply Rmult_lt_0_compat;[fourier | assumption].
-}
-{
-    assumption.
-}
-}
-{
-   replace (/(Rabs y + 1)) with (2 * u).
-{
-    fourier.
-}
-{
-   unfold u; field; apply Rgt_not_eq; clear -Hgt; fourier.
-}
-}
-}
-{
-  solve[discrR].
-}
-{
- apply Rgt_not_eq; assumption.
-}
-}
-}
-{
-unfold tan.
-set (u' := PI / 2); unfold Rdiv; apply Rmult_lt_compat_r; unfold u'.
-{
- apply Rinv_0_lt_compat. 
- rewrite cos_shift; assumption.
-}
-{
-assert (vlt3 : u < /4).
-{
- replace (/4) with (/2 * /2) by field.
- unfold u; apply Rmult_lt_compat_l;[fourier | ].
- apply Rinv_lt_contravar.
-{
-  apply Rmult_lt_0_compat; fourier.
-}
-{
- fourier.
-}
-}
-{
-assert (1 < PI / 2 - u) by (assert (t := PI2_3_2); fourier).
-apply Rlt_trans with (sin 1).
-{
- assert (t' : 1 <= 4) by fourier.
- destruct (pre_sin_bound 1 0 (Rlt_le _ _ Rlt_0_1) t') as [t _].
- apply Rlt_le_trans with (2 := t); clear t.
- simpl plus; replace (sin_approx 1 1) with (5/6);[fourier | ].
- unfold sin_approx, sin_term; simpl; field.
-}
-{
-apply sin_increasing_1.
-{
-    assert (t := PI2_1); fourier.
-}
-{
-   apply Rlt_le, PI2_1.
-}
-{
-  assert (t := PI2_1); fourier.
-}
-{
- fourier.
-}
-{
-assumption.
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
+    {
+      apply Rinv_0_lt_compat.
+      prove_sup0.
+    }
+    { assumption. }
+  }
+  assert (vlt1 : / (Rabs y + 1) < 1).
+  {
+    apply Rmult_lt_reg_r with (Rabs y + 1).
+    {
+      assert (t := Rabs_pos y).
+      apply Rplus_lt_reg_r with (-R1).
+      rewrite Rplus_0_l, Rplus_assoc, Rplus_opp_r, Rplus_0_r.
+      apply Rlt_le_trans with 0.
+      {
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        exact Rlt_0_1.
+      }
+      { assumption. }
+    }
+    {
+      rewrite Rinv_l.
+      {
+        rewrite Rmult_1_l.
+        pattern 1 at 1;rewrite <- Rplus_0_r.
+        apply Rplus_lt_compat.
+        { assumption. }
+        { exact Rlt_0_1. }
+      }
+      {
+        apply Rgt_not_eq.
+        pattern 0 at 1;rewrite <- Rplus_0_r.
+        apply Rplus_lt_compat.
+        {
+          apply Rlt_trans with 1.
+          { exact Rlt_0_1. }
+          { assumption. }
+        }
+        { exact Rlt_0_1. }
+      }
+    }
+  }
+  assert (vlt2 : u < 1).
+  {
+    apply Rlt_trans with (/ (Rabs y + 1)).
+    {
+      rewrite double_var.
+      assert (t : forall x, 0 < x -> x < x + x).
+      {
+        clear.
+        intros.
+        pattern x at 1;rewrite <- Rplus_0_l.
+        apply Rplus_lt_le_compat.
+        { assumption. }
+        { apply Rle_refl. }
+      }
+      unfold u.
+      rewrite Rmult_comm.
+      apply t.
+      unfold Rdiv.
+      rewrite Rmult_comm.
+      assumption.
+    }
+    { assumption. }
+  }
+  assert(int : 0 < PI / 2 - u < PI / 2).
+  {
+    split.
+    {
+      assert (t := PI2_1).
+      apply Rlt_Rminus.
+      apply Rlt_trans with (2 := t).
+      assumption.
+    }
+    {
+      assert (dumb : forall x y, 0 < y -> x - y < x).
+      {
+        clear.
+        intros.
+        unfold Rminus.
+        pattern x at 2;rewrite <- Rplus_0_r.
+        apply Rplus_lt_compat_l.
+        rewrite <- Ropp_0.
+        apply Ropp_lt_contravar.
+        assumption.
+      }
+      apply dumb.
+      clear dumb.
+      assumption.
+    }
+  }
+  exists (PI/2 - u).
+  assert (tmp : forall x y, 0 < x -> y < 1 -> x * y < x).
+  {
+    clear.
+    intros x y x0 y1.
+    pattern x at 2; rewrite <- (Rmult_1_r x).
+    apply Rmult_lt_compat_l.
+    { assumption. }
+    { assumption. }
+  }
+  assert (0 < sin u).
+  {
+    apply sin_gt_0.
+    { assumption. }
+    { 
+      assert (t := PI2_Rlt_PI).
+      assert (t' := PI2_1).
+      apply Rlt_trans with (2 := Rlt_trans _ _ _ t' t).
+      assumption.
+    }
+  }
+  split.
+  { assumption. }
+  {
+    apply Rlt_trans with (/2 * / cos(PI / 2 - u)).
+    {
+      rewrite cos_shift.
+      assert (sin u < u).
+      {
+      assert (t1 : 0 <= u).
+      {
+        apply Rlt_le.
+        assumption.
+      }
+      assert (t2 : u <= 4).
+      {
+        apply Rle_trans with 1.
+        {
+          apply Rlt_le.
+          assumption.
+        }
+        {
+          pattern 1;rewrite <- Rplus_0_r.
+          replace 4 with (1+3).
+          2:{
+            rewrite <- plus_IZR.
+            simpl.
+            reflexivity.
+          }
+          apply Rplus_le_compat_l.
+          left.
+          prove_sup0.
+        }
+      }
+      destruct (pre_sin_bound u 0 t1 t2) as [_ t].
+      apply Rle_lt_trans with (1 := t).
+      {
+        clear t1 t2 t.
+        unfold sin_approx.
+        simpl.
+        unfold sin_term.
+        simpl ((-1) ^ 0).
+        replace ((-1) ^ 2) with 1.
+        2:{
+          simpl.
+          rewrite Rmult_1_r.
+          change (-1) with (-R1).
+          rewrite <- Ropp_mult_distr_l, <- Ropp_mult_distr_r, Ropp_involutive, Rmult_1_r.
+          reflexivity.
+        }
+        simpl ((-1) ^ 1).
+        rewrite !Rmult_1_r, !Rmult_1_l.
+        simpl plus.
+        simpl (INR (fact 1)).
+        rewrite
+          <- (fun x => tech_pow_Rmult x 0),
+          <- (fun x => tech_pow_Rmult x 2),
+          <- (fun x => tech_pow_Rmult x 4).
+        rewrite (Rmult_comm (-1)).
+        simpl ((/(Rabs y + 1)) ^ 0).
+        unfold Rdiv.
+        rewrite Rinv_1, !Rmult_assoc, <- !Rmult_plus_distr_l.
+        apply tmp.
+        { assumption. }
+        {
+          rewrite Rplus_assoc, Rmult_1_l; pattern 1 at 2; rewrite <- Rplus_0_r.
+          apply Rplus_lt_compat_l.
+          rewrite <- Rmult_assoc.
+          match goal with |- (?a * (-1)) + _ < 0 =>
+            rewrite <- (Rplus_opp_l a); change (-1) with (-(1)); rewrite Ropp_mult_distr_r_reverse, Rmult_1_r
+          end.
+          apply Rplus_lt_compat_l.
+          assert (0 < u ^ 2).
+          {
+            apply pow_lt.
+            assumption.
+          }
+          replace (u ^ 4) with (u ^ 2 * u ^ 2).
+          2:{
+            simpl.
+            rewrite !Rmult_1_r, !Rmult_assoc.
+            reflexivity.
+          }
+          rewrite Rmult_assoc; apply Rmult_lt_compat_l.
+          { assumption. }
+          {
+            apply Rlt_trans with (u ^ 2 * /INR (fact 3)).
+            {
+              apply Rmult_lt_compat_l.
+              { assumption. }
+              {
+                apply Rinv_lt_contravar.
+                {
+                  apply Rmult_lt_0_compat.
+                  { apply INR_fact_lt_0. }
+                  { apply INR_fact_lt_0. }
+                }
+                {
+                  rewrite !INR_IZR_INZ.
+                  apply IZR_lt.
+                  reflexivity.
+                }
+              }
+            }
+            {
+              rewrite Rmult_comm.
+              apply tmp.
+              {
+                apply Rinv_0_lt_compat.
+                apply INR_fact_lt_0.
+              }
+              {
+                apply Rlt_trans with (2 := vlt2).
+                simpl.
+                unfold u.
+                apply tmp.
+                { assumption. }
+                {
+                  rewrite Rmult_1_r.
+                  assumption.
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      apply Rlt_trans with (Rabs y + 1).
+      {
+        pattern (Rabs y) at 1;rewrite <- Rplus_0_r.
+        apply Rplus_lt_compat_l.
+        exact Rlt_0_1.
+      }
+      {
+        pattern (Rabs y + 1) at 1; rewrite <- (Rinv_involutive (Rabs y + 1)).
+        2:{
+          apply Rgt_not_eq.
+          pattern 0;rewrite <- Rplus_0_r.
+          apply Rplus_lt_compat.
+          {
+            apply Rlt_trans with 1.
+            { exact Rlt_0_1. }
+            { assumption. }
+          }
+          { exact Rlt_0_1. }
+        }
+        rewrite <- Rinv_mult_distr.
+        {
+          apply Rinv_lt_contravar.
+          {
+            apply Rmult_lt_0_compat.
+            {
+              apply Rmult_lt_0_compat.
+              { prove_sup0. }
+              { assumption. }
+            }
+            { assumption. }
+          }
+          {
+            replace (/(Rabs y + 1)) with (2 * u).
+            {
+              apply Rmult_lt_compat_l.
+              { prove_sup0. }
+              { assumption. }
+            }
+            {
+              unfold u.
+              rewrite <- !Rmult_assoc.
+              rewrite Rinv_r, Rmult_1_l.
+              { reflexivity. }
+              { discrR. }
+            }
+          }
+        }
+        { discrR. }
+        {
+          apply Rgt_not_eq.
+          assumption.
+        }
+      }
+    }
+  }
+  {
+    unfold tan.
+    set (u' := PI / 2). 
+    unfold Rdiv.
+    apply Rmult_lt_compat_r.
+    {
+      unfold u'.
+      apply Rinv_0_lt_compat. 
+      rewrite cos_shift.
+      assumption.
+    }
+    {
+      unfold u'.
+      assert (vlt3 : u < /4).
+      {
+        replace (/4) with (/2 * /2).
+        2:{
+          rewrite <- Rinv_mult_distr.
+          {
+            rewrite <- mult_IZR.
+            simpl.
+            reflexivity.
+          }
+          { discrR. }
+          { discrR. }
+        }
+        {
+          unfold u.
+          apply Rmult_lt_compat_l.
+          {
+            apply Rinv_0_lt_compat.
+            prove_sup0.
+          }
+          {
+            apply Rinv_lt_contravar.
+            {
+              apply Rmult_lt_0_compat.
+              { prove_sup0. }
+              {
+                pattern 0;rewrite <- Rplus_0_l.
+                apply Rplus_lt_compat.
+                {
+                  apply Rlt_trans with 1.
+                  { exact Rlt_0_1. }
+                  { assumption. }
+                }
+                { exact Rlt_0_1. }
+              }
+            }
+            {
+              replace 2 with (1+1).
+              2:{
+                rewrite <- plus_IZR.
+                simpl.
+                reflexivity.
+              }
+              apply Rplus_lt_le_compat.
+              { assumption. }
+              { apply Rle_refl. }
+            }
+          }
+        }
+      }
+      {
+        assert (1 < PI / 2 - u).
+        {
+          assert (t := PI2_3_2).
+          clear H1 tmp int vlt2 vlt1 H0 H Hgt.
+          clearbody u.
+          unfold Rminus.
+          apply Rplus_lt_reg_r with u.
+          rewrite Rplus_assoc, Rplus_opp_l, Rplus_0_r.
+          eapply Rlt_trans.
+          2:exact t.
+          clear t.
+          apply Rplus_lt_reg_l with (-R1).
+          rewrite <- Rplus_assoc, Rplus_opp_l, Rplus_0_l.
+          apply Rlt_trans with (/4).
+          assumption.
+          change R1 with 1.
+          rewrite <- (Rinv_r 2).
+          2:discrR.
+          rewrite Ropp_mult_distr_l.
+          unfold Rdiv.
+          rewrite <- Rmult_plus_distr_r.
+          change 4 with (2*2).
+          rewrite Rinv_mult_distr.
+          2:discrR.
+          2:discrR.
+          apply Rmult_lt_compat_r.
+          apply Rinv_0_lt_compat. prove_sup0.
+          rewrite <- opp_IZR.
+          rewrite <- plus_IZR.
+          simpl.
+          apply half_1.
+        }
+        apply Rlt_trans with (sin 1).
+        {
+          assert (t' : 1 <= 4).
+          {
+            pattern 1;rewrite <- Rplus_0_l.
+            replace 4 with (3+1).
+            apply Rplus_le_compat_r.
+            left.
+            prove_sup0.
+            rewrite <- plus_IZR.
+            simpl.
+            reflexivity.
+          }
+          destruct (pre_sin_bound 1 0 (Rlt_le _ _ Rlt_0_1) t') as [t _].
+          apply Rlt_le_trans with (2 := t).
+          clear t.
+          simpl plus.
+          replace (sin_approx 1 1) with (5/6).
+          {
+            replace 6 with (3*2).
+            unfold Rdiv.
+            rewrite Rinv_mult_distr.
+            rewrite <- Rmult_assoc.
+            pattern (/2) at 1;rewrite <- Rmult_1_l.
+            apply Rmult_lt_compat_r.
+            apply Rinv_0_lt_compat.
+            prove_sup0.
+            apply Rmult_lt_reg_r with 3.
+            prove_sup0.
+            rewrite Rmult_assoc, Rinv_l, Rmult_1_l, Rmult_1_r.
+            pattern 3;rewrite <- Rplus_0_l.
+            replace 5 with (2+3).
+            apply Rplus_lt_compat_r.
+            prove_sup0.
+            rewrite <- plus_IZR.
+            simpl.
+            reflexivity.
+            discrR.
+            discrR.
+            discrR.
+            rewrite <- mult_IZR.
+            simpl.
+            reflexivity.
+          }
+          unfold sin_approx, sin_term.
+          simpl.
+          rewrite !Rmult_1_l, !Rmult_1_r.
+          unfold Rdiv.
+          rewrite Rmult_1_l.
+          change (-1) with (-R1).
+          rewrite Rmult_1_l.
+          rewrite <- !plus_IZR.
+          simpl.
+          rewrite Rinv_1.
+          rewrite <- (Rinv_r 6).
+          2:discrR.
+          rewrite <- Rmult_plus_distr_r.
+          change R1 with 1.
+          rewrite <- opp_IZR.
+          rewrite <- plus_IZR.
+          simpl.
+          reflexivity.
+        }
+        {
+          apply sin_increasing_1.
+          {
+            assert (t := PI2_1).
+            apply Rle_trans with (-R1).
+            apply Ropp_le_contravar.
+            left. assumption.
+            apply Rle_trans with 0.
+            rewrite <- Ropp_0.
+            apply Ropp_le_contravar.
+            left. exact Rlt_0_1.
+            left. exact Rlt_0_1.
+          }
+          {
+            apply Rlt_le.
+            apply PI2_1.
+          }
+          {
+            assert (t := PI2_1).
+            apply Rle_trans with 1.
+            2:left;assumption.
+            apply Rle_trans with 0.
+            2:left;exact Rlt_0_1.
+            rewrite <- Ropp_0.
+            apply Ropp_le_contravar.
+            apply Rle_trans with 1.
+            left;exact Rlt_0_1.
+            left;assumption.
+          }
+          {
+            unfold Rminus.
+            rewrite <- Rplus_0_r.
+            apply Rplus_le_compat_l.
+            rewrite <- Ropp_0.
+            apply Ropp_le_contravar.
+            left.
+            assumption.
+          }
+          { assumption. }
+      }
 }
 }
 }
