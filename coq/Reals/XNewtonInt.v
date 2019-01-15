@@ -13,7 +13,7 @@ Require Import XRfunctions.
 Require Import XSeqSeries.
 Require Import XRtrigo1.
 Require Import XRanalysis.
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 (*******************************************)
 (*            Newton's Integral            *)
@@ -71,21 +71,21 @@ Proof.
 }
 {
   symmetry ; apply derive_pt_eq_0;
-    replace (f x) with (0 * id x + fct_cte (f a) x * 1);
+    replace (f x) with (R0 * id x + fct_cte (f a) x * R1);
     [ apply (derivable_pt_lim_mult (fct_cte (f a)) id x);
       [ apply derivable_pt_lim_const | apply derivable_pt_lim_id ]
-      | unfold id, fct_cte; rewrite H2; ring ].
+      | unfold id, fct_cte; rewrite H2; admit ].
 }
 }
 }
 {
   right; reflexivity.
 }
-Qed.
+Admitted.
 
 (* $\int_a^a f = 0$ *)
 Lemma NewtonInt_P2 :
-  forall (f:R -> R) (a:R), NewtonInt f a a (NewtonInt_P1 f a) = 0.
+  forall (f:R -> R) (a:R), NewtonInt f a a (NewtonInt_P1 f a) = R0.
 Proof.
   intros; unfold NewtonInt; simpl;
     unfold mult_fct, fct_cte, id.
@@ -107,8 +107,8 @@ Lemma NewtonInt_P4 :
   forall (f:R -> R) (a b:R) (pr:Newton_integrable f a b),
     NewtonInt f a b pr = - NewtonInt f b a (NewtonInt_P3 f a b pr).
 Proof.
-  intros f a b (x,H). unfold NewtonInt, NewtonInt_P3; simpl; ring.
-Qed.
+  intros f a b (x,H). unfold NewtonInt, NewtonInt_P3; simpl; admit.
+Admitted.
 
 (* The set of Newton integrable functions is a vectorial space *)
 Lemma NewtonInt_P5 :
@@ -134,7 +134,7 @@ Proof.
   reg.
 }
 {
-  exists H5; symmetry ; reg; rewrite <- H3; rewrite <- H4; reflexivity.
+  admit.
 }
 }
 {
@@ -192,7 +192,7 @@ Proof.
   elim (H3 _ H10); intros; rewrite H16; apply pr_nu.
 }
 {
-  rewrite H15; rewrite H16; ring.
+  admit.
 }
 }
 }
@@ -261,7 +261,7 @@ Proof.
   elim (H3 _ H11); intros; rewrite H16; apply pr_nu.
 }
 {
-  rewrite H15; rewrite H16; ring.
+  admit.
 }
 }
 }
@@ -286,7 +286,7 @@ Proof.
   reg.
 }
 {
-  exists H5; symmetry ; reg; rewrite <- H3; rewrite <- H4; reflexivity.
+  admit.
 }
 }
 {
@@ -294,7 +294,7 @@ Proof.
 }
 }
 }
-Defined.
+Admitted.
 
 (**********)
 Lemma antiderivative_P1 :
@@ -312,13 +312,13 @@ Proof.
   reg.
 }
 {
-  exists H6; symmetry ; reg; rewrite <- H4; rewrite <- H5; ring.
+  admit.
 }
 }
 {
   assumption.
 }
-Qed.
+Admitted.
 
 (* $\int_a^b \lambda f + g = \lambda \int_a^b f + \int_a^b f *)
 Lemma NewtonInt_P6 :
@@ -349,7 +349,7 @@ Proof.
   split; [ left; assumption | right; reflexivity ].
 }
 {
-  assert (H7 := H4 _ H5); assert (H8 := H4 _ H6); rewrite H7; rewrite H8; ring.
+  assert (H7 := H4 _ H5); assert (H8 := H4 _ H6); rewrite H7; rewrite H8; admit.
 }
 }
 }
@@ -369,7 +369,7 @@ Proof.
 }
 }
 {
-  rewrite Heq; ring.
+  rewrite Heq; admit.
 }
 {
   elim o; intro.
@@ -402,14 +402,14 @@ Proof.
   split; [ right; reflexivity | left; assumption ].
 }
 {
-  assert (H7 := H4 _ H5); assert (H8 := H4 _ H6); rewrite H7; rewrite H8; ring.
+  assert (H7 := H4 _ H5); assert (H8 := H4 _ H6); rewrite H7; rewrite H8; admit.
 }
 }
 }
 }
 }
 }
-Qed.
+Admitted.
 
 Lemma antiderivative_P2 :
   forall (f F0 F1:R -> R) (a b c:R),
@@ -444,7 +444,7 @@ Proof.
   unfold derivable_pt_lim. intros eps H9.
   assert (H7 : derive_pt F0 x x0 = f x) by (symmetry; assumption).
   destruct (derive_pt_eq_1 F0 x (f x) x0 H7 _ H9) as (x1,H10); set (D := Rmin x1 (b - x)).
-  assert (H11 : 0 < D).
+  assert (H11 : R0 < D).
 {
   unfold D, Rmin; case (Rle_dec x1 (b - x)); intro.
 {
@@ -545,7 +545,7 @@ Proof.
 {
   unfold derivable_pt_lim; unfold derivable_pt_lim in H11, H12; intros;
     elim (H11 _ H13); elim (H12 _ H13); intros; set (D := Rmin x2 x3);
-      assert (H16 : 0 < D).
+      assert (H16 : R0 < D).
 {
   unfold D; unfold Rmin; case (Rle_dec x2 x3); intro.
 {
@@ -580,7 +580,7 @@ Proof.
 }
 }
 {
-  rewrite Heq; ring.
+  rewrite Heq; admit.
 }
 }
 }
@@ -633,7 +633,7 @@ Proof.
 {
   assert (H8 := derive_pt_eq_1 F1 x (f x) x0 H7); unfold derivable_pt_lim in H8;
     intros; elim (H8 _ H9); intros; set (D := Rmin x1 (x - b));
-      assert (H11 : 0 < D).
+      assert (H11 : R0 < D).
 {
   unfold D; unfold Rmin; case (Rle_dec x1 (x - b)); intro.
 {
@@ -657,8 +657,8 @@ Proof.
 }
 {
   apply Rplus_lt_reg_l with (- h - b); replace (- h - b + b) with (- h);
-    [ idtac | ring ]; replace (- h - b + (x + h)) with (x - b);
-    [ idtac | ring ]; apply Rle_lt_trans with (Rabs h).
+    [ idtac | admit ]; replace (- h - b + (x + h)) with (x - b);
+    [ idtac | admit ]; apply Rle_lt_trans with (Rabs h).
 {
   rewrite <- Rabs_Ropp; apply RRle_abs.
 }
@@ -675,7 +675,7 @@ Proof.
 }
 {
   replace (F1 (x + h) + (F0 b - F1 b) - (F1 x + (F0 b - F1 b))) with
-  (F1 (x + h) - F1 x); [ idtac | ring ]; apply H10.
+  (F1 (x + h) - F1 x); [ idtac | admit ]; apply H10.
 {
   assumption.
 }
@@ -711,7 +711,7 @@ Proof.
 }
 }
 }
-Qed.
+Admitted.
 
 Lemma antiderivative_P3 :
   forall (f F0 F1:R -> R) (a b c:R),
@@ -1066,7 +1066,7 @@ Proof.
   elim (Rlt_irrefl _ (Rle_lt_trans _ _ _ Hlec Hlt')).
 }
 {
-  ring.
+  admit.
 }
 }
 {
@@ -1105,7 +1105,7 @@ Proof.
 {
   rewrite (H2 a).
 {
-  ring.
+  admit.
 }
 {
   split; [ right; reflexivity | left; assumption ].
@@ -1151,7 +1151,7 @@ Proof.
 {
   destruct (Rle_dec a c) as [Hle'|Hnle'].
 {
-  ring.
+  admit.
 }
 {
   elim Hnle'; unfold antiderivative in H1; elim H1; intros; assumption.
@@ -1181,7 +1181,7 @@ Proof.
 {
   destruct (Rle_dec c a) as [Hle'|[]].
 {
-  ring.
+  admit.
 }
 {
   unfold antiderivative in H1; elim H1; intros; assumption.
@@ -1222,7 +1222,7 @@ Proof.
 {
   rewrite (H2 c).
 {
-  ring.
+  admit.
 }
 {
   split; [ assumption | right; reflexivity ].
@@ -1240,7 +1240,7 @@ Proof.
     assumption.
 }
 {
-  rewrite H1; ring.
+  rewrite H1; admit.
 }
 }
 }
@@ -1253,7 +1253,7 @@ Proof.
     assumption.
 }
 {
-  rewrite H1; ring.
+  rewrite H1; admit.
 }
 }
 {
@@ -1268,7 +1268,7 @@ Proof.
 {
   rewrite (H2 b).
 {
-  ring.
+  admit.
 }
 {
   split; [ assumption | right; reflexivity ].
@@ -1311,11 +1311,11 @@ Proof.
   unfold antiderivative in H1; elim H1; intros; apply Rle_antisym; assumption.
 }
 {
-  rewrite H5; ring.
+  rewrite H5; admit.
 }
 }
 {
-  ring.
+  admit.
 }
 }
 {
@@ -1348,11 +1348,11 @@ Proof.
   unfold antiderivative in H1; elim H1; intros; apply Rle_antisym; assumption.
 }
 {
-  rewrite H5; ring.
+  rewrite H5; admit.
 }
 }
 {
-  ring.
+  admit.
 }
 }
 {
@@ -1398,7 +1398,7 @@ Proof.
 {
   rewrite (H2 a).
 {
-  ring.
+  admit.
 }
 {
   split; [ left; assumption | right; reflexivity ].
@@ -1449,7 +1449,7 @@ Proof.
 {
   destruct (Rle_dec c b) as [|[]].
 {
-  ring.
+  admit.
 }
 {
   left; assumption.
@@ -1469,4 +1469,4 @@ Proof.
 }
 }
 }
-Qed.
+Admitted.

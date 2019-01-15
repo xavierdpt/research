@@ -1,6 +1,6 @@
 Require Import XRbase Equalities Orders OrdersTac.
 
-Local Open Scope R_scope.
+Local Open Scope XR_scope.
 
 Lemma Req_dec : forall r1 r2:R, {r1 = r2} + {r1 <> r2}.
 Proof.
