@@ -4,6 +4,8 @@ Require Import Zpower.
 Require Export ZArithRing.
 Require Import Omega.
 Require Export RealField.
+Require Export XRnumbers.
+Require Export XRNlink.
 
 Local Open Scope Z_scope.
 Local Open Scope XR_scope.

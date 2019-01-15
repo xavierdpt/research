@@ -16,6 +16,7 @@
 *)
 
 Require Import XRIneq.
+Require Import XRcompleteness.
 
 (** * Decidability of arithmetical statements *)
 

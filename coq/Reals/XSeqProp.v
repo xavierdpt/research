@@ -3,6 +3,7 @@ Require Import XRfunctions.
 Require Import XRseries.
 Require Import Max.
 Require Import Omega.
+Require Import XRcompleteness.
 Local Open Scope XR_scope.
 
 Definition Un_decreasing (u:nat -> R) : Prop :=

@@ -14,6 +14,7 @@ Require Import XRanalysis1.
 Require Import XRList.
 Require Import Classical_Prop.
 Require Import Classical_Pred_Type.
+Require Import XRcompleteness.
 Local Open Scope XR_scope.
 
 (** * General definitions and propositions *)

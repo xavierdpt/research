@@ -14,6 +14,7 @@ Require Import XRseries.
 Require Import XSeqProp.
 Require Import XPartSum.
 Require Import Max.
+Require Import XRcompleteness.
 
 Local Open Scope XR_scope.
 

@@ -1,6 +1,7 @@
 Require Import XRbase.
 Require Import XRfunctions.
 Require Import Compare.
+Require Import XRcompleteness.
 Local Open Scope XR_scope.
 
 Implicit Type r : R.

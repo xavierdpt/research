@@ -1,8 +1,8 @@
 .PHONY: ALL
 
-ALL: XSqrt_reg.vo XRtrigo_def.vo XRgeom.vo XReals.vo XRanalysis1.vo XRminmax.vo XROrderedType.vo XRbasic_fun.vo XRtrigo_fun.vo XRIneq.vo XRList.vo XRanalysis5.vo XRpow_def.vo XSplitAbsolu.vo XSeqProp.vo XPSeries_reg.vo XRiemannInt.vo XSeqSeries.vo XRsigma.vo XRtrigo_reg.vo XRtopology.vo XR_sqr.vo XAltSeries.vo XRcomplete.vo XRanalysis2.vo XCos_rel.vo XExp_prop.vo XSplitRmult.vo XRprod.vo XRfunctions.vo XDiscrR.vo XArithProp.vo XNewtonInt.vo XRatan.vo XRlimit.vo XRderiv.vo XRanalysis3.vo XPartSum.vo XIntegration.vo XR_Ifp.vo XCos_plus.vo XAlembert.vo XAllReals.vo XRaxioms.vo XRtrigo.vo XRsqrt_def.vo XRpower.vo XCauchy_prod.vo XBinomial.vo XRbase.vo XMachin.vo XRanalysis.vo XR_sqrt.vo XRiemannInt_SF.vo XRlogic.vo XRanalysis_reg.vo XRtrigo_alt.vo XMVT.vo XRanalysis4.vo XRdefinitions.vo XRseries.vo XRtrigo_calc.vo XRtrigo1.vo
+ALL: XSqrt_reg.vo XRtrigo_def.vo XRgeom.vo XReals.vo XRanalysis1.vo XRminmax.vo XROrderedType.vo XRbasic_fun.vo XRtrigo_fun.vo XRIneq.vo XRList.vo XRanalysis5.vo XRpow_def.vo XSplitAbsolu.vo XSeqProp.vo XPSeries_reg.vo XRiemannInt.vo XRnumbers.vo XSeqSeries.vo XRsigma.vo XRtrigo_reg.vo XRtopology.vo XR_sqr.vo XAltSeries.vo XRcomplete.vo XRanalysis2.vo XCos_rel.vo XExp_prop.vo XSplitRmult.vo XRprod.vo XRfunctions.vo XDiscrR.vo XRNlink.vo XArithProp.vo XNewtonInt.vo XRatan.vo XRlimit.vo XRderiv.vo XRanalysis3.vo XPartSum.vo XIntegration.vo XRcompleteness.vo XR_Ifp.vo XCos_plus.vo XAlembert.vo XAllReals.vo XRaxioms.vo XRtrigo.vo XRsqrt_def.vo XRpower.vo XCauchy_prod.vo XRZlink.vo XBinomial.vo XRbase.vo XMachin.vo XRanalysis.vo XR_sqrt.vo XRiemannInt_SF.vo XRlogic.vo XRanalysis_reg.vo XRtrigo_alt.vo XMVT.vo XRanalysis4.vo XRdefinitions.vo XRseries.vo XRtrigo_calc.vo XRtrigo1.vo
 
-XAlembert.vo : XAlembert.v  XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo
+XAlembert.vo : XAlembert.v  XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XAlembert.v
 
 XAllReals.vo : XAllReals.v  XReals.vo XRlogic.vo XRminmax.vo
@@ -74,7 +74,7 @@ XRanalysis_reg.vo : XRanalysis_reg.v  XRbase.vo XRfunctions.vo XRtrigo1.vo XSeqS
 XRatan.vo : XRatan.v  XRbase.vo XPSeries_reg.vo XRtrigo1.vo XRanalysis_reg.vo XRfunctions.vo XAltSeries.vo XRseries.vo XSeqProp.vo XRanalysis5.vo XSeqSeries.vo XPartSum.vo
 	 C:\Coq\bin\coqc XRatan.v
 
-XRaxioms.vo : XRaxioms.v  XRdefinitions.vo
+XRaxioms.vo : XRaxioms.v  XRdefinitions.vo XRZlink.vo
 	 C:\Coq\bin\coqc XRaxioms.v
 
 XRbase.vo : XRbase.v  XRdefinitions.vo XRaxioms.vo XRIneq.vo XDiscrR.vo
@@ -85,6 +85,9 @@ XRbasic_fun.vo : XRbasic_fun.v  XRbase.vo XR_Ifp.vo
 
 XRcomplete.vo : XRcomplete.v  XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo
 	 C:\Coq\bin\coqc XRcomplete.v
+
+XRcompleteness.vo : XRcompleteness.v  XRaxioms.vo
+	 C:\Coq\bin\coqc XRcompleteness.v
 
 XRdefinitions.vo : XRdefinitions.v 
 	 C:\Coq\bin\coqc XRdefinitions.v
@@ -101,13 +104,13 @@ XRfunctions.vo : XRfunctions.v  XRbase.vo XRpow_def.vo XR_Ifp.vo XRbasic_fun.vo 
 XRgeom.vo : XRgeom.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XR_sqrt.vo
 	 C:\Coq\bin\coqc XRgeom.v
 
-XRiemannInt.vo : XRiemannInt.v  XRfunctions.vo XSeqSeries.vo XRanalysis_reg.vo XRbase.vo XRiemannInt_SF.vo
+XRiemannInt.vo : XRiemannInt.v  XRfunctions.vo XSeqSeries.vo XRanalysis_reg.vo XRbase.vo XRiemannInt_SF.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XRiemannInt.v
 
-XRiemannInt_SF.vo : XRiemannInt_SF.v  XRbase.vo XRfunctions.vo XRanalysis_reg.vo
+XRiemannInt_SF.vo : XRiemannInt_SF.v  XRbase.vo XRfunctions.vo XRanalysis_reg.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XRiemannInt_SF.v
 
-XRIneq.vo : XRIneq.v  XRaxioms.vo XRpow_def.vo
+XRIneq.vo : XRIneq.v  XRaxioms.vo XRpow_def.vo XRnumbers.vo XRNlink.vo
 	 C:\Coq\bin\coqc XRIneq.v
 
 XRlimit.vo : XRlimit.v  XRbase.vo XRfunctions.vo
@@ -116,11 +119,17 @@ XRlimit.vo : XRlimit.v  XRbase.vo XRfunctions.vo
 XRList.vo : XRList.v  XRbase.vo XRfunctions.vo
 	 C:\Coq\bin\coqc XRList.v
 
-XRlogic.vo : XRlogic.v  XRIneq.vo
+XRlogic.vo : XRlogic.v  XRIneq.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XRlogic.v
 
 XRminmax.vo : XRminmax.v  XRbase.vo XRbasic_fun.vo XROrderedType.vo
 	 C:\Coq\bin\coqc XRminmax.v
+
+XRNlink.vo : XRNlink.v  XRdefinitions.vo
+	 C:\Coq\bin\coqc XRNlink.v
+
+XRnumbers.vo : XRnumbers.v  XRdefinitions.vo
+	 C:\Coq\bin\coqc XRnumbers.v
 
 XROrderedType.vo : XROrderedType.v  XRbase.vo
 	 C:\Coq\bin\coqc XROrderedType.v
@@ -134,7 +143,7 @@ XRpow_def.vo : XRpow_def.v  XRdefinitions.vo
 XRprod.vo : XRprod.v  XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo XBinomial.vo
 	 C:\Coq\bin\coqc XRprod.v
 
-XRseries.vo : XRseries.v  XRbase.vo XRfunctions.vo
+XRseries.vo : XRseries.v  XRbase.vo XRfunctions.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XRseries.v
 
 XRsigma.vo : XRsigma.v  XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo
@@ -143,7 +152,7 @@ XRsigma.vo : XRsigma.v  XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo
 XRsqrt_def.vo : XRsqrt_def.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRanalysis1.vo
 	 C:\Coq\bin\coqc XRsqrt_def.v
 
-XRtopology.vo : XRtopology.v  XRbase.vo XRfunctions.vo XRanalysis1.vo XRList.vo
+XRtopology.vo : XRtopology.v  XRbase.vo XRfunctions.vo XRanalysis1.vo XRList.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XRtopology.v
 
 XRtrigo.vo : XRtrigo.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo XRtrigo1.vo XRatan.vo XMachin.vo
@@ -167,6 +176,9 @@ XRtrigo_fun.vo : XRtrigo_fun.v  XRbase.vo XRfunctions.vo XSeqSeries.vo
 XRtrigo_reg.vo : XRtrigo_reg.v  XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XPSeries_reg.vo
 	 C:\Coq\bin\coqc XRtrigo_reg.v
 
+XRZlink.vo : XRZlink.v  XRdefinitions.vo
+	 C:\Coq\bin\coqc XRZlink.v
+
 XR_Ifp.vo : XR_Ifp.v  XRbase.vo
 	 C:\Coq\bin\coqc XR_Ifp.v
 
@@ -176,7 +188,7 @@ XR_sqr.vo : XR_sqr.v  XRbase.vo XRbasic_fun.vo
 XR_sqrt.vo : XR_sqrt.v  XRbase.vo XRfunctions.vo XRsqrt_def.vo
 	 C:\Coq\bin\coqc XR_sqrt.v
 
-XSeqProp.vo : XSeqProp.v  XRbase.vo XRfunctions.vo XRseries.vo
+XSeqProp.vo : XSeqProp.v  XRbase.vo XRfunctions.vo XRseries.vo XRcompleteness.vo
 	 C:\Coq\bin\coqc XSeqProp.v
 
 XSeqSeries.vo : XSeqSeries.v  XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XRcomplete.vo XPartSum.vo XAltSeries.vo XBinomial.vo XRsigma.vo XRprod.vo XCauchy_prod.vo XAlembert.vo

@@ -12,6 +12,7 @@ Require Import XRbase.
 Require Import XRfunctions.
 Require Import XRanalysis_reg.
 Require Import Classical_Prop.
+Require Import XRcompleteness.
 Local Open Scope XR_scope.
 
 Set Implicit Arguments.

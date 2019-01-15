@@ -15,6 +15,7 @@ Require Import XRanalysis_reg.
 Require Import XRbase.
 Require Import XRiemannInt_SF.
 Require Import Max.
+Require Import XRcompleteness.
 Local Open Scope XR_scope.
 
 Set Implicit Arguments.

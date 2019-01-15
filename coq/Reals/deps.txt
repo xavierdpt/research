@@ -1,5 +1,5 @@
-XAlembert.vo XAlembert.glob XAlembert.v.beautified: XAlembert.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo
-XAlembert.vio: XAlembert.v XRbase.vio XRfunctions.vio XRseries.vio XSeqProp.vio XPartSum.vio
+XAlembert.vo XAlembert.glob XAlembert.v.beautified: XAlembert.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo XRcompleteness.vo
+XAlembert.vio: XAlembert.v XRbase.vio XRfunctions.vio XRseries.vio XSeqProp.vio XPartSum.vio XRcompleteness.vio
 XAllReals.vo XAllReals.glob XAllReals.v.beautified: XAllReals.v XReals.vo XRlogic.vo XRminmax.vo
 XAllReals.vio: XAllReals.v XReals.vio XRlogic.vio XRminmax.vio
 XAltSeries.vo XAltSeries.glob XAltSeries.v.beautified: XAltSeries.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XPartSum.vo
@@ -46,14 +46,16 @@ XRanalysis_reg.vo XRanalysis_reg.glob XRanalysis_reg.v.beautified: XRanalysis_re
 XRanalysis_reg.vio: XRanalysis_reg.v XRbase.vio XRfunctions.vio XRtrigo1.vio XSeqSeries.vio XRanalysis1.vio XRanalysis2.vio XRanalysis3.vio XRtopology.vio XMVT.vio XPSeries_reg.vio XExp_prop.vio XRtrigo_reg.vio XRsqrt_def.vio XR_sqrt.vio XRtrigo_calc.vio XRgeom.vio XRList.vio XSqrt_reg.vio XRanalysis4.vio XRpower.vio
 XRatan.vo XRatan.glob XRatan.v.beautified: XRatan.v XRbase.vo XPSeries_reg.vo XRtrigo1.vo XRanalysis_reg.vo XRfunctions.vo XAltSeries.vo XRseries.vo XSeqProp.vo XRanalysis5.vo XSeqSeries.vo XPartSum.vo
 XRatan.vio: XRatan.v XRbase.vio XPSeries_reg.vio XRtrigo1.vio XRanalysis_reg.vio XRfunctions.vio XAltSeries.vio XRseries.vio XSeqProp.vio XRanalysis5.vio XSeqSeries.vio XPartSum.vio
-XRaxioms.vo XRaxioms.glob XRaxioms.v.beautified: XRaxioms.v XRdefinitions.vo
-XRaxioms.vio: XRaxioms.v XRdefinitions.vio
+XRaxioms.vo XRaxioms.glob XRaxioms.v.beautified: XRaxioms.v XRdefinitions.vo XRZlink.vo
+XRaxioms.vio: XRaxioms.v XRdefinitions.vio XRZlink.vio
 XRbase.vo XRbase.glob XRbase.v.beautified: XRbase.v XRdefinitions.vo XRaxioms.vo XRIneq.vo XDiscrR.vo
 XRbase.vio: XRbase.v XRdefinitions.vio XRaxioms.vio XRIneq.vio XDiscrR.vio
 XRbasic_fun.vo XRbasic_fun.glob XRbasic_fun.v.beautified: XRbasic_fun.v XRbase.vo XR_Ifp.vo
 XRbasic_fun.vio: XRbasic_fun.v XRbase.vio XR_Ifp.vio
 XRcomplete.vo XRcomplete.glob XRcomplete.v.beautified: XRcomplete.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo
 XRcomplete.vio: XRcomplete.v XRbase.vio XRfunctions.vio XRseries.vio XSeqProp.vio
+XRcompleteness.vo XRcompleteness.glob XRcompleteness.v.beautified: XRcompleteness.v XRaxioms.vo
+XRcompleteness.vio: XRcompleteness.v XRaxioms.vio
 XRdefinitions.vo XRdefinitions.glob XRdefinitions.v.beautified: XRdefinitions.v
 XRdefinitions.vio: XRdefinitions.v
 XRderiv.vo XRderiv.glob XRderiv.v.beautified: XRderiv.v XRbase.vo XRfunctions.vo XRlimit.vo
@@ -64,20 +66,24 @@ XRfunctions.vo XRfunctions.glob XRfunctions.v.beautified: XRfunctions.v XRbase.v
 XRfunctions.vio: XRfunctions.v XRbase.vio XRpow_def.vio XR_Ifp.vio XRbasic_fun.vio XR_sqr.vio XSplitAbsolu.vio XSplitRmult.vio XArithProp.vio
 XRgeom.vo XRgeom.glob XRgeom.v.beautified: XRgeom.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XR_sqrt.vo
 XRgeom.vio: XRgeom.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo1.vio XR_sqrt.vio
-XRiemannInt.vo XRiemannInt.glob XRiemannInt.v.beautified: XRiemannInt.v XRfunctions.vo XSeqSeries.vo XRanalysis_reg.vo XRbase.vo XRiemannInt_SF.vo
-XRiemannInt.vio: XRiemannInt.v XRfunctions.vio XSeqSeries.vio XRanalysis_reg.vio XRbase.vio XRiemannInt_SF.vio
-XRiemannInt_SF.vo XRiemannInt_SF.glob XRiemannInt_SF.v.beautified: XRiemannInt_SF.v XRbase.vo XRfunctions.vo XRanalysis_reg.vo
-XRiemannInt_SF.vio: XRiemannInt_SF.v XRbase.vio XRfunctions.vio XRanalysis_reg.vio
-XRIneq.vo XRIneq.glob XRIneq.v.beautified: XRIneq.v XRaxioms.vo XRpow_def.vo
-XRIneq.vio: XRIneq.v XRaxioms.vio XRpow_def.vio
+XRiemannInt.vo XRiemannInt.glob XRiemannInt.v.beautified: XRiemannInt.v XRfunctions.vo XSeqSeries.vo XRanalysis_reg.vo XRbase.vo XRiemannInt_SF.vo XRcompleteness.vo
+XRiemannInt.vio: XRiemannInt.v XRfunctions.vio XSeqSeries.vio XRanalysis_reg.vio XRbase.vio XRiemannInt_SF.vio XRcompleteness.vio
+XRiemannInt_SF.vo XRiemannInt_SF.glob XRiemannInt_SF.v.beautified: XRiemannInt_SF.v XRbase.vo XRfunctions.vo XRanalysis_reg.vo XRcompleteness.vo
+XRiemannInt_SF.vio: XRiemannInt_SF.v XRbase.vio XRfunctions.vio XRanalysis_reg.vio XRcompleteness.vio
+XRIneq.vo XRIneq.glob XRIneq.v.beautified: XRIneq.v XRaxioms.vo XRpow_def.vo XRnumbers.vo XRNlink.vo
+XRIneq.vio: XRIneq.v XRaxioms.vio XRpow_def.vio XRnumbers.vio XRNlink.vio
 XRlimit.vo XRlimit.glob XRlimit.v.beautified: XRlimit.v XRbase.vo XRfunctions.vo
 XRlimit.vio: XRlimit.v XRbase.vio XRfunctions.vio
 XRList.vo XRList.glob XRList.v.beautified: XRList.v XRbase.vo XRfunctions.vo
 XRList.vio: XRList.v XRbase.vio XRfunctions.vio
-XRlogic.vo XRlogic.glob XRlogic.v.beautified: XRlogic.v XRIneq.vo
-XRlogic.vio: XRlogic.v XRIneq.vio
+XRlogic.vo XRlogic.glob XRlogic.v.beautified: XRlogic.v XRIneq.vo XRcompleteness.vo
+XRlogic.vio: XRlogic.v XRIneq.vio XRcompleteness.vio
 XRminmax.vo XRminmax.glob XRminmax.v.beautified: XRminmax.v XRbase.vo XRbasic_fun.vo XROrderedType.vo
 XRminmax.vio: XRminmax.v XRbase.vio XRbasic_fun.vio XROrderedType.vio
+XRNlink.vo XRNlink.glob XRNlink.v.beautified: XRNlink.v XRdefinitions.vo
+XRNlink.vio: XRNlink.v XRdefinitions.vio
+XRnumbers.vo XRnumbers.glob XRnumbers.v.beautified: XRnumbers.v XRdefinitions.vo
+XRnumbers.vio: XRnumbers.v XRdefinitions.vio
 XROrderedType.vo XROrderedType.glob XROrderedType.v.beautified: XROrderedType.v XRbase.vo
 XROrderedType.vio: XROrderedType.v XRbase.vio
 XRpower.vo XRpower.glob XRpower.v.beautified: XRpower.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XExp_prop.vo XRsqrt_def.vo XR_sqrt.vo XSqrt_reg.vo XMVT.vo XRanalysis4.vo
@@ -86,14 +92,14 @@ XRpow_def.vo XRpow_def.glob XRpow_def.v.beautified: XRpow_def.v XRdefinitions.vo
 XRpow_def.vio: XRpow_def.v XRdefinitions.vio
 XRprod.vo XRprod.glob XRprod.v.beautified: XRprod.v XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo XBinomial.vo
 XRprod.vio: XRprod.v XRbase.vio XRfunctions.vio XRseries.vio XPartSum.vio XBinomial.vio
-XRseries.vo XRseries.glob XRseries.v.beautified: XRseries.v XRbase.vo XRfunctions.vo
-XRseries.vio: XRseries.v XRbase.vio XRfunctions.vio
+XRseries.vo XRseries.glob XRseries.v.beautified: XRseries.v XRbase.vo XRfunctions.vo XRcompleteness.vo
+XRseries.vio: XRseries.v XRbase.vio XRfunctions.vio XRcompleteness.vio
 XRsigma.vo XRsigma.glob XRsigma.v.beautified: XRsigma.v XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo
 XRsigma.vio: XRsigma.v XRbase.vio XRfunctions.vio XRseries.vio XPartSum.vio
 XRsqrt_def.vo XRsqrt_def.glob XRsqrt_def.v.beautified: XRsqrt_def.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRanalysis1.vo
 XRsqrt_def.vio: XRsqrt_def.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRanalysis1.vio
-XRtopology.vo XRtopology.glob XRtopology.v.beautified: XRtopology.v XRbase.vo XRfunctions.vo XRanalysis1.vo XRList.vo
-XRtopology.vio: XRtopology.v XRbase.vio XRfunctions.vio XRanalysis1.vio XRList.vio
+XRtopology.vo XRtopology.glob XRtopology.v.beautified: XRtopology.v XRbase.vo XRfunctions.vo XRanalysis1.vo XRList.vo XRcompleteness.vo
+XRtopology.vio: XRtopology.v XRbase.vio XRfunctions.vio XRanalysis1.vio XRList.vio XRcompleteness.vio
 XRtrigo.vo XRtrigo.glob XRtrigo.v.beautified: XRtrigo.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo XRtrigo1.vo XRatan.vo XMachin.vo
 XRtrigo.vio: XRtrigo.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo_fun.vio XRtrigo_def.vio XRtrigo_alt.vio XCos_rel.vio XCos_plus.vio XRanalysis1.vio XRsqrt_def.vio XPSeries_reg.vio XRtrigo1.vio XRatan.vio XMachin.vio
 XRtrigo1.vo XRtrigo1.glob XRtrigo1.v.beautified: XRtrigo1.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo_fun.vo XRtrigo_def.vo XRtrigo_alt.vo XCos_rel.vo XCos_plus.vo XRanalysis1.vo XRsqrt_def.vo XPSeries_reg.vo
@@ -108,14 +114,16 @@ XRtrigo_fun.vo XRtrigo_fun.glob XRtrigo_fun.v.beautified: XRtrigo_fun.v XRbase.v
 XRtrigo_fun.vio: XRtrigo_fun.v XRbase.vio XRfunctions.vio XSeqSeries.vio
 XRtrigo_reg.vo XRtrigo_reg.glob XRtrigo_reg.v.beautified: XRtrigo_reg.v XRbase.vo XRfunctions.vo XSeqSeries.vo XRtrigo1.vo XRanalysis1.vo XPSeries_reg.vo
 XRtrigo_reg.vio: XRtrigo_reg.v XRbase.vio XRfunctions.vio XSeqSeries.vio XRtrigo1.vio XRanalysis1.vio XPSeries_reg.vio
+XRZlink.vo XRZlink.glob XRZlink.v.beautified: XRZlink.v XRdefinitions.vo
+XRZlink.vio: XRZlink.v XRdefinitions.vio
 XR_Ifp.vo XR_Ifp.glob XR_Ifp.v.beautified: XR_Ifp.v XRbase.vo
 XR_Ifp.vio: XR_Ifp.v XRbase.vio
 XR_sqr.vo XR_sqr.glob XR_sqr.v.beautified: XR_sqr.v XRbase.vo XRbasic_fun.vo
 XR_sqr.vio: XR_sqr.v XRbase.vio XRbasic_fun.vio
 XR_sqrt.vo XR_sqrt.glob XR_sqrt.v.beautified: XR_sqrt.v XRbase.vo XRfunctions.vo XRsqrt_def.vo
 XR_sqrt.vio: XR_sqrt.v XRbase.vio XRfunctions.vio XRsqrt_def.vio
-XSeqProp.vo XSeqProp.glob XSeqProp.v.beautified: XSeqProp.v XRbase.vo XRfunctions.vo XRseries.vo
-XSeqProp.vio: XSeqProp.v XRbase.vio XRfunctions.vio XRseries.vio
+XSeqProp.vo XSeqProp.glob XSeqProp.v.beautified: XSeqProp.v XRbase.vo XRfunctions.vo XRseries.vo XRcompleteness.vo
+XSeqProp.vio: XSeqProp.v XRbase.vio XRfunctions.vio XRseries.vio XRcompleteness.vio
 XSeqSeries.vo XSeqSeries.glob XSeqSeries.v.beautified: XSeqSeries.v XRbase.vo XRfunctions.vo XRseries.vo XSeqProp.vo XRcomplete.vo XPartSum.vo XAltSeries.vo XBinomial.vo XRsigma.vo XRprod.vo XCauchy_prod.vo XAlembert.vo
 XSeqSeries.vio: XSeqSeries.v XRbase.vio XRfunctions.vio XRseries.vio XSeqProp.vio XRcomplete.vio XPartSum.vio XAltSeries.vio XBinomial.vio XRsigma.vio XRprod.vio XCauchy_prod.vio XAlembert.vio
 XSplitAbsolu.vo XSplitAbsolu.glob XSplitAbsolu.v.beautified: XSplitAbsolu.v XRbasic_fun.vo
