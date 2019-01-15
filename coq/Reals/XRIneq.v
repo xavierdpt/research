@@ -6,31 +6,13 @@ Require Import Omega.
 Require Export RealField.
 Require Export XRnumbers.
 Require Export XRNlink.
+Require Export XRRle_refl.
+Require Export XRRlt_irrefl.
 
 Local Open Scope Z_scope.
 Local Open Scope XR_scope.
 
 Implicit Type r : R.
-
-
-
-Lemma Rle_refl : forall r, r <= r.
-Proof.
-  intros r.
-  unfold Rle.
-  right.
-  reflexivity.
-Qed.
-Hint Immediate Rle_refl: rorders.
-
-Lemma Rlt_irrefl : forall r, ~ r < r.
-Proof.
-  intros r h.
-  apply (Rlt_asym r r).
-  exact h.
-  exact h.
-Qed.
-Hint Resolve Rlt_irrefl: real.
 
 Lemma Rlt_not_eq : forall r1 r2, r1 < r2 -> r1 <> r2.
 Proof.

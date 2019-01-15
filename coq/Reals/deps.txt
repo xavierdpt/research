@@ -70,8 +70,8 @@ XRiemannInt.vo XRiemannInt.glob XRiemannInt.v.beautified: XRiemannInt.v XRfuncti
 XRiemannInt.vio: XRiemannInt.v XRfunctions.vio XSeqSeries.vio XRanalysis_reg.vio XRbase.vio XRiemannInt_SF.vio XRcompleteness.vio
 XRiemannInt_SF.vo XRiemannInt_SF.glob XRiemannInt_SF.v.beautified: XRiemannInt_SF.v XRbase.vo XRfunctions.vo XRanalysis_reg.vo XRcompleteness.vo
 XRiemannInt_SF.vio: XRiemannInt_SF.v XRbase.vio XRfunctions.vio XRanalysis_reg.vio XRcompleteness.vio
-XRIneq.vo XRIneq.glob XRIneq.v.beautified: XRIneq.v XRaxioms.vo XRpow_def.vo XRnumbers.vo XRNlink.vo
-XRIneq.vio: XRIneq.v XRaxioms.vio XRpow_def.vio XRnumbers.vio XRNlink.vio
+XRIneq.vo XRIneq.glob XRIneq.v.beautified: XRIneq.v XRaxioms.vo XRpow_def.vo XRnumbers.vo XRNlink.vo XRRle_refl.vo XRRlt_irrefl.vo
+XRIneq.vio: XRIneq.v XRaxioms.vio XRpow_def.vio XRnumbers.vio XRNlink.vio XRRle_refl.vio XRRlt_irrefl.vio
 XRlimit.vo XRlimit.glob XRlimit.v.beautified: XRlimit.v XRbase.vo XRfunctions.vo
 XRlimit.vio: XRlimit.v XRbase.vio XRfunctions.vio
 XRList.vo XRList.glob XRList.v.beautified: XRList.v XRbase.vo XRfunctions.vo
@@ -92,6 +92,10 @@ XRpow_def.vo XRpow_def.glob XRpow_def.v.beautified: XRpow_def.v XRdefinitions.vo
 XRpow_def.vio: XRpow_def.v XRdefinitions.vio
 XRprod.vo XRprod.glob XRprod.v.beautified: XRprod.v XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo XBinomial.vo
 XRprod.vio: XRprod.v XRbase.vio XRfunctions.vio XRseries.vio XPartSum.vio XBinomial.vio
+XRRle_refl.vo XRRle_refl.glob XRRle_refl.v.beautified: XRRle_refl.v XRaxioms.vo
+XRRle_refl.vio: XRRle_refl.v XRaxioms.vio
+XRRlt_irrefl.vo XRRlt_irrefl.glob XRRlt_irrefl.v.beautified: XRRlt_irrefl.v XRaxioms.vo
+XRRlt_irrefl.vio: XRRlt_irrefl.v XRaxioms.vio
 XRseries.vo XRseries.glob XRseries.v.beautified: XRseries.v XRbase.vo XRfunctions.vo XRcompleteness.vo
 XRseries.vio: XRseries.v XRbase.vio XRfunctions.vio XRcompleteness.vio
 XRsigma.vo XRsigma.glob XRsigma.v.beautified: XRsigma.v XRbase.vo XRfunctions.vo XRseries.vo XPartSum.vo
