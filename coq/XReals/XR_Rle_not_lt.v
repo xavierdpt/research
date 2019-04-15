@@ -12,7 +12,7 @@ Proof.
   intros x y.
   unfold "<=".
   intros h.
-  unfold "~ ".
+  unfold "~".
   intro hxy.
   destruct h as [ hyx | heq ].
   {

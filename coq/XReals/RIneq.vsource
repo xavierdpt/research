@@ -9,85 +9,8 @@ Local Open Scope Z_scope.
 
 Local Open Scope R_scope.
 
-Lemma Rinv_mult_simpl :
-  forall r1 r2 r3, r1 <> 0 -> r1 * / r2 * (r3 * / r1) = r3 * / r2.
-Proof.
-  intros a b c; intros.
-  transitivity (a * / a * (c * / b)); auto with real.
-  ring.
-Qed.
-
-
-
-
-
-
-
-
-
-Lemma Rplus_gt_compat_l : forall r r1 r2, r1 > r2 -> r + r1 > r + r2.
-Proof. eauto using Rplus_lt_compat_l with rorders. Qed.
-Hint Resolve Rplus_gt_compat_l: real.
-
-
-Lemma Rplus_lt_compat_r : forall r r1 r2, r1 < r2 -> r1 + r < r2 + r.
-Proof.
-  intros.
-  rewrite (Rplus_comm r1 r); rewrite (Rplus_comm r2 r); auto with real.
-Qed.
-Hint Resolve Rplus_lt_compat_r: real.
-
-Lemma Rplus_gt_compat_r : forall r r1 r2, r1 > r2 -> r1 + r > r2 + r.
-Proof. do 3 intro; apply Rplus_lt_compat_r. Qed.
-
-
-Lemma Rplus_le_compat_l : forall r r1 r2, r1 <= r2 -> r + r1 <= r + r2.
-Proof.
-  unfold Rle; intros; elim H; intro.
-  left; apply (Rplus_lt_compat_l r r1 r2 H0).
-  right; rewrite <- H0; auto with zarith real.
-Qed.
-
-Lemma Rplus_ge_compat_l : forall r r1 r2, r1 >= r2 -> r + r1 >= r + r2.
-Proof. auto using Rplus_le_compat_l with rorders. Qed.
-Hint Resolve Rplus_ge_compat_l: real.
-
-
-Lemma Rplus_le_compat_r : forall r r1 r2, r1 <= r2 -> r1 + r <= r2 + r.
-Proof.
-  unfold Rle; intros; elim H; intro.
-  left; apply (Rplus_lt_compat_r r r1 r2 H0).
-  right; rewrite <- H0; auto with real.
-Qed.
 
 Hint Resolve Rplus_le_compat_l Rplus_le_compat_r: real.
-
-Lemma Rplus_ge_compat_r : forall r r1 r2, r1 >= r2 -> r1 + r >= r2 + r.
-Proof. auto using Rplus_le_compat_r with rorders. Qed.
-
-
-Lemma Rplus_lt_compat :
-  forall r1 r2 r3 r4, r1 < r2 -> r3 < r4 -> r1 + r3 < r2 + r4.
-Proof.
-  intros; apply Rlt_trans with (r2 + r3); auto with real.
-Qed.
-Hint Immediate Rplus_lt_compat: real.
-
-Lemma Rplus_le_compat :
-  forall r1 r2 r3 r4, r1 <= r2 -> r3 <= r4 -> r1 + r3 <= r2 + r4.
-Proof.
-  intros; apply Rle_trans with (r2 + r3); auto with real.
-Qed.
-Hint Immediate Rplus_le_compat: real.
-
-Lemma Rplus_gt_compat :
-  forall r1 r2 r3 r4, r1 > r2 -> r3 > r4 -> r1 + r3 > r2 + r4.
-Proof. auto using Rplus_lt_compat with rorders. Qed.
-
-Lemma Rplus_ge_compat :
-  forall r1 r2 r3 r4, r1 >= r2 -> r3 >= r4 -> r1 + r3 >= r2 + r4.
-Proof. auto using Rplus_le_compat with rorders. Qed.
-
 
 Lemma Rplus_lt_le_compat :
   forall r1 r2 r3 r4, r1 < r2 -> r3 <= r4 -> r1 + r3 < r2 + r4.
@@ -102,15 +25,6 @@ Proof.
 Qed.
 
 Hint Immediate Rplus_lt_le_compat Rplus_le_lt_compat: real.
-
-Lemma Rplus_gt_ge_compat :
-  forall r1 r2 r3 r4, r1 > r2 -> r3 >= r4 -> r1 + r3 > r2 + r4.
-Proof. auto using Rplus_lt_le_compat with rorders. Qed.
-
-Lemma Rplus_ge_gt_compat :
-  forall r1 r2 r3 r4, r1 >= r2 -> r3 > r4 -> r1 + r3 > r2 + r4.
-Proof. auto using Rplus_le_lt_compat with rorders. Qed.
-
 
 Lemma Rplus_lt_0_compat : forall r1 r2, 0 < r1 -> 0 < r2 -> 0 < r1 + r2.
 Proof.
