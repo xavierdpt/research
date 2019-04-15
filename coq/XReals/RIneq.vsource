@@ -8,33 +8,6 @@ Require Export RealField.
 Local Open Scope Z_scope.
 
 Local Open Scope R_scope.
-Implicit Type r : R.
-
-Lemma Ropp_inv_permute : forall r, r <> 0 -> - / r = / - r.
-Proof.
-  intros; field; trivial.
-Qed.
-
-Lemma Rinv_r_simpl_r : forall r1 r2, r1 <> 0 -> r1 * / r1 * r2 = r2.
-Proof.
-  intros; transitivity (1 * r2); auto with real.
-  rewrite Rinv_r; auto with real.
-Qed.
-
-Lemma Rinv_r_simpl_l : forall r1 r2, r1 <> 0 -> r2 * r1 * / r1 = r2.
-Proof.
-  intros; transitivity (r2 * 1); auto with real.
-  transitivity (r2 * (r1 * / r1)); auto with real.
-Qed.
-
-Lemma Rinv_r_simpl_m : forall r1 r2, r1 <> 0 -> r1 * r2 * / r1 = r2.
-Proof.
-  intros; transitivity (r2 * 1); auto with real.
-  transitivity (r2 * (r1 * / r1)); auto with real.
-  ring.
-Qed.
-Hint Resolve Rinv_r_simpl_l Rinv_r_simpl_r Rinv_r_simpl_m: real.
-
 
 Lemma Rinv_mult_simpl :
   forall r1 r2 r3, r1 <> 0 -> r1 * / r2 * (r3 * / r1) = r3 * / r2.
