@@ -1,6 +1,6 @@
-Require Import XR_R.
-Require Import XR_bound.
-Require Import XR_is_lub.
+Require Export XR_R.
+Require Export XR_bound.
+Require Export XR_is_lub.
 
 Local Open Scope R_scope.
 

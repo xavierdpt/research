@@ -1,8 +1,8 @@
 Require Export ZArith_base.
-Require Import XR_R.
-Require Import XR_R0.
-Require Import XR_Ropp.
-Require Import XR_INR.
+Require Export XR_R.
+Require Export XR_R0.
+Require Export XR_Ropp.
+Require Export XR_INR.
 
 Local Open Scope R_scope.
 

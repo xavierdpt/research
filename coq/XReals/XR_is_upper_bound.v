@@ -1,5 +1,5 @@
-Require Import XR_R.
-Require Import XR_Rle.
+Require Export XR_R.
+Require Export XR_Rle.
 
 Local Open Scope R_scope.
 

@@ -1,6 +1,6 @@
-Require Import XR_R.
-Require Import XR_Rle.
-Require Import XR_is_upper_bound.
+Require Export XR_R.
+Require Export XR_Rle.
+Require Export XR_is_upper_bound.
 
 Local Open Scope R_scope.
 
