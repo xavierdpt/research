@@ -9,15 +9,6 @@ Local Open Scope Z_scope.
 
 Local Open Scope R_scope.
 
-Lemma Rmult_le_compat_neg_l :
-  forall r r1 r2, r <= 0 -> r1 <= r2 -> r * r2 <= r * r1.
-Proof.
-  intros; replace r with (- - r); auto with real.
-  do 2 rewrite (Ropp_mult_distr_l_reverse (- r)).
-  apply Ropp_le_contravar; auto with real.
-Qed.
-Hint Resolve Rmult_le_compat_neg_l: real.
-
 Lemma Rmult_lt_reg_l : forall r r1 r2, 0 < r -> r * r1 < r * r2 -> r1 < r2.
 Proof.
   intros z x y H H0.
