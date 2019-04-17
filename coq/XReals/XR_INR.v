@@ -12,3 +12,4 @@ Fixpoint INR (n:nat) : R :=
   | S n => INR n + R1
   end.
 Arguments INR n%nat.
+Arguments INR _ : simpl nomatch.
