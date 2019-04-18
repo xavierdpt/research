@@ -13,3 +13,4 @@ Definition IZR (z:Z) : R :=
   | Zneg n => - INR (Pos.to_nat n)
   end.
 Arguments IZR z%Z.
+Arguments IZR _ : simpl nomatch.

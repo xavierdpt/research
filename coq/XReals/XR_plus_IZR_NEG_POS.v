@@ -1,214 +1,61 @@
-Require Export XR_archimed.
-Require Export XR_bound.
-Require Export XR_completeness.
-Require Export XR_f_equal_R.
-Require Export XR_INR_eq.
-Require Export XR_INR_IZR_INZ.
-Require Export XR_INR_le.
-Require Export XR_INR_lt.
-Require Export XR_INR_not_0.
-Require Export XR_INR.
-Require Export XR_inser_trans_R.
-Require Export XR_is_lub.
-Require Export XR_is_upper_bound.
-Require Export XR_IZN.
 Require Export XR_IZR.
-Require Export XR_le_INR.
-Require Export XR_lt_0_INR.
-Require Export XR_lt_1_INR.
-Require Export XR_lt_INR.
 Require Export XR_minus_INR.
-Require Export XR_mult_INR.
-Require Export XR_not_0_INR.
-Require Export XR_not_1_INR.
-Require Export XR_not_INR.
-Require Export XR_plus_INR.
-Require Export XR_pos_INR_nat_of_P.
-Require Export XR_pos_INR.
-Require Export XR_R0.
-Require Export XR_R1_neq_R0.
-Require Export XR_R1.
-Require Export XR_Rdichotomy.
-Require Export XR_Rdiv.
-Require Export XR_Req_dec.
-Require Export XR_Req_le_sym.
-Require Export XR_Req_le.
-Require Export XR_Rinv_0_lt_compat.
-Require Export XR_Rinv_1_lt_contravar.
-Require Export XR_Rinv_1.
-Require Export XR_Rinv_involutive.
-Require Export XR_Rinv_l_sym.
-Require Export XR_Rinv_lt_0_compat.
-Require Export XR_Rinv_lt_contravar.
-Require Export XR_Rinv_l.
-Require Export XR_Rinv_mult_distr.
-Require Export XR_Rinv_mult_simpl.
-Require Export XR_Rinv_neq_0_compat.
-Require Export XR_Rinv_r_simpl_l.
-Require Export XR_Rinv_r_simpl_m.
-Require Export XR_Rinv_r_simpl_r.
-Require Export XR_Rinv_r_sym.
-Require Export XR_Rinv_r.
-Require Export XR_Rinv.
-Require Export XR_Rle_0_1.
-Require Export XR_Rle_0_sqr.
-Require Export XR_Rle_antisym.
-Require Export XR_Rle_dec.
-Require Export XR_Rle_le_eq.
-Require Export XR_Rle_lt_0_plus_1.
-Require Export XR_Rle_lt_or_eq_dec.
-Require Export XR_Rle_lt_trans.
-Require Export XR_Rle_minus.
-Require Export XR_Rle_not_lt.
-Require Export XR_Rle_or_lt.
-Require Export XR_Rle_refl.
-Require Export XR_Rle_trans.
-Require Export XR_Rle.
-Require Export XR_Rlt_0_1.
-Require Export XR_Rlt_0_INR_2.
-Require Export XR_Rlt_0_sqr.
-Require Export XR_Rlt_asym.
-Require Export XR_Rlt_dec.
-Require Export XR_Rlt_dichotomy_converse.
-Require Export XR_Rlt_eq_compat.
-Require Export XR_Rlt_irrefl.
-Require Export XR_Rlt_le_dec.
-Require Export XR_Rlt_le_trans.
-Require Export XR_Rlt_le.
-Require Export XR_Rlt_lt_dec.
-Require Export XR_Rlt_minus.
-Require Export XR_Rlt_not_eq.
-Require Export XR_Rlt_not_le.
-Require Export XR_Rlt_or_le.
-Require Export XR_Rlt_plus_1.
-Require Export XR_Rlt_Rminus.
-Require Export XR_Rlt_trans.
-Require Export XR_Rlt.
-Require Export XR_Rminus_0_l.
-Require Export XR_Rminus_0_r.
-Require Export XR_Rminus_diag_eq.
-Require Export XR_Rminus_diag_uniq_sym.
-Require Export XR_Rminus_diag_uniq.
-Require Export XR_Rminus_eq_contra.
-Require Export XR_Rminus_le.
-Require Export XR_Rminus_lt.
-Require Export XR_Rminus_not_eq_right.
-Require Export XR_Rminus_not_eq.
-Require Export XR_Rminus.
-Require Export XR_Rmult_0_l.
-Require Export XR_Rmult_0_r.
-Require Export XR_Rmult_1_l.
-Require Export XR_Rmult_1_r.
-Require Export XR_Rmult_assoc.
-Require Export XR_Rmult_comm.
-Require Export XR_Rmult_eq_0_compat_l.
-Require Export XR_Rmult_eq_0_compat_r.
-Require Export XR_Rmult_eq_0_compat.
-Require Export XR_Rmult_eq_compat_l.
-Require Export XR_Rmult_eq_compat_r.
-Require Export XR_Rmult_eq_reg_l.
-Require Export XR_Rmult_eq_reg_r.
-Require Export XR_Rmult_integral_contrapositive_currified.
-Require Export XR_Rmult_integral_contrapositive.
-Require Export XR_Rmult_integral.
-Require Export XR_Rmult_le_0_lt_compat.
-Require Export XR_Rmult_le_compat_l.
-Require Export XR_Rmult_le_compat_neg_l.
-Require Export XR_Rmult_le_compat_r.
-Require Export XR_Rmult_le_compat.
-Require Export XR_Rmult_le_reg_l.
-Require Export XR_Rmult_le_reg_r.
-Require Export XR_Rmult_lt_0_compat.
-Require Export XR_Rmult_lt_compat_l.
-Require Export XR_Rmult_lt_compat_r.
-Require Export XR_Rmult_lt_reg_l.
-Require Export XR_Rmult_lt_reg_r.
-Require Export XR_Rmult_minus_distr_l.
-Require Export XR_Rmult_neq_0_reg.
-Require Export XR_Rmult_ne.
-Require Export XR_Rmult_opp_opp.
-Require Export XR_Rmult_plus_distr_l.
-Require Export XR_Rmult_plus_distr_r.
-Require Export XR_Rmult.
-Require Export XR_Rnot_le_lt.
-Require Export XR_Rnot_lt_le.
-Require Export XR_Ropp_0.
-Require Export XR_Ropp_eq_0_compat.
-Require Export XR_Ropp_eq_compat.
 Require Export XR_Ropp_involutive.
-Require Export XR_Ropp_inv_permute.
-Require Export XR_Ropp_le_cancel.
-Require Export XR_Ropp_le_contravar.
-Require Export XR_Ropp_lt_cancel.
-Require Export XR_Ropp_lt_contravar.
-Require Export XR_Ropp_minus_distr_.
-Require Export XR_Ropp_minus_distr.
-Require Export XR_Ropp_mult_distr_l_reverse.
-Require Export XR_Ropp_mult_distr_l.
-Require Export XR_Ropp_mult_distr_r_reverse.
-Require Export XR_Ropp_mult_distr_r.
-Require Export XR_Ropp_neq_0_compat.
-Require Export XR_Ropp_plus_distr.
-Require Export XR_Ropp.
-Require Export XR_Rplus_0_l.
-Require Export XR_Rplus_0_r_uniq.
-Require Export XR_Rplus_0_r.
-Require Export XR_Rplus_assoc.
-Require Export XR_Rplus_comm.
-Require Export XR_Rplus_eq_0_l.
-Require Export XR_Rplus_eq_compat_l.
-Require Export XR_Rplus_eq_compat_r.
-Require Export XR_Rplus_eq_R0.
-Require Export XR_Rplus_eq_reg_l.
-Require Export XR_Rplus_eq_reg_r.
-Require Export XR_Rplus_le_compat_l.
-Require Export XR_Rplus_le_compat_r.
-Require Export XR_Rplus_le_compat.
-Require Export XR_Rplus_le_le_0_compat.
-Require Export XR_Rplus_le_lt_0_compat.
-Require Export XR_Rplus_le_lt_compat.
-Require Export XR_Rplus_le_reg_l.
-Require Export XR_Rplus_le_reg_pos_r.
-Require Export XR_Rplus_le_reg_r.
-Require Export XR_Rplus_lt_0_compat.
-Require Export XR_Rplus_lt_compat_l.
-Require Export XR_Rplus_lt_compat_r.
-Require Export XR_Rplus_lt_compat.
-Require Export XR_Rplus_lt_le_0_compat.
-Require Export XR_Rplus_lt_le_compat.
-Require Export XR_Rplus_lt_reg_l.
-Require Export XR_Rplus_lt_reg_pos_r.
-Require Export XR_Rplus_lt_reg_r.
-Require Export XR_Rplus_minus.
-Require Export XR_Rplus_ne.
-Require Export XR_Rplus_opp_l.
-Require Export XR_Rplus_opp_r_uniq.
-Require Export XR_Rplus_opp_r.
-Require Export XR_Rplus_sqr_eq_0_l.
-Require Export XR_Rplus_sqr_eq_0.
-Require Export XR_Rplus.
-Require Export XR_Rsqr_0_uniq.
-Require Export XR_Rsqr_0.
-Require Export XR_Rsqr.
-Require Export XR_Rtotal_order.
-Require Export XR_R.
-Require Export XR_S_INR.
-Require Export XR_S_O_plus_INR.
-Require Export XR_sum_inequa_Rle_lt.
-Require Export XR_tech_Rplus.
-Require Export XR_total_order_T.
-Require Export XR_up.
 
 Local Open Scope R_scope.
-
-Arguments IZR _ : simpl nomatch.
-Arguments Z.mul _ _ : simpl nomatch.
 
 Lemma plus_IZR_NEG_POS : forall p q:positive,
   IZR (Zpos p + Zneg q) = IZR (Zpos p) + IZR (Zneg q).
 Proof.
-  assert (INR_IZR_INZ := INR_IZR_INZ).
-  intro p.
-  induction p.
-{
-destruct q.
+  intros p q.
+  simpl.
+  rewrite Z.pos_sub_spec.
+  destruct (p ?= q)%positive eqn:h.
+  {
+    simpl.
+    apply Pos.compare_eq in h.
+    subst q.
+    rewrite Rplus_opp_r.
+    reflexivity.
+  }
+  {
+    simpl.
+    rewrite Pos2Nat.inj_sub.
+    rewrite minus_INR.
+    unfold Rminus.
+    rewrite Ropp_plus_distr.
+    rewrite Ropp_involutive.
+    rewrite Rplus_comm.
+    reflexivity.
+
+    apply Pos2Nat.inj_le.
+    unfold Pos.le.
+    rewrite h.
+    intro eq.
+    inversion eq.
+
+    unfold Pos.lt.
+    exact h.
+  }
+  {
+    simpl.
+    rewrite Pos2Nat.inj_sub.
+    rewrite minus_INR.
+    unfold Rminus.
+    reflexivity.
+
+    apply Pos2Nat.inj_le.
+    unfold Pos.le.
+    rewrite Pos.compare_antisym.
+    rewrite h.
+    simpl.
+    intro eq.
+    inversion eq.
+
+    unfold Pos.lt.
+    rewrite Pos.compare_antisym.
+    rewrite h.
+    simpl.
+    reflexivity.
+  }
+Qed.
