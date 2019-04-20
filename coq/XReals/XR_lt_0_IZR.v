@@ -17,7 +17,7 @@ Proof.
   {
     simpl.
     intros _.
-    apply Pos2Z.pos_is_pos.
+    apply Pos2Z.is_pos.
   }
   {
     simpl.

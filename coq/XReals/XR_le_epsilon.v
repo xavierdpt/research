@@ -32,21 +32,6 @@ Proof.
     exfalso.
     specialize (h ((x-y)/R2)).
     replace (y+(x-y)/R2) with ((y+x)/R2) in h.
-    2:{
-      unfold Rminus.
-      pattern y at 2 ; rewrite double_var.
-      unfold Rdiv.
-      rewrite <- Rmult_plus_distr_r.
-      rewrite <- Rmult_plus_distr_r.
-      apply Rmult_eq_compat_r.
-      repeat rewrite Rplus_assoc.
-      apply Rplus_eq_compat_l.
-      rewrite (Rplus_comm y).
-      rewrite Rplus_assoc.
-      rewrite Rplus_opp_l.
-      rewrite Rplus_0_r.
-      reflexivity.
-    }
     assert (hlt:R0 < (x-y)/R2).
     {
       unfold Rminus.
@@ -84,6 +69,21 @@ Proof.
         exact Rlt_R0_R2.
       }
       exact hyx.
+    }
+    {
+      unfold Rminus.
+      pattern y at 2 ; rewrite double_var.
+      unfold Rdiv.
+      rewrite <- Rmult_plus_distr_r.
+      rewrite <- Rmult_plus_distr_r.
+      apply Rmult_eq_compat_r.
+      repeat rewrite Rplus_assoc.
+      apply Rplus_eq_compat_l.
+      rewrite (Rplus_comm y).
+      rewrite Rplus_assoc.
+      rewrite Rplus_opp_l.
+      rewrite Rplus_0_r.
+      reflexivity.
     }
   }
 Qed.
