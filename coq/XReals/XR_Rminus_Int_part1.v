@@ -285,27 +285,74 @@ Proof.
   intro h.
   repeat rewrite <- Rplus_assoc in h.
   apply Rplus_le_reg_r in h.
+  repeat rewrite <- Z.add_opp_r.
+  rewrite Z.opp_add_distr.
+  rewrite Z.opp_involutive.
+  repeat rewrite Zplus_assoc_reverse.
+  rewrite (Zplus_comm (-(1)))%Z.
+  repeat rewrite Zplus_assoc_reverse.
+  rewrite Z.add_opp_diag_r.
+  rewrite Z.add_0_r.
+
   destruct (archimed (x+-y)) as [ hl hu ].
-  apply eq_IZR.
-  repeat rewrite minus_IZR.
-  unfold Rminus.
-  rewrite Ropp_plus_distr.
-  rewrite Ropp_involutive.
-  repeat rewrite Rplus_assoc.
-  rewrite (Rplus_comm (- IZR 1)).
-  repeat rewrite Rplus_assoc.
-  rewrite Rplus_opp_r.
-  rewrite Rplus_0_r.
-  apply Rplus_eq_reg_r with (IZR 1).
-  rewrite Rplus_assoc.
-  rewrite Rplus_opp_l, Rplus_0_r.
-  repeat rewrite <- opp_IZR.
-  repeat rewrite <- plus_IZR.
-  apply IZR_eq.
-  symmetry.
+
+  set (xy := up(x+-y)).
+  fold xy in hl.
+  fold xy in hu.
+
   assert (tu := tech_up).
-  assert (ut := up_tech).
-  specialize (tu (x-y) (up x-up y)%Z).
-  specialize (ut (x-y) (up x-up y)%Z).
-  
-  apply tech_up.
+  specialize (tu (x+-y)).
+  fold xy in tu.
+
+  apply eq_IZR.
+  repeat rewrite plus_IZR.
+  rewrite opp_IZR.
+  simpl.
+  rewrite opp_IZR.
+
+  apply Rplus_eq_reg_r with R1.
+  repeat rewrite Rplus_assoc.
+  rewrite Rplus_opp_l.
+  rewrite Rplus_0_r.
+  symmetry.
+  rewrite <- opp_IZR.
+  change R1 with (IZR 1%Z).
+  rewrite <- plus_IZR.
+  rewrite <- plus_IZR.
+  apply IZR_eq.
+
+  assert (ut:=up_tech).
+  specialize (ut (x+-y)).
+  fold xy in ut.
+  rewrite Zplus_assoc.
+  apply ut.
+
+  {
+rewrite plus_IZR.
+rewrite opp_IZR.
+apply Rplus_le_reg_l with (- IZR (up x)).
+repeat rewrite <- Rplus_assoc.
+rewrite Rplus_opp_l.
+rewrite Rplus_0_l.
+apply Rplus_le_reg_l with y.
+pattern y at 2 ; rewrite Rplus_comm.
+repeat rewrite Rplus_assoc.
+rewrite Rplus_opp_l, Rplus_0_r.
+rewrite (Rplus_comm _ x).
+exact h.
+}
+{
+repeat rewrite plus_IZR.
+rewrite opp_IZR.
+simpl.
+clear tu ut.
+
+ 
+
+
+
+
+
+
+
+
