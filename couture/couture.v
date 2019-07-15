@@ -2,6 +2,70 @@ Variable Scissors : Type.
 Variable Fabric : Type.
 Variable cut : Scissors -> Fabric -> Prop.
 
+(*
+Variable blue_scissors : Scissors.
+Variable satin : Fabric.
+Axiom verycool : cut blue_scissors satin.
+*)
+
+Definition statement := forall fabric, exists scissors, cut scissors fabric.
+Definition magic_statement := exists magic_scissors, forall fabric, cut magic_scissors fabric.
+
+Theorem magic : magic_statement -> statement.
+Proof.
+intro hmagic.
+unfold statement.
+unfold magic_statement in hmagic.
+destruct hmagic as [ magic_scissors hmagic ].
+intro chainmail.
+exists magic_scissors.
+specialize (hmagic chainmail).
+exact hmagic.
+Qed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Variable Scissors : Type.
+Variable Fabric : Type.
+Variable cut : Scissors -> Fabric -> Prop.
+
 Definition magic_statement :=
 (exists magic_scissors, forall fabric, cut magic_scissors fabric) ->
 (forall fabric, exists scissors, cut scissors fabric).
