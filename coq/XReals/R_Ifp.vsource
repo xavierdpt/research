@@ -4,51 +4,6 @@ Require Import Omega.
 Local Open Scope R_scope.
 
 (**********)
-Lemma Rminus_fp1 :
-  forall r1 r2:R,
-    frac_part r1 >= frac_part r2 ->
-    frac_part (r1 - r2) = frac_part r1 - frac_part r2.
-Proof.
-  intros; unfold frac_part; generalize (Rminus_Int_part1 r1 r2 H);
-    intro; rewrite H0; rewrite <- (Z_R_minus (Int_part r1) (Int_part r2));
-      unfold Rminus;
-        rewrite (Ropp_plus_distr (IZR (Int_part r1)) (- IZR (Int_part r2)));
-          rewrite (Ropp_plus_distr r2 (- IZR (Int_part r2)));
-            rewrite (Ropp_involutive (IZR (Int_part r2)));
-              rewrite (Rplus_assoc r1 (- r2) (- IZR (Int_part r1) + IZR (Int_part r2)));
-                rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (- r2 + IZR (Int_part r2)));
-                  rewrite <- (Rplus_assoc (- r2) (- IZR (Int_part r1)) (IZR (Int_part r2)));
-                    rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- r2) (IZR (Int_part r2)));
-                      rewrite (Rplus_comm (- r2) (- IZR (Int_part r1)));
-                        auto with zarith real.
-Qed.
-
-(**********)
-Lemma Rminus_fp2 :
-  forall r1 r2:R,
-    frac_part r1 < frac_part r2 ->
-    frac_part (r1 - r2) = frac_part r1 - frac_part r2 + 1.
-Proof.
-  intros; unfold frac_part; generalize (Rminus_Int_part2 r1 r2 H);
-    intro; rewrite H0; rewrite <- (Z_R_minus (Int_part r1 - Int_part r2) 1);
-      rewrite <- (Z_R_minus (Int_part r1) (Int_part r2));
-        unfold Rminus;
-          rewrite
-            (Ropp_plus_distr (IZR (Int_part r1) + - IZR (Int_part r2)) (- IZR 1))
-            ; rewrite (Ropp_plus_distr r2 (- IZR (Int_part r2)));
-              rewrite (Ropp_involutive (IZR 1));
-                rewrite (Ropp_involutive (IZR (Int_part r2)));
-                  rewrite (Ropp_plus_distr (IZR (Int_part r1)));
-                    rewrite (Ropp_involutive (IZR (Int_part r2))); simpl;
-                      rewrite <-
-                        (Rplus_assoc (r1 + - r2) (- IZR (Int_part r1) + IZR (Int_part r2)) 1)
-                        ; rewrite (Rplus_assoc r1 (- r2) (- IZR (Int_part r1) + IZR (Int_part r2)));
-                          rewrite (Rplus_assoc r1 (- IZR (Int_part r1)) (- r2 + IZR (Int_part r2)));
-                            rewrite <- (Rplus_assoc (- r2) (- IZR (Int_part r1)) (IZR (Int_part r2)));
-                              rewrite <- (Rplus_assoc (- IZR (Int_part r1)) (- r2) (IZR (Int_part r2)));
-                                rewrite (Rplus_comm (- r2) (- IZR (Int_part r1)));
-                                  auto with zarith real.
-Qed.
 
 (**********)
 Lemma plus_Int_part1 :
