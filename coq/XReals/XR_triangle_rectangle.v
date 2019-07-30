@@ -1,376 +1,8 @@
-Require Import XR_abs_IZR.
-Require Import XR_archimed.
-Require Import XR_base_fp.
-Require Import XR_base_Int_part.
-Require Import XR_bound.
-Require Import XR_completeness.
-Require Import XR_completeness_weak.
-Require Import XR_double.
-Require Import XR_double_var.
-Require Import XR_eq_IZR_R0.
-Require Import XR_eq_IZR.
-Require Import XR_f_equal_R.
-Require Import XR_for_base_fp.
-Require Import XR_fp_nat.
-Require Import XR_fp_R0.
-Require Import XR_frac_part.
-Require Import XR_INR_eq.
-Require Import XR_INR_IZR_INZ.
-Require Import XR_INR_le.
-Require Import XR_INR_lt_1.
-Require Import XR_INR_lt.
-Require Import XR_INR_not_0.
-Require Import XR_INR_pos.
-Require Import XR_INR.
-Require Import XR_inser_trans_R.
-Require Import XR_Int_part_INR.
-Require Import XR_Int_part.
-Require Import XR_is_lub.
-Require Import XR_is_upper_bound.
-Require Import XR_IZN.
-Require Import XR_IZR_eq.
-Require Import XR_IZR_le.
-Require Import XR_IZR_lt.
-Require Import XR_IZR_neq.
-Require Import XR_IZR.
-Require Import XR_le_0_IZR.
-Require Import XR_le_epsilon.
-Require Import XR_le_INR.
-Require Import XR_le_IZR_R1.
-Require Import XR_le_IZR.
-Require Import XR_le_O_IZR.
-Require Import XR_lt_0_INR.
-Require Import XR_lt_0_IZR.
-Require Import XR_lt_1_INR.
-Require Import XR_lt_INR_0.
-Require Import XR_lt_INR.
-Require Import XR_lt_IZR.
-Require Import XR_lt_O_IZR.
-Require Import XR_minus_INR.
-Require Import XR_minus_IZR.
-Require Import XR_mult_INR.
-Require Import XR_mult_IZR.
-Require Import XR_neg_pos_Rsqr_le.
-Require Import XR_negreal.
-Require Import XR_nonnegreal.
-Require Import XR_nonposreal.
-Require Import XR_nonzeroreal.
-Require Import XR_not_0_INR.
-Require Import XR_not_0_IZR.
-Require Import XR_not_1_INR.
-Require Import XR_not_INR_O.
-Require Import XR_not_INR.
-Require Import XR_not_nm_INR.
-Require Import XR_not_O_INR.
-Require Import XR_not_O_IZR.
-Require Import XR_one_IZR_lt1.
-Require Import XR_one_IZR_r_R1.
-Require Import XR_opp_IZR.
-Require Import XR_plus_frac_part1.
-Require Import XR_plus_frac_part2.
-Require Import XR_plus_INR.
-Require Import XR_plus_Int_part1.
-Require Import XR_plus_Int_part2.
-Require Import XR_plus_IZR_NEG_POS.
-Require Import XR_plus_IZR.
-Require Import XR_plus_le_is_le.
-Require Import XR_plus_lt_is_lt.
-Require Import XR_pos_INR_nat_of_P.
-Require Import XR_pos_INR.
-Require Import XR_posreal.
-Require Import XR_pow_IZR.
-Require Import XR_pow.
-Require Import XR_prod_neq_R0.
-Require Import XR_R0_fp_O.
-Require Import XR_R0.
-Require Import XR_R1_neq_R0.
-Require Import XR_R1.
-Require Import XR_R2_neq_R0.
-Require Import XR_R2.
-Require Import XR_Rabs_def1.
-Require Import XR_Rabs_def2.
-Require Import XR_Rabs_left1.
-Require Import XR_Rabs_left.
-Require Import XR_Rabs_le.
-Require Import XR_Rabs_minus_sym.
-Require Import XR_Rabs_mult.
-Require Import XR_Rabs_no_R0.
-Require Import XR_Rabs_pos_eq.
-Require Import XR_Rabs_pos_lt.
-Require Import XR_Rabs_pos.
-Require Import XR_Rabs_R0.
-Require Import XR_Rabs_R1.
-Require Import XR_Rabs_Rabsolu.
-Require Import XR_Rabs_right.
-Require Import XR_Rabs_Rinv.
-Require Import XR_Rabs_Ropp.
-Require Import XR_Rabs_triang_inv2.
-Require Import XR_Rabs_triang_inv.
-Require Import XR_Rabs_triang.
-Require Import XR_Rabs.
-Require Import XR_Rabs_Zabs.
-Require Import XR_Rcase_abs.
-Require Import XR_Rdichotomy.
-Require Import XR_Rdiv_lt_0_compat.
-Require Import XR_Rdiv_minus_distr.
-Require Import XR_Rdiv_plus_distr.
-Require Import XR_Rdiv.
-Require Import XR_Req_dec.
-Require Import XR_Req_EM_T.
-Require Import XR_Req_le_sym.
-Require Import XR_Req_le.
-Require Import XR_Rinv_0_lt_compat.
-Require Import XR_Rinv_1_lt_contravar.
-Require Import XR_Rinv_1.
-Require Import XR_Rinv_involutive.
-Require Import XR_Rinv_le_contravar.
-Require Import XR_Rinv_l_sym.
-Require Import XR_Rinv_lt_0_compat.
-Require Import XR_Rinv_lt_contravar.
-Require Import XR_Rinv_l.
-Require Import XR_Rinv_mult_distr.
-Require Import XR_Rinv_mult_simpl.
-Require Import XR_Rinv_neq_0_compat.
-Require Import XR_Rinv_r_simpl_l.
-Require Import XR_Rinv_r_simpl_m.
-Require Import XR_Rinv_r_simpl_r.
-Require Import XR_Rinv_r_sym.
-Require Import XR_Rinv_r.
-Require Import XR_Rinv.
-Require Import XR_Rle_0_1.
-Require Import XR_Rle_0_sqr.
-Require Import XR_Rle_abs.
-Require Import XR_Rle_antisym.
-Require Import XR_Rle_dec.
-Require Import XR_Rle_le_eq.
-Require Import XR_Rle_lt_0_plus_1.
-Require Import XR_Rle_lt_or_eq_dec.
-Require Import XR_Rle_lt_trans.
-Require Import XR_Rle_max_compat_l.
-Require Import XR_Rle_max_compat_r.
-Require Import XR_Rle_min_compat_l.
-Require Import XR_Rle_min_compat_r.
-Require Import XR_Rle_minus.
-Require Import XR_Rle_not_lt.
-Require Import XR_Rle_or_lt.
-Require Import XR_Rle_refl.
-Require Import XR_Rle_Rinv.
-Require Import XR_Rle_trans.
-Require Import XR_Rle.
-Require Import XR_Rlt_0_1.
-Require Import XR_Rlt_0_INR_2.
-Require Import XR_Rlt_0_sqr.
-Require Import XR_Rlt_asym.
-Require Import XR_Rlt_dec.
-Require Import XR_Rlt_dichotomy_converse.
-Require Import XR_Rlt_eq_compat.
-Require Import XR_Rlt_irrefl.
-Require Import XR_Rlt_le_dec.
-Require Import XR_Rlt_le_trans.
-Require Import XR_Rlt_le.
-Require Import XR_Rlt_lt_dec.
-Require Import XR_Rlt_minus.
-Require Import XR_Rlt_not_eq.
-Require Import XR_Rlt_not_le.
-Require Import XR_Rlt_or_le.
-Require Import XR_Rlt_plus_1.
-Require Import XR_Rlt_R0_R2.
-Require Import XR_Rlt_Rminus.
-Require Import XR_Rlt_trans.
-Require Import XR_Rlt.
-Require Import XR_RmaxAbs.
-Require Import XR_Rmax_assoc.
-Require Import XR_Rmax_case_strong.
-Require Import XR_Rmax_case.
-Require Import XR_Rmax_comm.
-Require Import XR_Rmax_left.
-Require Import XR_RmaxLess1.
-Require Import XR_RmaxLess2.
-Require Import XR_Rmax_lub_lt.
-Require Import XR_Rmax_lub.
-Require Import XR_Rmax_l.
-Require Import XR_Rmax_neg.
-Require Import XR_Rmax_right.
-Require Import XR_Rmax_Rle.
-Require Import XR_Rmax_Rlt.
-Require Import XR_RmaxRmult.
-Require Import XR_Rmax_r.
-Require Import XR_Rmax_stable_in_negreal.
-Require Import XR_RmaxSym.
-Require Import XR_Rmax.
-Require Import XR_Rmin_assoc.
-Require Import XR_Rmin_case_strong.
-Require Import XR_Rmin_case.
-Require Import XR_Rmin_comm.
-Require Import XR_Rmin_glb_lt.
-Require Import XR_Rmin_glb.
-Require Import XR_Rmin_left.
-Require Import XR_Rmin_l.
-Require Import XR_Rminmax.
-Require Import XR_Rmin_pos.
-Require Import XR_Rmin_Rgt_l.
-Require Import XR_Rmin_Rgt_r.
-Require Import XR_Rmin_Rgt.
-Require Import XR_Rmin_right.
-Require Import XR_Rmin_r.
-Require Import XR_Rmin_stable_in_posreal.
-Require Import XR_Rminus_0_l.
-Require Import XR_Rminus_0_r.
-Require Import XR_Rminus_diag_eq.
-Require Import XR_Rminus_diag_uniq_sym.
-Require Import XR_Rminus_diag_uniq.
-Require Import XR_Rminus_eq_contra.
-Require Import XR_Rminus_fp1.
-Require Import XR_Rminus_fp2.
-Require Import XR_Rminus_Int_part1.
-Require Import XR_Rminus_Int_part2.
-Require Import XR_Rminus_le.
-Require Import XR_Rminus_lt.
-Require Import XR_Rminus_not_eq_right.
-Require Import XR_Rminus_not_eq.
-Require Import XR_Rminus.
-Require Import XR_Rmin.
-Require Import XR_Rmult_0_l.
-Require Import XR_Rmult_0_r.
-Require Import XR_Rmult_1_l.
-Require Import XR_Rmult_1_r.
-Require Import XR_Rmult_assoc.
-Require Import XR_Rmult_comm.
-Require Import XR_Rmult_eq_0_compat_l.
-Require Import XR_Rmult_eq_0_compat_r.
-Require Import XR_Rmult_eq_0_compat.
-Require Import XR_Rmult_eq_compat_l.
-Require Import XR_Rmult_eq_compat_r.
-Require Import XR_Rmult_eq_reg_l.
-Require Import XR_Rmult_eq_reg_r.
-Require Import XR_Rmult_integral_contrapositive_currified.
-Require Import XR_Rmult_integral_contrapositive.
-Require Import XR_Rmult_integral.
-Require Import XR_Rmult_le_0_lt_compat.
-Require Import XR_Rmult_le_compat_l.
-Require Import XR_Rmult_le_compat_neg_l.
-Require Import XR_Rmult_le_compat_r.
-Require Import XR_Rmult_le_compat.
-Require Import XR_Rmult_le_pos.
-Require Import XR_Rmult_le_reg_l.
-Require Import XR_Rmult_le_reg_r.
-Require Import XR_Rmult_lt_0_compat.
-Require Import XR_Rmult_lt_compat_l.
-Require Import XR_Rmult_lt_compat_r.
-Require Import XR_Rmult_lt_reg_l.
-Require Import XR_Rmult_lt_reg_r.
-Require Import XR_Rmult_minus_distr_l.
-Require Import XR_Rmult_neq_0_reg.
-Require Import XR_Rmult_ne.
-Require Import XR_Rmult_opp_opp.
-Require Import XR_Rmult_plus_distr_l.
-Require Import XR_Rmult_plus_distr_r.
-Require Import XR_Rmult.
-Require Import XR_Rnot_le_lt.
-Require Import XR_Rnot_lt_le.
-Require Import XR_Ropp_0.
-Require Import XR_Ropp_div.
-Require Import XR_Ropp_eq_0_compat.
-Require Import XR_Ropp_eq_compat.
-Require Import XR_Ropp_involutive.
-Require Import XR_Ropp_inv_permute.
-Require Import XR_Ropp_le_cancel.
-Require Import XR_Ropp_le_contravar.
-Require Import XR_Ropp_lt_cancel.
-Require Import XR_Ropp_lt_contravar.
-Require Import XR_Ropp_minus_distr.
-Require Import XR_Ropp_minus_distr_.
-Require Import XR_Ropp_mult_distr_l_reverse.
-Require Import XR_Ropp_mult_distr_l.
-Require Import XR_Ropp_mult_distr_r_reverse.
-Require Import XR_Ropp_mult_distr_r.
-Require Import XR_Ropp_neq_0_compat.
-Require Import XR_Ropp_plus_distr.
-Require Import XR_Ropp_Rmax.
-Require Import XR_Ropp_Rmin.
-Require Import XR_Ropp_Ropp_IZR.
-Require Import XR_Ropp.
-Require Import XR_Rplus_0_l.
-Require Import XR_Rplus_0_r_uniq.
-Require Import XR_Rplus_0_r.
-Require Import XR_Rplus_assoc.
-Require Import XR_Rplus_comm.
-Require Import XR_Rplus_eq_0_l.
-Require Import XR_Rplus_eq_compat_l.
-Require Import XR_Rplus_eq_compat_r.
-Require Import XR_Rplus_eq_R0.
-Require Import XR_Rplus_eq_reg_l.
-Require Import XR_Rplus_eq_reg_r.
-Require Import XR_Rplus_le_compat_l.
-Require Import XR_Rplus_le_compat_r.
-Require Import XR_Rplus_le_compat.
-Require Import XR_Rplus_le_le_0_compat.
-Require Import XR_Rplus_le_lt_0_compat.
-Require Import XR_Rplus_le_lt_compat.
-Require Import XR_Rplus_le_reg_l.
-Require Import XR_Rplus_le_reg_pos_r.
-Require Import XR_Rplus_le_reg_r.
-Require Import XR_Rplus_lt_0_compat.
-Require Import XR_Rplus_lt_compat_l.
-Require Import XR_Rplus_lt_compat_r.
-Require Import XR_Rplus_lt_compat.
-Require Import XR_Rplus_lt_le_0_compat.
-Require Import XR_Rplus_lt_le_compat.
-Require Import XR_Rplus_lt_pos.
-Require Import XR_Rplus_lt_reg_l.
-Require Import XR_Rplus_lt_reg_pos_r.
-Require Import XR_Rplus_lt_reg_r.
-Require Import XR_Rplus_minus.
-Require Import XR_Rplus_ne.
-Require Import XR_Rplus_opp_l.
-Require Import XR_Rplus_opp_r_uniq.
-Require Import XR_Rplus_opp_r.
-Require Import XR_Rplus_sqr_eq_0_l.
-Require Import XR_Rplus_sqr_eq_0.
-Require Import XR_Rplus.
-Require Import XR_RRle_abs.
-Require Import XR_Rsqr_0_uniq.
-Require Import XR_Rsqr_0.
-Require Import XR_Rsqr_1.
-Require Import XR_Rsqr_abs.
-Require Import XR_Rsqr_div.
-Require Import XR_Rsqr_eq_0.
-Require Import XR_Rsqr_eq_abs_0.
-Require Import XR_Rsqr_eq_abs_1.
-Require Import XR_Rsqr_gt_0_0.
-Require Import XR_Rsqr_incr_0.
-Require Import XR_Rsqr_incr_0_var.
-Require Import XR_Rsqr_incr_1.
-Require Import XR_Rsqr_inj.
-Require Import XR_Rsqr_le_abs_0.
-Require Import XR_Rsqr_le_abs_1.
-Require Import XR_Rsqr_lt_abs_0.
-Require Import XR_Rsqr_lt_abs_1.
-Require Import XR_Rsqr_minus_plus.
-Require Import XR_Rsqr_minus.
-Require Import XR_Rsqr_mult.
-Require Import XR_Rsqr_neg_minus.
-Require Import XR_Rsqr_neg_pos_le_0.
-Require Import XR_Rsqr_neg_pos_le_1.
-Require Import XR_Rsqr_neg.
-Require Import XR_Rsqr_plus_minus.
-Require Import XR_Rsqr_plus.
-Require Import XR_Rsqr_pos_lt.
 Require Import XR_Rsqr.
-Require Import XR_Rtotal_order.
-Require Import XR_R.
-Require Import XR_single_z_r_R1.
-Require Import XR_S_INR.
-Require Import XR_S_O_plus_INR.
-Require Import XR_succ_IZR.
-Require Import XR_sum_inequa_Rle_lt.
-Require Import XR_tech_Rplus.
-Require Import XR_tech_single_z_r_R1.
-Require Import XR_tech_up.
-Require Import XR_total_order_T.
-Require Import XR_up_tech.
-Require Import XR_up.
-Require Import XR_Z_R_minus.
+Require Import XR_plus_le_is_le.
+Require Import XR_Rle_0_sqr.
+Require Import XR_Rsqr_neg_pos_le_0.
+Require Import XR_Rsqr_incr_0_var.
 
 Local Open Scope R_scope.
 
@@ -378,5 +10,50 @@ Lemma triangle_rectangle :
   forall x y z:R,
     R0 <= z -> Rsqr x + Rsqr y <= Rsqr z -> - z <= x <= z /\ - z <= y <= z.
 Proof.
+  intros x y z hz h.
 
+  assert (hxz : Rsqr x <= Rsqr z).
+  {
+    apply plus_le_is_le with (Rsqr y).
+    { apply Rle_0_sqr. }
+    { exact h. }
+  }
 
+  assert (hyz : Rsqr y <= Rsqr z).
+  {
+    apply plus_le_is_le with (Rsqr x).
+    { apply Rle_0_sqr. }
+    {
+      rewrite Rplus_comm.
+      exact h.
+    }
+  }
+
+  split.
+  {
+    split.
+    {
+      apply Rsqr_neg_pos_le_0.
+      { exact hxz. }
+      { exact hz. }
+    }
+    {
+      apply Rsqr_incr_0_var.
+      { exact hxz. }
+      { exact hz. }
+    }
+  }
+  {
+    split.
+    {
+      apply Rsqr_neg_pos_le_0.
+      { exact hyz. }
+      { exact hz. }
+    }
+    {
+      apply Rsqr_incr_0_var.
+      { exact hyz. }
+      { exact hz. }
+    }
+  }
+Qed.
